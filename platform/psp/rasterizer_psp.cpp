@@ -26,7 +26,6 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#define PSP // TODO:XXX:REMOVE THIS
 #ifdef PSP
 
 #include "rasterizer_psp.h"
@@ -154,6 +153,7 @@ void* getStaticVramTexture(unsigned int width, unsigned int height, unsigned int
 	void* result = getStaticVramBuffer(width,height,psm);
 	return (void*)(((unsigned int)result) + ((unsigned int)sceGeEdramGetAddr()));
 }
+
 
 RasterizerPSP::FX::FX() {
 
@@ -629,6 +629,8 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 		//glTexSubImage2D( blit_target, i, 0,0,w,h,format,GL_UNSIGNED_BYTE,&read[ofs] );
 		texture->mipmaps.push_back(memalign(16, size));
 		memcpy((void*)texture->mipmaps[i], &read[ofs], size);
+		//texture->mipmaps.push_back(getStaticVramTexture(mw, mh, GU_PSM_8888));
+		//sceGuCopyImage(GU_PSM_8888, 0, 0, mw, mh, mw, (void *)&read[ofs], 0, 0, mw, (void*)texture->mipmaps[i]);
 		//sceGuTexMode(GU_PSM_8888, 0, 0, 0);
 		//sceGuTexImage(i, w, h, w, texture->tex_id);
 
@@ -638,6 +640,8 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 		h = MAX(1,h>>1);
 
 	}
+
+	sceGuTexSync();
 
 	_rinfo.texture_mem-=texture->total_data_size;
 	texture->total_data_size=tsize;
@@ -3048,7 +3052,8 @@ void RasterizerPSP::set_viewport(const VS::ViewportRect& p_viewport) {
 	viewport=p_viewport;
 	//print_line("viewport: "+itos(p_viewport.x)+","+itos(p_viewport.y)+","+itos(p_viewport.width)+","+itos(p_viewport.height));
 
-	sceGuViewport( viewport.x, window_size.height-(viewport.height+viewport.y), viewport.width,viewport.height );
+	// TODO:XXX:
+	//sceGuViewport( viewport.x, window_size.height-(viewport.height+viewport.y), viewport.width,viewport.height );
 }
 
 void RasterizerPSP::set_render_target(RID p_render_target, bool p_transparent_bg, bool p_vflip) {
@@ -4499,7 +4504,9 @@ void RasterizerPSP::end_scene() {
 	// glEnable(GL_NORMALIZE);
 
 	sceGumMatrixMode(GU_PROJECTION);
-	// sceGumLoadMatrix(&camera_projection.matrix[0][0]);
+	sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
+	sceGumMatrixMode(GU_VIEW);
+	sceGumLoadIdentity();
 	//modelview (fixedpipie)
 	sceGumMatrixMode(GU_MODEL);
 	_gl_load_transform(camera_transform_inverse);
@@ -4621,7 +4628,6 @@ void RasterizerPSP::end_frame() {
 
 	//print_line("VTX: "+itos(_rinfo.vertex_count)+" OBJ: "+itos(_rinfo.object_count)+" MAT: "+itos(_rinfo.mat_change_count)+" SHD: "+itos(_rinfo.shader_change_count));
 
-	
 	sceGuFinish();
 	sceGuSync(0,0);
 
@@ -4729,7 +4735,7 @@ void RasterizerPSP::canvas_set_blend_mode(VS::MaterialBlendMode p_mode) {
 
 void RasterizerPSP::canvas_begin_rect(const Matrix32& p_transform) {
 	// glMatrixMode(GL_MODELVIEW);
-	sceGumMatrixMode(GU_MODEL);
+	sceGumMatrixMode(GU_VIEW);
 	// glLoadIdentity();
 	sceGumLoadIdentity();
 	// glScalef(2.0 / viewport.width, -2.0 / viewport.height, 0);
@@ -4812,19 +4818,13 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 		SWAP( texcoords[0], texcoords[3] );
 	}*/
 
-	Vertex vertices[4] [[gnu::aligned(2)]];
+	Vertex *vertices = (Vertex *)sceGuGetMemory(sizeof(Vertex) * 2);
 	
 	vertices[0].u = p_src_region.pos.x/p_tex_size.width;
 	vertices[0].v = p_src_region.pos.y/p_tex_size.height;
 	
 	vertices[1].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
-	vertices[1].v = p_src_region.pos.y/p_tex_size.height;
-	
-	vertices[2].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
-	vertices[2].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
-	
-	vertices[3].u = p_src_region.pos.x/p_tex_size.width;
-	vertices[3].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
+	vertices[1].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
 /*
 
 	Vector3 coords[4]= {
@@ -4839,20 +4839,12 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 	vertices[0].z = 0;
 	
 	vertices[1].x = p_rect.pos.x+p_rect.size.width;
-	vertices[1].y = p_rect.pos.y;
+	vertices[1].y = p_rect.pos.y+p_rect.size.height;
 	vertices[1].z = 0;
-	
-	vertices[2].x = p_rect.pos.x+p_rect.size.width;
-	vertices[2].y = p_rect.pos.y+p_rect.size.height;
-	vertices[2].z = 0;
-	
-	vertices[3].x = p_rect.pos.x;
-	vertices[3].y = p_rect.pos.y+p_rect.size.height;
-	vertices[3].z = 0;
 
 	// _draw_primitive(4,coords,0,0,texcoords);
 
-	sceGumDrawArray(GU_TRIANGLE_STRIP, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 4 * 2, 0, vertices);
+	sceGumDrawArray(GU_SPRITES, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 2, 0, vertices);
 }
 
 static void _draw_quad(const Rect2& p_rect) {

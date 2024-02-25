@@ -81,7 +81,7 @@ class RasterizerPSP : public Rasterizer {
 	};
 	
 	
-	unsigned int __attribute__((aligned(16))) list[262144];
+	unsigned int list[262144] [[gnu::aligned(16)]];
 	
 
 	uint8_t *skinned_buffer;
