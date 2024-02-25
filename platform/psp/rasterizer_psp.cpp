@@ -26,6 +26,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+#define PSP // TODO:XXX:REMOVE THIS
 #ifdef PSP
 
 #include "rasterizer_psp.h"
@@ -473,14 +474,18 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 	// GLenum format;
 	bool compressed = false;
 
-	int po2_width =  nearest_power_of_2(p_width);
-	int po2_height =  nearest_power_of_2(p_height);
+	int po2_width = nearest_power_of_2(p_width);
+	int po2_height = nearest_power_of_2(p_height);
+	if (po2_width < 16) {
+		po2_width = 16;
+	}
 
 	Texture *texture = texture_owner.get( p_texture );
 	ERR_FAIL_COND(!texture);
 	texture->width=p_width;
 	texture->height=p_height;
-	// texture->format=p_format;
+	//texture->format=p_format;
+	texture->format=Image::FORMAT_RGBA;
 	texture->flags=p_flags;
 	// texture->target = /*(p_flags & VS::TEXTURE_FLAG_CUBEMAP) ? GL_TEXTURE_CUBE_MAP :*/ GL_TEXTURE_2D;
 
@@ -507,7 +512,8 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 
 	// glActiveTexture(GL_TEXTURE0);
 	// glBindTexture(texture->target, texture->tex_id);
-	texture->tex_id = (unsigned char*)memalign(16, texture->alloc_width*texture->alloc_height*4);
+	//texture->tex_id = (unsigned char*)memalign(16, texture->alloc_width*texture->alloc_height*4);
+	ERR_FAIL_COND(compressed);
 	// texture->tex_id = 1;
 	/*
 	if (compressed) {
@@ -539,10 +545,12 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 	}*/
 	bool force_clamp_to_edge = !(p_flags&VS::TEXTURE_FLAG_MIPMAPS) && (nearest_power_of_2(texture->alloc_height)!=texture->alloc_height || nearest_power_of_2(texture->alloc_width)!=texture->alloc_width);
 
+#if 0
 	if (!force_clamp_to_edge && texture->flags&VS::TEXTURE_FLAG_REPEAT) {
 
 		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
 		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+
 		sceGuTexWrap(GU_REPEAT, GU_REPEAT);
 	} else {
 
@@ -551,6 +559,7 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 		// glTexParameterf( texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		sceGuTexWrap(GU_CLAMP, GU_CLAMP);
 	}
+#endif
 
 	texture->active=true;
 }
@@ -576,12 +585,15 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	Image img = p_image;//_get_gl_image_and_format(p_image, p_image.get_format(),texture->flags,format,components,alpha,compressed);
 	texture->alloc_width = nearest_power_of_2(img.get_width());
 	texture->alloc_height = nearest_power_of_2(img.get_height());
+	if (texture->alloc_width < 16) {
+		texture->alloc_width = 16;
+	}
 	if (texture->alloc_width != img.get_width() || texture->alloc_height != img.get_height()) {
 
 		img.resize(texture->alloc_width, texture->alloc_height, Image::INTERPOLATE_BILINEAR);
 	};
 	
-	// img.convert(Image::FORMAT_RGBA);
+	img.convert(Image::FORMAT_RGBA);
 
 
 	// GLenum blit_target = /*(texture->target == GL_TEXTURE_CUBE_MAP)?_cube_side_enum[p_cube_side]:*/GL_TEXTURE_2D;
@@ -601,32 +613,25 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	int w=img.get_width();
 	int h=img.get_height();
 
+	texture->_free_mipmaps();
+
 	int tsize=0;
 	for(int i=0;i<mipmaps;i++) {
 
 		int size,ofs;
 		img.get_mipmap_offset_and_size(i,ofs,size);
 
-		if (texture->compressed) {
-			// glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-			// glCompressedTexImage2D( blit_target, i, format,w,h,0,size,&read[ofs] );
-			std::free(texture->tex_id);
-			texture->tex_id = (unsigned char*)memalign(16, size);
-			memcpy((void*)texture->tex_id, &read[ofs], size);
-			sceGuTexMode(GU_PSM_8888, 0, 0, 0);
-			sceGuTexImage(i, w, h, w, texture->tex_id);
+		ERR_FAIL_COND(texture->compressed);
 
-		} else {
-			// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //			glTexImage2D(blit_target, i, format==GL_RGB?GL_RGB8:format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
-			// glTexImage2D(blit_target, i, format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
-			//glTexSubImage2D( blit_target, i, 0,0,w,h,format,GL_UNSIGNED_BYTE,&read[ofs] );
-			std::free(texture->tex_id);
-			texture->tex_id = (unsigned char*)memalign(16, size);
-			memcpy((void*)texture->tex_id, &read[ofs], size);
-			sceGuTexMode(GU_PSM_8888, 0, 0, 0);
-			sceGuTexImage(i, w, h, w, texture->tex_id);
-		}
+		// glTexImage2D(blit_target, i, format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
+		//glTexSubImage2D( blit_target, i, 0,0,w,h,format,GL_UNSIGNED_BYTE,&read[ofs] );
+		texture->mipmaps.push_back(memalign(16, size));
+		memcpy((void*)texture->mipmaps[i], &read[ofs], size);
+		//sceGuTexMode(GU_PSM_8888, 0, 0, 0);
+		//sceGuTexImage(i, w, h, w, texture->tex_id);
+
 		tsize+=size;
 
 		w = MAX(1,w>>1);
@@ -638,7 +643,7 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	texture->total_data_size=tsize;
 	_rinfo.texture_mem+=texture->total_data_size;
 
-	printf("texture: %i x %i - size: %i - total: %i\n",texture->width,texture->height,tsize,_rinfo.texture_mem);
+	printf("texture: %i x %i - size: %i - mipmaps: %d - total: %i\n",texture->width,texture->height,tsize,mipmaps,_rinfo.texture_mem);
 /*
 
 	if (mipmaps==1 && texture->flags&VS::TEXTURE_FLAG_MIPMAPS) {
@@ -4417,7 +4422,7 @@ void RasterizerPSP::end_scene() {
 					// bgcolor = _convert_color(bgcolor);
 					float a = 1.0;
 					sceGuClearColor(MK_RGBA(bgcolor.r*255,bgcolor.g*255,bgcolor.b*255,a*255));
-					sceGuClearDepth(1);
+					sceGuClearDepth(0xFFFF);
 					// glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 					sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 				} else {
@@ -4665,25 +4670,20 @@ void RasterizerPSP::reset_state() {
 
 _FORCE_INLINE_ static void _set_glcoloro(const Color& p_color,const float p_opac) {
 
+	const auto color = MK_RGBA(p_color.r*255,p_color.g*255,p_color.b*255,p_color.a*p_opac*255);
 	// glColor4f(p_color.r, p_color.g, p_color.b, p_color.a*p_opac);
-	sceGuColor(MK_RGBA(p_color.r*255,p_color.g*255,p_color.b*255,p_color.a*p_opac*255));
+	sceGuColor(color);
+	sceGuAmbientColor(color);
 }
 
 
 void RasterizerPSP::canvas_begin() {
-
-
 	reset_state();
 	canvas_opacity=1.0;
-	// glEnable(GL_BLEND);
 	sceGuEnable(GU_BLEND);
-
-
 }
 
 void RasterizerPSP::canvas_disable_blending() {
-
-	// glDisable(GL_BLEND);
 	sceGuDisable(GU_BLEND);
 }
 
@@ -4728,20 +4728,21 @@ void RasterizerPSP::canvas_set_blend_mode(VS::MaterialBlendMode p_mode) {
 
 
 void RasterizerPSP::canvas_begin_rect(const Matrix32& p_transform) {
-
 	// glMatrixMode(GL_MODELVIEW);
 	sceGumMatrixMode(GU_MODEL);
 	// glLoadIdentity();
 	sceGumLoadIdentity();
 	// glScalef(2.0 / viewport.width, -2.0 / viewport.height, 0);
-	// sceGumScale(ScePspFVector3(2.0 / viewport.width, -2.0 / viewport.height, 0));
+	const ScePspFVector3 aScale{2.f / viewport.width, -2.f / viewport.height, 0};
+	sceGumScale(&aScale);
+	const ScePspFVector3 aTranslate{(-(viewport.width / 2.f)), (-(viewport.height / 2.f)), 0};
 	// glTranslatef((-(viewport.width / 2.0)), (-(viewport.height / 2.0)), 0);
-	// sceGumTranslate(ScePspFVector3((-(viewport.width / 2.0)), (-(viewport.height / 2.0)), 0));
+	sceGumTranslate(&aTranslate);
+
 	_gl_mult_transform(p_transform);
 
 	// glPushMatrix();
 	sceGumPushMatrix();
-
 }
 
 void RasterizerPSP::canvas_set_clip(bool p_clip, const Rect2& p_rect) {
@@ -4752,8 +4753,7 @@ void RasterizerPSP::canvas_set_clip(bool p_clip, const Rect2& p_rect) {
 	//	glScissor(viewport.x+p_rect.pos.x,viewport.y+ (viewport.height-(p_rect.pos.y+p_rect.size.height)),
 		//p_rect.size.width,p_rect.size.height);
 		//glScissor(p_rect.pos.x,(viewport.height-(p_rect.pos.y+p_rect.size.height)),p_rect.size.width,p_rect.size.height);
-		sceGuScissor(viewport.x+p_rect.pos.x,viewport.y+ (window_size.y-(p_rect.pos.y+p_rect.size.height)),
-		p_rect.size.width,p_rect.size.height);
+		sceGuScissor(viewport.x+p_rect.pos.x,viewport.y+ (window_size.y-(p_rect.pos.y+p_rect.size.height)), p_rect.size.width,p_rect.size.height);
 	} else {
 
 		sceGuDisable(GU_SCISSOR_TEST);
@@ -4763,7 +4763,6 @@ void RasterizerPSP::canvas_set_clip(bool p_clip, const Rect2& p_rect) {
 }
 
 void RasterizerPSP::canvas_end_rect() {
-
 	sceGumPopMatrix();
 }
 
@@ -4788,9 +4787,6 @@ void RasterizerPSP::canvas_draw_line(const Point2& p_from, const Point2& p_to,co
 }
 
 static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, const Size2& p_tex_size,bool p_flip_h=false,bool p_flip_v=false ) {
-
-	
-	
 	// vertices = (Vertex*)sceGuGetMemory(4 * sizeof(struct Vertex));
 	/*
 	Vector3 texcoords[4]= {
@@ -4815,22 +4811,20 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 		SWAP( texcoords[1], texcoords[2] );
 		SWAP( texcoords[0], texcoords[3] );
 	}*/
+
+	Vertex vertices[4] [[gnu::aligned(2)]];
 	
 	vertices[0].u = p_src_region.pos.x/p_tex_size.width;
 	vertices[0].v = p_src_region.pos.y/p_tex_size.height;
-	// vertices[0].z = 0;
 	
 	vertices[1].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
 	vertices[1].v = p_src_region.pos.y/p_tex_size.height;
-	// vertices[1].z = 0;
 	
 	vertices[2].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
 	vertices[2].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
-	// vertices[2].z = 0;
 	
 	vertices[3].u = p_src_region.pos.x/p_tex_size.width;
 	vertices[3].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
-	// vertices[3].z = 0;
 /*
 
 	Vector3 coords[4]= {
@@ -4857,7 +4851,8 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 	vertices[3].z = 0;
 
 	// _draw_primitive(4,coords,0,0,texcoords);
-	sceGuDrawArray(GU_TRIANGLE_FAN, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 4, 0, vertices);
+
+	sceGumDrawArray(GU_TRIANGLE_STRIP, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 4 * 2, 0, vertices);
 }
 
 static void _draw_quad(const Rect2& p_rect) {
@@ -4885,13 +4880,17 @@ void RasterizerPSP::canvas_draw_rect(const Rect2& p_rect, int p_flags, const Rec
 		ERR_FAIL_COND(!texture);
 		// glActiveTexture(GL_TEXTURE0);
 		// glBindTexture( GL_TEXTURE_2D,texture->tex_id );
-		
-		sceGuTexMode(GU_PSM_8888,0,0,0); // 8-bit image
-		sceGuTexImage(0,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->tex_id);
+
+		sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 0);
 		sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
-		// sceGuTexFilter(GU_LINEAR,GU_LINEAR);
-		// sceGuTexScale(1.0f,1.0f);
-		// sceGuTexOffset(0.0f,0.0f);
+
+		sceGuTexFilter(GU_LINEAR,GU_LINEAR);
+		sceGuTexScale(1.0f,1.0f);
+		sceGuTexOffset(0.0f,0.0f);
+
+		for (int i = 0; i < texture->mipmaps.size(); ++i) {
+			sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
+		}
 
 		if (!(p_flags&CANVAS_RECT_REGION)) {
 
@@ -4906,6 +4905,8 @@ void RasterizerPSP::canvas_draw_rect(const Rect2& p_rect, int p_flags, const Rec
 		}
 		
 	} else {
+
+		WARN_PRINT("p_texture is not valid");
 
 		sceGuDisable(GU_TEXTURE_2D);
 		_draw_quad( p_rect );
@@ -4923,9 +4924,11 @@ void RasterizerPSP::canvas_draw_style_box(const Rect2& p_rect, RID p_texture,con
 	ERR_FAIL_COND(!texture);
 
 	sceGuEnable(GU_TEXTURE_2D);
-	sceGuTexMode(GU_PSM_8888,0,0,0); // 8-bit image
-	sceGuTexImage(0,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->tex_id);
+	sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 0);
 	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+	for (int i = 0; i < texture->mipmaps.size(); ++i) {
+		sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
+	}
 
 
 	/* CORNERS */
@@ -5007,9 +5010,15 @@ void RasterizerPSP::canvas_draw_primitive(const Vector<Point2>& p_points, const 
 		sceGuEnable(GU_TEXTURE_2D);
 		Texture *texture = texture_owner.get( p_texture );
 		if (texture) {
-			sceGuTexMode(GU_PSM_8888,0,0,0); // 8-bit image
-			sceGuTexImage(0,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->tex_id);
+			sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 0);
+			sceGuTexFilter(GU_LINEAR,GU_LINEAR);
+			sceGuTexScale(1.0f,1.0f);
+			sceGuTexOffset(0.0f,0.0f);
 			sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+
+			for (int i = 0; i < texture->mipmaps.size(); ++i) {
+				sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
+			}
 		}
 	}
 
@@ -5504,7 +5513,7 @@ void RasterizerPSP::free(const RID& p_rid) {
 		// delete the texture
 		Texture *texture = texture_owner.get(p_rid);
 
-		std::free(texture->tex_id);
+		texture->_free_mipmaps();
 		_rinfo.texture_mem-=texture->total_data_size;
 		texture_owner.free(p_rid);
 		memdelete(texture);

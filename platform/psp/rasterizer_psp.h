@@ -55,22 +55,20 @@
 
 #include "servers/visual/particle_system_sw.h"
 
-// #define ABGR(a,b,g,r)        (((a) << 24)|((b) << 16)|((g) << 8)|(r))
-#define MK_RGBA(r,g,b,a)        GU_ARGB((int)(a),(int)(r),(int)(g),(int)(b))
+#define MK_RGBA(r,g,b,a) GU_RGBA((int)(r),(int)(g),(int)(b),(int)(a))
 #include <pspge.h>
 // #include "os_psp.h"
 /*
 */
 
+inline const ScePspFVector3 g_idMapping{32768.0f, 32768.0f, 32768.0f};
 
-struct Vertex
-{
+
+struct [[gnu::packed, gnu::aligned(2)]] Vertex {
 	float u, v;
 	// unsigned int color;
 	float x,y,z;
 };
-
-static struct Vertex vertices[4];
 
 class RasterizerPSP : public Rasterizer {
 
@@ -120,8 +118,7 @@ class RasterizerPSP : public Rasterizer {
 		Image image[6];
 
 		bool active;
-		// GLuint tex_id;
-		unsigned char* tex_id;
+		Vector<void *> mipmaps;
 
 		ObjectID reloader;
 		StringName reloader_func;
@@ -129,7 +126,6 @@ class RasterizerPSP : public Rasterizer {
 		Texture() {
 
 			flags=width=height=0;
-			tex_id=0;
 			data_size=0;
 			format=Image::FORMAT_GRAYSCALE;
 			gl_components_cache=0;
@@ -141,13 +137,15 @@ class RasterizerPSP : public Rasterizer {
 			total_data_size=0;
 		}
 
-		~Texture() {
-
-			if (tex_id!=0) {
-
-				// glDeleteTextures(1,&tex_id);
-				std::free(tex_id);
+		inline void _free_mipmaps() {
+			for (int i = 0; i < mipmaps.size(); ++i) {
+				std::free(mipmaps[i]);
 			}
+			mipmaps.clear();
+		}
+
+		~Texture() {
+			_free_mipmaps();
 		}
 	};
 

@@ -1,3 +1,6 @@
+import shlex
+from SCons.Node import NodeList
+
 Import('env')
 
 
@@ -9,7 +12,7 @@ common_psp=[\
 prog = env.Program('#bin/godot_psp',['godot_psp.cpp']+common_psp)
 
 env.Command(
-	"#bin/godot.elf", prog ,"psp-fixup-imports -o bin/godot.elf bin/godot_psp.psp.opt.32"
+	"#bin/godot.elf", prog, shlex.join(['psp-fixup-imports', '-o', 'bin/godot.elf', str(prog if not isinstance(prog, NodeList) else prog[0])])
 )
 
 env.Command(
