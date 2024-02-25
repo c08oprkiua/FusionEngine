@@ -4504,7 +4504,7 @@ void RasterizerPSP::end_scene() {
 	// glEnable(GL_NORMALIZE);
 
 	sceGumMatrixMode(GU_PROJECTION);
-	sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
+	// sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
 	sceGumMatrixMode(GU_VIEW);
 	sceGumLoadIdentity();
 	//modelview (fixedpipie)
@@ -4746,7 +4746,8 @@ void RasterizerPSP::canvas_begin_rect(const Matrix32& p_transform) {
 	sceGumTranslate(&aTranslate);
 
 	_gl_mult_transform(p_transform);
-
+	// const ScePspFVector3 rot{90, 0, p_transform.elements[1][0]};
+	// sceGumRotateXYZ(&rot);
 	// glPushMatrix();
 	sceGumPushMatrix();
 }
