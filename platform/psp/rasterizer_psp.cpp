@@ -198,52 +198,92 @@ RasterizerPSP::FX::FX() {
 
 static const int prim_type[]={GU_POINTS,GU_LINES,GU_TRIANGLES,GU_TRIANGLE_FAN};
 
-static void _draw_primitive(int p_points, const Vector3 *p_vertices, const Vector3 *p_normals, const Color* p_colors, const Vector3 *p_uvs,const Plane *p_tangents=NULL,int p_instanced=1) {
+struct VertexPool {
+	VertexPool(int p_points) : m_points{p_points} {}
+	~VertexPool() {}
 
+	void *pack() {
+		const int sz = m_points * (
+			3 * sizeof(float)
+			+ (m_uvs ? 2 * sizeof(float) : 0)
+			+ (m_colors ? 4 : 0)
+			+ (m_normals ? 3 * sizeof(float) : 0)
+			);
+		void *mem = sceGuGetMemory(sz);
+		int ptr{};
+
+		for (int i = 0; i < m_points; ++i) {
+			if (m_uvs) {
+				paste<float>(mem, m_uvs[i].x, ptr);
+				paste<float>(mem, m_uvs[i].y, ptr);
+			}
+			if (m_colors) {
+				paste<int>(mem, MK_RGBA(m_colors[i].r * 255, m_colors[i].g * 255, m_colors[i].b * 255, m_colors[i].a * 255), ptr);
+			}
+			if (m_normals) {
+				paste<Vector3>(mem, m_normals[i], ptr);
+			}
+
+			paste<Vector3>(mem, m_vertices[i], ptr);
+		}
+
+		return mem;
+	}
+
+	int attrs() {
+		return (
+			GU_VERTEX_32BITF
+			| (m_uvs ? GU_TEXTURE_32BITF : 0)
+			| (m_colors ? GU_COLOR_8888 : 0)
+			| (m_normals ? GU_NORMAL_32BITF : 0)
+		);
+	}
+
+	void vertex(const Vector3 *p_vertices) {
+		m_vertices = p_vertices;
+	}
+
+	void uv(const Vector3 *p_uvs) {
+		m_uvs = p_uvs;
+	}
+
+	void color(const Color *p_colors) {
+		m_colors = p_colors;
+	}
+
+	void normal(const Vector3 *p_normals) {
+		m_normals = p_normals;
+	}
+
+private:
+	template <class T>
+	static void paste(void *mem, T value, int &ptr) {
+		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = value;
+		ptr += sizeof(T);
+	}
+
+	int m_points;
+
+	const Vector3 *m_uvs;
+	const Color *m_colors;
+	const Vector3 *m_normals;
+	const Vector3 *m_vertices;
+};
+
+static void _draw_primitive(int p_points, const Vector3 *p_vertices, const Vector3 *p_normals, const Color* p_colors, const Vector3 *p_uvs,const Plane *p_tangents=NULL,int p_instanced=1) {
 	ERR_FAIL_COND(!p_vertices);
 	ERR_FAIL_COND(p_points <1 || p_points>4);
 
 	int type = prim_type[p_points - 1];
-	int vtype = GU_VERTEX_32BITF;
-	void *data;// = (void*)p_vertices;
 
-	//if (!p_colors) {
-	//	glColor4f(1, 1, 1, 1);
-	//};
+	VertexPool vp{p_points};
 
-	// glEnableClientState(GL_VERTEX_ARRAY);
-	// glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)p_vertices);
+	vp.vertex(p_vertices);
+	vp.normal(p_normals);
+	vp.color(p_colors);
+	vp.uv(p_uvs);
 
-	if (p_normals) {
-
-			// glEnableClientState(GL_NORMAL_ARRAY);
-			// glNormalPointer(GL_FLOAT, 0, (GLvoid*)p_normals);
-		// vtype |= GU_NORMAL_32BITF;
-	};
-
-	if (p_colors) {
-			// glEnableClientState(GL_COLOR_ARRAY);
-			// glColorPointer(4,GL_FLOAT, 0, p_colors);
-		//TODO: convert to rgba colors the psp needs
-	};
-/*
-	if (p_uvs) {
-		data = malloc(sizeof(p_vertices)+sizeof(p_uvs));
-			// glClientActiveTexture(GL_TEXTURE0);
-			// glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			// // glTexCoordPointer(3, GL_FLOAT, 0, p_uvs);
-		vtype |= GU_TEXTURE_32BITF;
-		// data += (void*)p_uvs;
-		memcpy(data, p_vertices, sizeof(p_vertices));
-		// memcpy(((unsigned char *)(data) + sizeof(p_vertices)), p_uvs, sizeof(p_uvs));
-	};
-
-	sceGuDrawArray(type, vtype|GU_TRANSFORM_2D, p_points, 0, (void*)p_uvs);
-	free(data);*/
-	// glDisableClientState(GL_VERTEX_ARRAY);
-	// glDisableClientState(GL_NORMAL_ARRAY);
-	// glDisableClientState(GL_COLOR_ARRAY);
-	// glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	sceGumDrawArray(type, vp.attrs()|GU_TRANSFORM_3D, p_points, 0, vp.pack());
 };
 
 /* TEXTURE API */
@@ -4799,8 +4839,6 @@ void RasterizerPSP::canvas_draw_line(const Point2& p_from, const Point2& p_to,co
 }
 
 static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, const Size2& p_tex_size,bool p_flip_h=false,bool p_flip_v=false ) {
-	// vertices = (Vertex*)sceGuGetMemory(4 * sizeof(struct Vertex));
-	/*
 	Vector3 texcoords[4]= {
 		Vector3( p_src_region.pos.x/p_tex_size.width,
 		p_src_region.pos.y/p_tex_size.height, 0),
@@ -4814,7 +4852,8 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 		Vector3( p_src_region.pos.x/p_tex_size.width,
 		(p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height, 0)
 	};
-	
+
+
 	if (p_flip_h) {
 		SWAP( texcoords[0], texcoords[1] );
 		SWAP( texcoords[2], texcoords[3] );
@@ -4822,45 +4861,19 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 	if (p_flip_v) {
 		SWAP( texcoords[1], texcoords[2] );
 		SWAP( texcoords[0], texcoords[3] );
-	}*/
+	}
 
-	Vertex *vertices = (Vertex *)sceGuGetMemory(sizeof(Vertex) * 4);
-	
-	vertices[0].u = p_src_region.pos.x/p_tex_size.width;
-	vertices[0].v = p_src_region.pos.y/p_tex_size.height;
-	
-	vertices[1].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
-	vertices[1].v = p_src_region.pos.y/p_tex_size.height;
-	
-	vertices[2].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
-	vertices[2].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
-	
-	vertices[3].u = p_src_region.pos.x/p_tex_size.width;
-	vertices[3].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
-	
-	vertices[0].x = p_rect.pos.x;
-	vertices[0].y = p_rect.pos.y;
-	vertices[0].z = 0;
-	
-	vertices[1].x = p_rect.pos.x+p_rect.size.width;
-	vertices[1].y = p_rect.pos.y;
-	vertices[1].z = 0;
-	
-	vertices[2].x = p_rect.pos.x+p_rect.size.width;
-	vertices[2].y = p_rect.pos.y+p_rect.size.height;
-	vertices[2].z = 0;
-	
-	vertices[3].x = p_rect.pos.x;
-	vertices[3].y = p_rect.pos.y+p_rect.size.height;
-	vertices[3].z = 0;
+	Vector3 coords[4]= {
+		Vector3( p_rect.pos.x, p_rect.pos.y, 0 ),
+		Vector3( p_rect.pos.x+p_rect.size.width, p_rect.pos.y, 0 ),
+		Vector3( p_rect.pos.x+p_rect.size.width, p_rect.pos.y+p_rect.size.height, 0 ),
+		Vector3( p_rect.pos.x,p_rect.pos.y+p_rect.size.height, 0 )
+	};
 
-	// _draw_primitive(4,coords,0,0,texcoords);
-
-	sceGumDrawArray(GU_TRIANGLE_FAN, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 4, 0, vertices);
+	_draw_primitive(4,coords,0,0,texcoords);
 }
 
 static void _draw_quad(const Rect2& p_rect) {
-
 	Vector3 coords[4]= {
 		Vector3( p_rect.pos.x,p_rect.pos.y, 0 ),
 		Vector3( p_rect.pos.x+p_rect.size.width,p_rect.pos.y, 0 ),
@@ -4869,7 +4882,6 @@ static void _draw_quad(const Rect2& p_rect) {
 	};
 
 	_draw_primitive(4,coords,0,0,0);
-
 }
 
 
