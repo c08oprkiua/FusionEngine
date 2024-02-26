@@ -198,78 +198,6 @@ RasterizerPSP::FX::FX() {
 
 static const int prim_type[]={GU_POINTS,GU_LINES,GU_TRIANGLES,GU_TRIANGLE_FAN};
 
-struct VertexPool {
-	VertexPool(int p_points) : m_points{p_points} {}
-	~VertexPool() {}
-
-	void *pack() {
-		const int sz = m_points * (
-			3 * sizeof(float)
-			+ (m_uvs ? 2 * sizeof(float) : 0)
-			+ (m_colors ? 4 : 0)
-			+ (m_normals ? 3 * sizeof(float) : 0)
-			);
-		void *mem = sceGuGetMemory(sz);
-		int ptr{};
-
-		for (int i = 0; i < m_points; ++i) {
-			if (m_uvs) {
-				paste<float>(mem, m_uvs[i].x, ptr);
-				paste<float>(mem, m_uvs[i].y, ptr);
-			}
-			if (m_colors) {
-				paste<int>(mem, MK_RGBA(m_colors[i].r * 255, m_colors[i].g * 255, m_colors[i].b * 255, m_colors[i].a * 255), ptr);
-			}
-			if (m_normals) {
-				paste<Vector3>(mem, m_normals[i], ptr);
-			}
-
-			paste<Vector3>(mem, m_vertices[i], ptr);
-		}
-
-		return mem;
-	}
-
-	int attrs() {
-		return (
-			GU_VERTEX_32BITF
-			| (m_uvs ? GU_TEXTURE_32BITF : 0)
-			| (m_colors ? GU_COLOR_8888 : 0)
-			| (m_normals ? GU_NORMAL_32BITF : 0)
-		);
-	}
-
-	void vertex(const Vector3 *p_vertices) {
-		m_vertices = p_vertices;
-	}
-
-	void uv(const Vector3 *p_uvs) {
-		m_uvs = p_uvs;
-	}
-
-	void color(const Color *p_colors) {
-		m_colors = p_colors;
-	}
-
-	void normal(const Vector3 *p_normals) {
-		m_normals = p_normals;
-	}
-
-private:
-	template <class T>
-	static void paste(void *mem, T value, int &ptr) {
-		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = value;
-		ptr += sizeof(T);
-	}
-
-	int m_points;
-
-	const Vector3 *m_uvs;
-	const Color *m_colors;
-	const Vector3 *m_normals;
-	const Vector3 *m_vertices;
-};
-
 static void _draw_primitive(int p_points, const Vector3 *p_vertices, const Vector3 *p_normals, const Color* p_colors, const Vector3 *p_uvs,const Plane *p_tangents=NULL,int p_instanced=1) {
 	ERR_FAIL_COND(!p_vertices);
 	ERR_FAIL_COND(p_points <1 || p_points>4);
@@ -1413,14 +1341,6 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 	Surface *surface = memnew( Surface );
 	ERR_FAIL_COND( !surface );
 
-	bool use_VBO=true; //glGenBuffersARB!=NULL; // TODO detect if it's in there
-	if (format&VS::ARRAY_FORMAT_WEIGHTS || mesh->morph_target_count>0) {
-
-		use_VBO=false;
-	}
-
-	surface->packed=pack_arrays && use_VBO;
-
 	int total_elem_size=0;
 
 	for (int i=0;i<VS::ARRAY_MAX;i++) {
@@ -1589,33 +1509,14 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 	DVector<uint8_t>::Write iaw;
 
 	/* create pointers */
-	if (use_VBO) {
-
-		array_pre_vbo.resize(surface->array_len*surface->stride);
-		vaw = array_pre_vbo.write();
-		array_ptr=vaw.ptr();
-
-		if (surface->index_array_len) {
-
-			index_array_pre_vbo.resize(surface->index_array_len*surface->array[VS::ARRAY_INDEX].size);
-			iaw = index_array_pre_vbo.write();
-			index_array_ptr=iaw.ptr();
-		}
-	} else {
-
-		surface->array_local = (uint8_t*)memalloc(surface->array_len*surface->stride);
-		array_ptr=(uint8_t*)surface->array_local;
-		if (surface->index_array_len) {
-			surface->index_array_local = (uint8_t*)memalloc(index_array_len*surface->array[VS::ARRAY_INDEX].size);
-			index_array_ptr=(uint8_t*)surface->index_array_local;
-		}
+	surface->array_local = (uint8_t*)memalloc(surface->array_len*surface->stride);
+	array_ptr=(uint8_t*)surface->array_local;
+	if (surface->index_array_len) {
+		surface->index_array_local = (uint8_t*)memalloc(index_array_len*surface->array[VS::ARRAY_INDEX].size);
+		index_array_ptr=(uint8_t*)surface->index_array_local;
 	}
 
-
-
 	_surface_set_arrays(surface,array_ptr,index_array_ptr,p_arrays,true);
-
-
 /*
 	if (use_VBO) {
 		glGenBuffers(1,&surface->vertex_id);
@@ -3777,8 +3678,6 @@ static const int gl_texcoord_index[VS::ARRAY_MAX-1] = {
 
 
 Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material* p_material, const Skeleton *p_skeleton,const float *p_morphs) {
-/*
-
 	switch(p_geometry->type) {
 
 		case Geometry::GEOMETRY_MULTISURFACE:
@@ -3804,38 +3703,83 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 			ERR_FAIL_COND_V( surf->format != surf->configured_format, ERR_UNCONFIGURED );
 			uint8_t *base=0;
 			int stride=surf->stride;
-			bool use_VBO = (surf->array_local==0);
 			_setup_geometry_vinfo=surf->array_len;
+
+			const_cast<Surface *>(surf)->vp.resize(surf->array_len);
 
 			bool skeleton_valid = p_skeleton && (surf->format&VS::ARRAY_FORMAT_BONES) && (surf->format&VS::ARRAY_FORMAT_WEIGHTS) && !p_skeleton->bones.empty() && p_skeleton->bones.size() > surf->max_bone;
 
 
+			base = surf->array_local;
+			bool can_copy_to_local=surf->local_stride * surf->array_len <= skinned_buffer_size;
+			if (!can_copy_to_local)
+				skeleton_valid=false;
 
-			if (!use_VBO) {
+			
 
-				base = surf->array_local;
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-				bool can_copy_to_local=surf->local_stride * surf->array_len <= skinned_buffer_size;
-				if (!can_copy_to_local)
-					skeleton_valid=false;
+			if (p_morphs && surf->morph_target_count && can_copy_to_local) {
 
-				
+				base = skinned_buffer;
+				stride=surf->local_stride;
 
-				if (p_morphs && surf->morph_target_count && can_copy_to_local) {
+				//copy all first
+				float coef=1.0;
 
-					base = skinned_buffer;
-					stride=surf->local_stride;
+				for(int i=0;i<surf->morph_target_count;i++) {
+					if (surf->mesh->morph_target_mode==VS::MORPH_MODE_NORMALIZED)
+						coef-=p_morphs[i];
+					ERR_FAIL_COND_V( surf->morph_format != surf->morph_targets_local[i].configured_format, ERR_INVALID_DATA );
 
-					//copy all first
-					float coef=1.0;
+				}
 
-					for(int i=0;i<surf->morph_target_count;i++) {
-						if (surf->mesh->morph_target_mode==VS::MORPH_MODE_NORMALIZED)
-							coef-=p_morphs[i];
-						ERR_FAIL_COND_V( surf->morph_format != surf->morph_targets_local[i].configured_format, ERR_INVALID_DATA );
 
+				for(int i=0;i<VS::ARRAY_MAX-1;i++) {
+
+					const Surface::ArrayData& ad=surf->array[i];
+					if (ad.size==0)
+						continue;
+
+					int ofs = ad.ofs;
+					int src_stride=surf->stride;
+					int dst_stride=surf->local_stride;
+					int count = surf->array_len;
+
+					switch(i) {
+
+						case VS::ARRAY_VERTEX:
+						case VS::ARRAY_NORMAL:
+						case VS::ARRAY_TANGENT:
+							{
+
+							for(int k=0;k<count;k++) {
+
+								const float *src = (const float*)&surf->array_local[ofs+k*src_stride];
+								float *dst = (float*)&base[ofs+k*dst_stride];
+
+								dst[0]= src[0]*coef;
+								dst[1]= src[1]*coef;
+								dst[2]= src[2]*coef;
+							} break;
+
+						} break;
+						case VS::ARRAY_TEX_UV:
+						case VS::ARRAY_TEX_UV2: {
+
+							for(int k=0;k<count;k++) {
+
+								const float *src = (const float*)&surf->array_local[ofs+k*src_stride];
+								float *dst = (float*)&base[ofs+k*dst_stride];
+
+								dst[0]= src[0]*coef;
+								dst[1]= src[1]*coef;
+							} break;
+
+						} break;
 					}
+				}
 
+
+				for(int j=0;j<surf->morph_target_count;j++) {
 
 					for(int i=0;i<VS::ARRAY_MAX-1;i++) {
 
@@ -3843,10 +3787,12 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 						if (ad.size==0)
 							continue;
 
+
 						int ofs = ad.ofs;
-						int src_stride=surf->stride;
 						int dst_stride=surf->local_stride;
 						int count = surf->array_len;
+						const uint8_t *morph=surf->morph_targets_local[j].array;
+						float w = p_morphs[j];
 
 						switch(i) {
 
@@ -3857,12 +3803,12 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 								for(int k=0;k<count;k++) {
 
-									const float *src = (const float*)&surf->array_local[ofs+k*src_stride];
+									const float *src_morph = (const float*)&morph[ofs+k*dst_stride];
 									float *dst = (float*)&base[ofs+k*dst_stride];
 
-									dst[0]= src[0]*coef;
-									dst[1]= src[1]*coef;
-									dst[2]= src[2]*coef;
+									dst[0]+= src_morph[0]*w;
+									dst[1]+= src_morph[1]*w;
+									dst[2]+= src_morph[2]*w;
 								} break;
 
 							} break;
@@ -3871,170 +3817,115 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 								for(int k=0;k<count;k++) {
 
-									const float *src = (const float*)&surf->array_local[ofs+k*src_stride];
+									const float *src_morph = (const float*)&morph[ofs+k*dst_stride];
 									float *dst = (float*)&base[ofs+k*dst_stride];
 
-									dst[0]= src[0]*coef;
-									dst[1]= src[1]*coef;
+									dst[0]+= src_morph[0]*w;
+									dst[1]+= src_morph[1]*w;
 								} break;
 
 							} break;
 						}
 					}
+				}
 
+			} else if (skeleton_valid) {
 
-					for(int j=0;j<surf->morph_target_count;j++) {
+				base = skinned_buffer;
+				//copy stuff and get it ready for the skeleton
 
-						for(int i=0;i<VS::ARRAY_MAX-1;i++) {
+				int len = surf->array_len;
+				int src_stride = surf->stride;
+				int dst_stride = surf->stride - ( surf->array[VS::ARRAY_BONES].size + surf->array[VS::ARRAY_WEIGHTS].size );
 
-							const Surface::ArrayData& ad=surf->array[i];
-							if (ad.size==0)
-								continue;
-
-
-							int ofs = ad.ofs;
-							int dst_stride=surf->local_stride;
-							int count = surf->array_len;
-							const uint8_t *morph=surf->morph_targets_local[j].array;
-							float w = p_morphs[j];
-
-							switch(i) {
-
-								case VS::ARRAY_VERTEX:
-								case VS::ARRAY_NORMAL:
-								case VS::ARRAY_TANGENT:
-									{
-
-									for(int k=0;k<count;k++) {
-
-										const float *src_morph = (const float*)&morph[ofs+k*dst_stride];
-										float *dst = (float*)&base[ofs+k*dst_stride];
-
-										dst[0]+= src_morph[0]*w;
-										dst[1]+= src_morph[1]*w;
-										dst[2]+= src_morph[2]*w;
-									} break;
-
-								} break;
-								case VS::ARRAY_TEX_UV:
-								case VS::ARRAY_TEX_UV2: {
-
-									for(int k=0;k<count;k++) {
-
-										const float *src_morph = (const float*)&morph[ofs+k*dst_stride];
-										float *dst = (float*)&base[ofs+k*dst_stride];
-
-										dst[0]+= src_morph[0]*w;
-										dst[1]+= src_morph[1]*w;
-									} break;
-
-								} break;
-							}
-						}
-					}
-
-				} else if (skeleton_valid) {
-
-					base = skinned_buffer;
-					//copy stuff and get it ready for the skeleton
-
-					int len = surf->array_len;
-					int src_stride = surf->stride;
-					int dst_stride = surf->stride - ( surf->array[VS::ARRAY_BONES].size + surf->array[VS::ARRAY_WEIGHTS].size );
-
-					for(int i=0;i<len;i++) {
-						const uint8_t *src = &surf->array_local[i*src_stride];
-						uint8_t *dst = &base[i*dst_stride];
-						memcpy(dst,src,dst_stride);
-					}
-
-
-					stride=dst_stride;
+				for(int i=0;i<len;i++) {
+					const uint8_t *src = &surf->array_local[i*src_stride];
+					uint8_t *dst = &base[i*dst_stride];
+					memcpy(dst,src,dst_stride);
 				}
 
 
-				if (skeleton_valid) {
-					//transform stuff
-
-					const uint8_t *src_weights=&surf->array_local[surf->array[VS::ARRAY_WEIGHTS].ofs];
-					const uint8_t *src_bones=&surf->array_local[surf->array[VS::ARRAY_BONES].ofs];
-					int src_stride = surf->stride;
-					int count = surf->array_len;
-					const Transform *skeleton = &p_skeleton->bones[0];
-
-					for(int i=0;i<VS::ARRAY_MAX-1;i++) {
-
-						const Surface::ArrayData& ad=surf->array[i];
-						if (ad.size==0)
-							continue;
-
-						int ofs = ad.ofs;
+				stride=dst_stride;
+			}
 
 
-						switch(i) {
+			if (skeleton_valid) {
+				//transform stuff
 
-							case VS::ARRAY_VERTEX: {
-								for(int k=0;k<count;k++) {
+				const uint8_t *src_weights=&surf->array_local[surf->array[VS::ARRAY_WEIGHTS].ofs];
+				const uint8_t *src_bones=&surf->array_local[surf->array[VS::ARRAY_BONES].ofs];
+				int src_stride = surf->stride;
+				int count = surf->array_len;
+				const Transform *skeleton = &p_skeleton->bones[0];
 
-									float *ptr=  (float*)&base[ofs+k*stride];
-									const GLfloat* weights = reinterpret_cast<const GLfloat*>(&src_weights[k*src_stride]);
-									const GLfloat *bones = reinterpret_cast<const GLfloat*>(&src_bones[k*src_stride]);
+				for(int i=0;i<VS::ARRAY_MAX-1;i++) {
 
-									Vector3 src( ptr[0], ptr[1], ptr[2] );
-									Vector3 dst;
-									for(int j=0;j<VS::ARRAY_WEIGHTS_SIZE;j++) {
+					const Surface::ArrayData& ad=surf->array[i];
+					if (ad.size==0)
+						continue;
 
-										float w = weights[j];
-										if (w==0)
-											break;
+					int ofs = ad.ofs;
 
-										//print_line("accum "+itos(i)+" += "+rtos(Math::ftoi(bones[j]))+" * "+skeleton[ Math::ftoi(bones[j]) ]+" * "+rtos(w));
-										dst+=skeleton[ Math::fast_ftoi(bones[j]) ].xform(src) * w;
-									}
 
-									ptr[0]=dst.x;
-									ptr[1]=dst.y;
-									ptr[2]=dst.z;
+					switch(i) {
 
-								} break;
+						case VS::ARRAY_VERTEX: {
+							for(int k=0;k<count;k++) {
 
-							} break;
-							case VS::ARRAY_NORMAL:
-							case VS::ARRAY_TANGENT: {
-								for(int k=0;k<count;k++) {
+								float *ptr=  (float*)&base[ofs+k*stride];
+								const float* weights = reinterpret_cast<const float*>(&src_weights[k*src_stride]);
+								const float *bones = reinterpret_cast<const float*>(&src_bones[k*src_stride]);
 
-									float *ptr=  (float*)&base[ofs+k*stride];
-									const GLfloat* weights = reinterpret_cast<const GLfloat*>(&src_weights[k*src_stride]);
-									const GLfloat *bones = reinterpret_cast<const GLfloat*>(&src_bones[k*src_stride]);
+								Vector3 src( ptr[0], ptr[1], ptr[2] );
+								Vector3 dst;
+								for(int j=0;j<VS::ARRAY_WEIGHTS_SIZE;j++) {
 
-									Vector3 src( ptr[0], ptr[1], ptr[2] );
-									Vector3 dst;
-									for(int j=0;j<VS::ARRAY_WEIGHTS_SIZE;j++) {
+									float w = weights[j];
+									if (w==0)
+										break;
 
-										float w = weights[j];
-										if (w==0)
-											break;
+									//print_line("accum "+itos(i)+" += "+rtos(Math::ftoi(bones[j]))+" * "+skeleton[ Math::ftoi(bones[j]) ]+" * "+rtos(w));
+									dst+=skeleton[ Math::fast_ftoi(bones[j]) ].xform(src) * w;
+								}
 
-										//print_line("accum "+itos(i)+" += "+rtos(Math::ftoi(bones[j]))+" * "+skeleton[ Math::ftoi(bones[j]) ]+" * "+rtos(w));
-										dst+=skeleton[ Math::fast_ftoi(bones[j]) ].basis.xform(src) * w;
-									}
-
-									ptr[0]=dst.x;
-									ptr[1]=dst.y;
-									ptr[2]=dst.z;
-
-								} break;
+								ptr[0]=dst.x;
+								ptr[1]=dst.y;
+								ptr[2]=dst.z;
 
 							} break;
-						}
+
+						} break;
+						case VS::ARRAY_NORMAL:
+						case VS::ARRAY_TANGENT: {
+							for(int k=0;k<count;k++) {
+
+								float *ptr=  (float*)&base[ofs+k*stride];
+								const float* weights = reinterpret_cast<const float*>(&src_weights[k*src_stride]);
+								const float *bones = reinterpret_cast<const float*>(&src_bones[k*src_stride]);
+
+								Vector3 src( ptr[0], ptr[1], ptr[2] );
+								Vector3 dst;
+								for(int j=0;j<VS::ARRAY_WEIGHTS_SIZE;j++) {
+
+									float w = weights[j];
+									if (w==0)
+										break;
+
+									//print_line("accum "+itos(i)+" += "+rtos(Math::ftoi(bones[j]))+" * "+skeleton[ Math::ftoi(bones[j]) ]+" * "+rtos(w));
+									dst+=skeleton[ Math::fast_ftoi(bones[j]) ].basis.xform(src) * w;
+								}
+
+								ptr[0]=dst.x;
+								ptr[1]=dst.y;
+								ptr[2]=dst.z;
+
+							} break;
+
+						} break;
 					}
-
 				}
 
-			} else {
-
-				glBindBuffer(GL_ARRAY_BUFFER, surf->vertex_id);
-			};
+			}
 
 
 			for (int i=0;i<(VS::ARRAY_MAX-1);i++) {
@@ -4044,45 +3935,50 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 //				if (!gl_texcoord_shader[i])
 //					continue;
 
-				if (ad.size==0 || i==VS::ARRAY_BONES || i==VS::ARRAY_WEIGHTS || gl_client_states[i]==0 ) {
+				// TODO:XXX:
+				//if (ad.size==0 || i==VS::ARRAY_BONES || i==VS::ARRAY_WEIGHTS || gl_client_states[i]==0 ) {
 
-					if (gl_texcoord_index[i] != -1) {
-						glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
-					}
+				//	if (gl_texcoord_index[i] != -1) {
+				//		glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
+				//	}
 
-					if (gl_client_states[i] != 0)
-						glDisableClientState(gl_client_states[i]);
+				//	if (gl_client_states[i] != 0)
+				//		glDisableClientState(gl_client_states[i]);
 
-					if (i == VS::ARRAY_COLOR) {
-						glColor4f(last_color.r,last_color.g,last_color.b,last_color.a);
-					};
-					continue; // this one is disabled.
-				}
+				//	if (i == VS::ARRAY_COLOR) {
+				//		glColor4f(last_color.r,last_color.g,last_color.b,last_color.a);
+				//	};
+				//	continue; // this one is disabled.
+				//}
 
-				if (gl_texcoord_index[i] != -1) {
-					glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
-				}
+				//if (gl_texcoord_index[i] != -1) {
+				//	glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
+				//}
 
-				glEnableClientState(gl_client_states[i]);
+				//glEnableClientState(gl_client_states[i]);
 
 				switch (i) {
 
 				case VS::ARRAY_VERTEX: {
 
-					glVertexPointer(3,ad.datatype,stride,&base[ad.ofs]);
+					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]));
 
 				} break;
 				case VS::ARRAY_NORMAL: {
 
-					glNormalPointer(ad.datatype,stride,&base[ad.ofs]);
+					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]));
+
 				} break;
 				case VS::ARRAY_COLOR: {
-					glColorPointer(4,ad.datatype,stride,&base[ad.ofs]);
+
+					const_cast<Surface *>(surf)->vp.color(reinterpret_cast<Color *>(&base[ad.ofs]));
+
 				} break;
 				case VS::ARRAY_TEX_UV:
 				case VS::ARRAY_TEX_UV2: {
 
-					glTexCoordPointer(2,ad.datatype,stride,&base[ad.ofs]);
+					const_cast<Surface *>(surf)->vp.uv(reinterpret_cast<Vector2 *>(&base[ad.ofs]));
+
 				} break;
 				case VS::ARRAY_TANGENT: {
 
@@ -4108,91 +4004,41 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 		default: break;
 
 	};
-*/
 	//TODO: Setup geometry
 	return OK;
 };
-/*
-static const GLenum gl_primitive[]={
-	GL_POINTS,
-	GL_LINES,
-	GL_LINE_STRIP,
-	GL_LINE_LOOP,
-	GL_TRIANGLES,
-	GL_TRIANGLE_STRIP,
-	GL_TRIANGLE_FAN
+static const int gl_primitive[]={
+	GU_POINTS,
+	GU_LINES,
+	GU_LINE_STRIP,
+	-1, //GU_LINE_LOOP,
+	GU_TRIANGLES,
+	GU_TRIANGLE_STRIP,
+	GU_TRIANGLE_FAN
 };
 
-static const GLenum gl_poly_primitive[4]={
-	GL_POINTS,
-	GL_LINES,
-	GL_TRIANGLES,
+static const int gl_poly_primitive[4]={
+	GU_POINTS,
+	GU_LINES,
+	GU_TRIANGLES,
 	//GL_QUADS
 
-};*/
+};
 
 
 void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_material, const Skeleton* p_skeleton, const GeometryOwner *p_owner) {
 
-
 	_rinfo.object_count++;
-// TODO: RENDER GEOMETRY
-	// switch(p_geometry->type) {
-/*
+
+	switch(p_geometry->type) {
 		case Geometry::GEOMETRY_SURFACE: {
 
 			Surface *s = (Surface*)p_geometry;
 
 			_rinfo.vertex_count+=s->array_len;
 
-			if (s->packed && s->array_local==0) {
 
-				float sc = (1.0/32767.0)*s->vertex_scale;
-
-				glMatrixMode(GL_MODELVIEW);
-				glPushMatrix();
-				glScalef(sc,sc,sc);
-				if (s->format&VS::ARRAY_FORMAT_TEX_UV) {
-					float uvs=(1.0/32767.0)*s->uv_scale;
-					//glActiveTexture(GL_TEXTURE0);
-					glClientActiveTexture(GL_TEXTURE0);
-					glMatrixMode(GL_TEXTURE);
-					glPushMatrix();
-					glScalef(uvs,uvs,uvs);
-				}
-
-
-			}
-
-
-			if (s->index_array_len>0) {
-
-				if (s->index_array_local) {
-
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-					glDrawElements(gl_primitive[s->primitive], s->index_array_len, (s->array_len>(1<<16))?GL_UNSIGNED_SHORT:GL_UNSIGNED_SHORT, s->index_array_local);
-
-				} else {
-				//	print_line("indices: "+itos(s->index_array_local) );
-
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,s->index_id);
-					glDrawElements(gl_primitive[s->primitive],s->index_array_len, (s->array_len>(1<<16))?GL_UNSIGNED_SHORT:GL_UNSIGNED_SHORT,0);
-				}
-
-
-			} else {
-
-				glDrawArrays(gl_primitive[s->primitive],0,s->array_len);
-
-			};
-
-			if (s->packed && s->array_local==0) {
-				if (s->format&VS::ARRAY_FORMAT_TEX_UV) {
-					glPopMatrix();
-					glMatrixMode(GL_MODELVIEW);
-				}
-				glPopMatrix();
-			};
+			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_TRANSFORM_3D, s->vp.size(), 0, s->vp.pack());
 		} break;
 
 		case Geometry::GEOMETRY_MULTISURFACE: {
@@ -4207,50 +4053,14 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 			const MultiMesh::Element *elements=&mm->elements[0];
 
 			_rinfo.vertex_count+=s->array_len*element_count;
+			for(int i=0;i<element_count;i++) {
+				sceGumPopMatrix();
+				sceGumPushMatrix();
 
+				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-			if (s->index_array_len>0) {
-
-				// glLoadMatrixf(elements[0].matrix);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,s->index_id);
-				for(int i=0;i<element_count;i++) {
-					//glUniformMatrix4fv(material_shader.get_uniform_location(MaterialShaderGLES1::INSTANCE_TRANSFORM), 1, false, elements[i].matrix);
-					// glMultMatrixf(elements[i].matrix);
-					
-					glPopMatrix();
-					glPushMatrix();
-					// glMatrixMode(GL_MODELVIEW);
-					// glLoadIdentity();
-
-					glMultMatrixf(elements[i].matrix);
-
-					// glPushMatrix();
-					glDrawElements(gl_primitive[s->primitive],s->index_array_len, (s->array_len>(1<<16))?GL_UNSIGNED_SHORT:GL_UNSIGNED_SHORT,0);
-					 // glLoadIdentity();
-					// glPopMatrix();
-				}
-
-
-			} else {
-
-				for(int i=0;i<element_count;i++) {
-//					glUniformMatrix4fv(material_shader.get_uniform_location(MaterialShaderGLES1::INSTANCE_TRANSFORM), 1, false, elements[i].matrix);
-					// glLoadMatrixf(elements[i].matrix);
-					glPopMatrix();
-					glPushMatrix();
-					// glMatrixMode(GL_MODELVIEW);
-					// glLoadIdentity();
-
-					glMultMatrixf(elements[i].matrix);
-
-					// glPushMatrix();
-					glDrawArrays(gl_primitive[s->primitive],0,s->array_len);
-					 // glLoadIdentity();
-					 // glPopMatrix();
-				}
-
-
-			 };
+				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_TRANSFORM_3D, s->vp.size(), 0, s->vp.pack());
+			}
 		 } break;
 		case Geometry::GEOMETRY_PARTICLES: {
 
@@ -4265,8 +4075,6 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 			pp.process(&particles->data,particles_instance->transform,td);
 			ERR_EXPLAIN("A parameter in the particle system is not correct.");
 			ERR_FAIL_COND(!pp.valid);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0); //unbind
-			glBindBuffer(GL_ARRAY_BUFFER,0);
 
 
 			Transform camera;
@@ -4307,30 +4115,29 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 				};
 
 
-				glMatrixMode(GL_MODELVIEW);
-				glPushMatrix();
+				sceGumMatrixMode(GU_MODEL);
+				sceGumPushMatrix();
 				_gl_load_transform(camera_transform_inverse);
 				for(int i=0;i<particles->data.amount;i++) {
 
 					ParticleSystemDrawInfoSW::ParticleDrawInfo &pinfo=*particle_draw_info.draw_info_order[i];
 					if (!pinfo.data->active)
 						continue;
-					glPushMatrix();
+					sceGumPushMatrix();
 					_gl_mult_transform(pinfo.transform);
 
-					glColor4f(pinfo.color.r*last_color.r,pinfo.color.g*last_color.g,pinfo.color.b*last_color.b,pinfo.color.a*last_color.a);
+					sceGuColor(MK_RGBA(pinfo.color.r*last_color.r*255,pinfo.color.g*last_color.g*255,pinfo.color.b*last_color.b*255,pinfo.color.a*last_color.a*255));
 					_draw_primitive(4,points,normals,NULL,uvs,tangents);
-					glPopMatrix();
+					sceGumPopMatrix();
 
 				}
-				glPopMatrix();
+				sceGumPopMatrix();
 
 			}
 
 		} break;
 		 default: break;
 	};
-*/
 };
 
 void RasterizerPSP::_setup_shader_params(const Material *p_material) {
@@ -4339,7 +4146,6 @@ void RasterizerPSP::_setup_shader_params(const Material *p_material) {
 
 void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_reverse_cull) {
 
-#if 0
 	const Material *prev_material=NULL;
 	uint64_t prev_light_key=0;
 	const Skeleton *prev_skeleton=NULL;
@@ -4430,10 +4236,6 @@ void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_revers
 		prev_light_key=e->light_key;
 		prev_geometry_type=geometry->type;
 	}
-#endif
-
-
-
 };
 
 

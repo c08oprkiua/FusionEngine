@@ -64,10 +64,103 @@
 inline const ScePspFVector3 g_idMapping{32768.0f, 32768.0f, 32768.0f};
 
 
-struct [[gnu::packed, gnu::aligned(2)]] Vertex {
-	float u, v;
-	// unsigned int color;
-	float x,y,z;
+struct VertexPool {
+	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
+	~VertexPool() {}
+
+	void resize(int p_points) { m_points = p_points; }
+
+	int size() const { return m_points; }
+
+	void *pack() const {
+		ERR_FAIL_NULL_V(m_vertices, nullptr);
+
+		const int sz = m_points * (
+			3 * sizeof(float)
+			+ (m_weights ? 3 * sizeof(float) : 0)
+			+ ((m_uvs || m_uvs2) ? 2 * sizeof(float) : 0)
+			+ (m_colors ? 4 : 0)
+			+ (m_normals ? 3 * sizeof(float) : 0)
+			);
+		void *mem = sceGuGetMemory(sz);
+		ERR_FAIL_NULL_V(mem, nullptr);
+
+		int ptr{};
+
+		for (int i = 0; i < m_points; ++i) {
+			if (m_weights) {
+				paste<Vector3>(mem, m_weights[i], ptr);
+			}
+			if (m_uvs) {
+				paste<float>(mem, m_uvs[i].x, ptr);
+				paste<float>(mem, m_uvs[i].y, ptr);
+			} else if (m_uvs2) {
+				paste<Vector2>(mem, m_uvs2[i], ptr);
+			}
+			if (m_colors) {
+				paste<int>(mem, MK_RGBA(m_colors[i].r * 255, m_colors[i].g * 255, m_colors[i].b * 255, m_colors[i].a * 255), ptr);
+			}
+			if (m_normals) {
+				paste<Vector3>(mem, m_normals[i], ptr);
+			}
+
+			paste<Vector3>(mem, m_vertices[i], ptr);
+		}
+
+		return mem;
+	}
+
+	int attrs() const {
+		return (
+			GU_VERTEX_32BITF
+			| (m_weights ? GU_WEIGHT_32BITF : 0)
+			| ((m_uvs || m_uvs2) ? GU_TEXTURE_32BITF : 0)
+			| (m_colors ? GU_COLOR_8888 : 0)
+			| (m_normals ? GU_NORMAL_32BITF : 0)
+		);
+	}
+
+	void vertex(const Vector3 *p_vertices) {
+		m_vertices = p_vertices;
+	}
+
+	void weight(const Vector3 *p_weights) {
+		m_weights = p_weights;
+	}
+
+	void uv(const Vector3 *p_uvs) {
+		m_uvs = p_uvs;
+		m_uvs2 = nullptr;
+	}
+
+	void uv(const Vector2 *p_uvs) {
+		m_uvs2 = p_uvs;
+		m_uvs = nullptr;
+	}
+
+	void color(const Color *p_colors) {
+		m_colors = p_colors;
+	}
+
+	void normal(const Vector3 *p_normals) {
+		m_normals = p_normals;
+	}
+
+private:
+	template <class T>
+	static inline void paste(void *mem, const T &value, int &ptr) {
+		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = value;
+		ptr += sizeof(T);
+	}
+
+	int m_points;
+
+	const Vector3 *m_weights;
+	const Vector3 *m_uvs;
+	const Vector2 *m_uvs2;
+	const Color *m_colors;
+	const Vector3 *m_normals;
+	const Vector3 *m_vertices;
 };
 
 class RasterizerPSP : public Rasterizer {
@@ -266,16 +359,13 @@ class RasterizerPSP : public Rasterizer {
 		Array data;
 		Array morph_data;
 		ArrayData array[VS::ARRAY_MAX];
-		// support for vertex array objects
-		unsigned int array_object_id;
-		// support for vertex buffer object
-		unsigned int vertex_id; // 0 means, unconfigured
-		unsigned int index_id; // 0 means, unconfigured
-		// no support for the above, array in localmem.
+		
 		uint8_t *array_local;
 		uint8_t *index_array_local;
 
-		bool packed;
+		bool packed;	
+
+		VertexPool vp;
 
 		struct MorphTarget {
 			uint32_t configured_format;
@@ -308,8 +398,9 @@ class RasterizerPSP : public Rasterizer {
 		Point2 uv_min;
 		Point2 uv_max;
 
-		Surface() {
+		Surface() : vp{0} {
 
+			array_local = index_array_local = 0;
 
 			array_len=0;
 			local_stride=0;
@@ -325,9 +416,6 @@ class RasterizerPSP : public Rasterizer {
 			stride=0;
 			morph_targets_local=0;
 			morph_target_count=0;
-
-			array_local = index_array_local = 0;
-			vertex_id = index_id = 0;
 
 			active=false;
 			packed=false;
