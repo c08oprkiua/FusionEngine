@@ -40,7 +40,8 @@
 
 _FORCE_INLINE_ static void _gl_load_transform(const Transform& tr) {
 
-	ScePspFMatrix4 matrix = { /* build a 16x16 matrix */
+	auto matrix = reinterpret_cast<ScePspFMatrix4 *>(sceGuGetMemory(sizeof(ScePspFMatrix4)));
+	*matrix = { /* build a 16x16 matrix */
 		tr.basis.elements[0][0],
 		tr.basis.elements[1][0],
 		tr.basis.elements[2][0],
@@ -58,15 +59,14 @@ _FORCE_INLINE_ static void _gl_load_transform(const Transform& tr) {
 		tr.origin.z,
 		1
 	};
-
-	// glLoadMatrixf(matrix);
-	sceGumLoadMatrix(&matrix);
+	sceGumLoadMatrix(matrix);
 };
 
 
 _FORCE_INLINE_ static void _gl_mult_transform(const Transform& tr) {
 
-	ScePspFMatrix4 matrix  = { /* build a 16x16 matrix */
+	auto matrix = reinterpret_cast<ScePspFMatrix4 *>(sceGuGetMemory(sizeof(ScePspFMatrix4)));
+	*matrix = { /* build a 16x16 matrix */
 		tr.basis.elements[0][0],
 		tr.basis.elements[1][0],
 		tr.basis.elements[2][0],
@@ -84,13 +84,13 @@ _FORCE_INLINE_ static void _gl_mult_transform(const Transform& tr) {
 		tr.origin.z,
 		1
 	};
-
-	sceGumMultMatrix(&matrix);
+	sceGumMultMatrix(matrix);
 };
 
 _FORCE_INLINE_ static void _gl_mult_transform(const Matrix32& tr) {
 
-	ScePspFMatrix4 matrix = { /* build a 16x16 matrix */
+	auto matrix = reinterpret_cast<ScePspFMatrix4 *>(sceGuGetMemory(sizeof(ScePspFMatrix4)));
+	*matrix = { /* build a 16x16 matrix */
 		tr.elements[0][0],
 		tr.elements[0][1],
 		0,
@@ -108,8 +108,7 @@ _FORCE_INLINE_ static void _gl_mult_transform(const Matrix32& tr) {
 		0,
 		1
 	};
-
-	sceGumMultMatrix(&matrix);
+	sceGumMultMatrix(matrix);
 };
 
 static unsigned int staticOffset = 0;
@@ -4300,6 +4299,7 @@ void RasterizerPSP::_setup_shader_params(const Material *p_material) {
 
 void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_reverse_cull) {
 
+#if 0
 	const Material *prev_material=NULL;
 	uint64_t prev_light_key=0;
 	const Skeleton *prev_skeleton=NULL;
@@ -4390,6 +4390,7 @@ void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_revers
 		prev_light_key=e->light_key;
 		prev_geometry_type=geometry->type;
 	}
+#endif
 
 
 
@@ -4504,10 +4505,12 @@ void RasterizerPSP::end_scene() {
 	// glEnable(GL_NORMALIZE);
 
 	sceGumMatrixMode(GU_PROJECTION);
-	// sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
+	sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
+
 	sceGumMatrixMode(GU_VIEW);
 	sceGumLoadIdentity();
-	//modelview (fixedpipie)
+	//sceGumPushMatrix();
+
 	sceGumMatrixMode(GU_MODEL);
 	_gl_load_transform(camera_transform_inverse);
 	sceGumPushMatrix();
@@ -4527,6 +4530,9 @@ void RasterizerPSP::end_scene() {
 
 	_render_list_forward(&alpha_render_list);
 
+	//sceGumMatrixMode(GU_VIEW);
+	//sceGumPopMatrix();
+	sceGumMatrixMode(GU_MODEL);
 	sceGumPopMatrix();
 
 
@@ -4653,6 +4659,8 @@ void RasterizerPSP::reset_state() {
 	sceGumLoadIdentity();
 	sceGumMatrixMode(GU_PROJECTION);
 	sceGumLoadIdentity();
+	sceGumMatrixMode(GU_VIEW);
+	sceGumLoadIdentity();
 	sceGumMatrixMode(GU_MODEL);
 	sceGumLoadIdentity();
 	sceGuColor(MK_RGBA(1,1,1,1));
@@ -4734,21 +4742,18 @@ void RasterizerPSP::canvas_set_blend_mode(VS::MaterialBlendMode p_mode) {
 
 
 void RasterizerPSP::canvas_begin_rect(const Matrix32& p_transform) {
-	// glMatrixMode(GL_MODELVIEW);
-	sceGumMatrixMode(GU_VIEW);
-	// glLoadIdentity();
-	sceGumLoadIdentity();
-	// glScalef(2.0 / viewport.width, -2.0 / viewport.height, 0);
-	const ScePspFVector3 aScale{2.f / viewport.width, -2.f / viewport.height, 0};
-	sceGumScale(&aScale);
-	const ScePspFVector3 aTranslate{(-(viewport.width / 2.f)), (-(viewport.height / 2.f)), 0};
-	// glTranslatef((-(viewport.width / 2.0)), (-(viewport.height / 2.0)), 0);
-	sceGumTranslate(&aTranslate);
+	auto aScale = reinterpret_cast<ScePspFVector3 *>(sceGuGetMemory(sizeof(ScePspFVector3)));
+	*aScale = {2.f / viewport.width, -2.f / viewport.height, 0};
+	auto aTranslate = reinterpret_cast<ScePspFVector3 *>(sceGuGetMemory(sizeof(ScePspFVector3)));
+	*aTranslate = {(-(viewport.width / 2.f)), (-(viewport.height / 2.f)), 0};
 
+	// glMatrixMode(GL_MODELVIEW);
+	sceGumMatrixMode(GU_MODEL);
+	sceGumLoadIdentity();
+	sceGumScale(aScale);
+	sceGumTranslate(aTranslate);
 	_gl_mult_transform(p_transform);
-	// const ScePspFVector3 rot{90, 0, p_transform.elements[1][0]};
-	// sceGumRotateXYZ(&rot);
-	// glPushMatrix();
+
 	sceGumPushMatrix();
 }
 
@@ -4819,33 +4824,39 @@ static void _draw_textured_quad(const Rect2& p_rect, const Rect2& p_src_region, 
 		SWAP( texcoords[0], texcoords[3] );
 	}*/
 
-	Vertex *vertices = (Vertex *)sceGuGetMemory(sizeof(Vertex) * 2);
+	Vertex *vertices = (Vertex *)sceGuGetMemory(sizeof(Vertex) * 4);
 	
 	vertices[0].u = p_src_region.pos.x/p_tex_size.width;
 	vertices[0].v = p_src_region.pos.y/p_tex_size.height;
 	
 	vertices[1].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
-	vertices[1].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
-/*
-
-	Vector3 coords[4]= {
-		Vector3( p_rect.pos.x, p_rect.pos.y, 0 ),
-		Vector3( p_rect.pos.x+p_rect.size.width, p_rect.pos.y, 0 ),
-		Vector3( p_rect.pos.x+p_rect.size.width, p_rect.pos.y+p_rect.size.height, 0 ),
-		Vector3( p_rect.pos.x,p_rect.pos.y+p_rect.size.height, 0 )
-	};*/
+	vertices[1].v = p_src_region.pos.y/p_tex_size.height;
+	
+	vertices[2].u = (p_src_region.pos.x+p_src_region.size.width)/p_tex_size.width;
+	vertices[2].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
+	
+	vertices[3].u = p_src_region.pos.x/p_tex_size.width;
+	vertices[3].v = (p_src_region.pos.y+p_src_region.size.height)/p_tex_size.height;
 	
 	vertices[0].x = p_rect.pos.x;
 	vertices[0].y = p_rect.pos.y;
 	vertices[0].z = 0;
 	
 	vertices[1].x = p_rect.pos.x+p_rect.size.width;
-	vertices[1].y = p_rect.pos.y+p_rect.size.height;
+	vertices[1].y = p_rect.pos.y;
 	vertices[1].z = 0;
+	
+	vertices[2].x = p_rect.pos.x+p_rect.size.width;
+	vertices[2].y = p_rect.pos.y+p_rect.size.height;
+	vertices[2].z = 0;
+	
+	vertices[3].x = p_rect.pos.x;
+	vertices[3].y = p_rect.pos.y+p_rect.size.height;
+	vertices[3].z = 0;
 
 	// _draw_primitive(4,coords,0,0,texcoords);
 
-	sceGumDrawArray(GU_SPRITES, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 2, 0, vertices);
+	sceGumDrawArray(GU_TRIANGLE_FAN, GU_TEXTURE_32BITF|GU_VERTEX_32BITF|GU_TRANSFORM_3D, 4, 0, vertices);
 }
 
 static void _draw_quad(const Rect2& p_rect) {
