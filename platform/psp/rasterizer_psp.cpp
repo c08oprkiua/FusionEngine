@@ -3867,6 +3867,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 			}
 
+			const_cast<Surface *>(surf)->vp.resize(surf->array_len);
 
 			for (int i=0;i<(VS::ARRAY_MAX-1);i++) {
 
@@ -3902,8 +3903,6 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				case VS::ARRAY_VERTEX: {
 
 					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]));
-
-					const_cast<Surface *>(surf)->vp.resize(ad.count);
 
 				} break;
 				case VS::ARRAY_NORMAL: {
@@ -3979,7 +3978,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|((s->index_array_len > 0) ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_local, s->vp.pack());
+			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|(s->index_array_len ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_len ? s->index_array_local : nullptr, s->vp.pack());
 		} break;
 
 		case Geometry::GEOMETRY_MULTISURFACE: {
@@ -4000,7 +3999,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|((s->index_array_len > 0) ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_local, s->vp.pack());
+				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|(s->index_array_len ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_len ? s->index_array_local : nullptr, s->vp.pack());
 			}
 		 } break;
 		case Geometry::GEOMETRY_PARTICLES: {
@@ -4190,6 +4189,14 @@ void RasterizerPSP::end_scene() {
 	depth_write=true;
 	depth_test=true;
 
+	// TODO:XXX: remove this {{{
+#if 1
+	// Depth is currently broken...
+	sceGuDepthMask(GU_FALSE);
+	sceGuDisable(GU_DEPTH_TEST);
+#endif
+	// }}} ~~~~~~~~~~~~~~~~~~~~~
+
 	if (current_env) {
 
 		switch(current_env->bg_mode) {
@@ -4233,7 +4240,7 @@ void RasterizerPSP::end_scene() {
 	} else {
 
 		Color c = Color(0.3,0.3,0.3);
-		sceGuClearColor(MK_RGBA(c.r*255,c.g*255,c.b*255,0.0));
+		sceGuClearColor(MK_RGBA_F(c.r,c.g,c.b,0.f));
 		// glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 	}
@@ -4306,7 +4313,6 @@ void RasterizerPSP::end_scene() {
 	// glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA);
 	_render_list_forward(&opaque_render_list);
-
 
 	alpha_render_list.sort_z();
 	sceGuEnable(GU_BLEND);
@@ -5613,7 +5619,7 @@ void RasterizerPSP::init() {
 	sceGuDepthBuffer(zbp,BUF_WIDTH);
 	sceGuOffset(2048 - (SCR_WIDTH/2),2048 - (SCR_HEIGHT/2));
 	sceGuViewport(2048,2048,SCR_WIDTH,SCR_HEIGHT);
-	sceGuDepthRange(0xc350,0x2710);
+	sceGuDepthRange(0x0000,0xFFFF);
 	sceGuScissor(0,0,SCR_WIDTH,SCR_HEIGHT);
 	sceGuEnable(GU_SCISSOR_TEST);
 	sceGuFrontFace(GU_CW);
@@ -5626,9 +5632,9 @@ void RasterizerPSP::init() {
 	sceGuDisplay(GU_TRUE);
 
 	// glEnable(GL_DEPTH_TEST);
-	// sceGuEnable(GU_DEPTH_TEST);
-	// sceGuDepthFunc(GU_GEQUAL);
-	// sceGuFrontFace(GU_CW);
+	sceGuEnable(GU_DEPTH_TEST);
+	sceGuDepthFunc(GU_LEQUAL);
+	sceGuFrontFace(GU_CW);
 	// glDepthFunc(GL_LEQUAL);
 	// glFrontFace(GL_CW);
 	//glEnable(GL_TEXTURE_2D);
@@ -5731,6 +5737,15 @@ bool RasterizerPSP::needs_to_draw_next_frame() const {
 
 void RasterizerPSP::reload_vram() {
 
+	sceGuEnable(GU_DEPTH_TEST);
+	sceGuDepthFunc(GU_LEQUAL);
+	sceGuFrontFace(GU_CW);
+
+	sceGuClearColor(MK_RGBA(0,0,0,255));
+	//glClearDepth(1.0);
+	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+
+	sceGuEnable(GU_TEXTURE_2D);
 	// TODO: Reload vram
 	/*
 	glEnable(GL_DEPTH_TEST);
