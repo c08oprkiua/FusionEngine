@@ -299,6 +299,7 @@ if selected_platform in platform_list:
 	if (env['xml']=='yes'):
 		env.Append(CPPFLAGS=['-DXML_ENABLED'])
 
+	env.Append(LINKFLAGS = '-Wl,-Map=${TARGET.base}.map')
 
 	Export('env')
 

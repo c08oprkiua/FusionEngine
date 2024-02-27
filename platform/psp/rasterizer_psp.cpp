@@ -40,8 +40,7 @@
 
 _FORCE_INLINE_ static void _gl_load_transform(const Transform& tr) {
 
-	auto matrix = reinterpret_cast<ScePspFMatrix4 *>(sceGuGetMemory(sizeof(ScePspFMatrix4)));
-	*matrix = { /* build a 16x16 matrix */
+	sceGumLoadMatrix(gumake<ScePspFMatrix4>({ /* build a 16x16 matrix */
 		tr.basis.elements[0][0],
 		tr.basis.elements[1][0],
 		tr.basis.elements[2][0],
@@ -58,15 +57,13 @@ _FORCE_INLINE_ static void _gl_load_transform(const Transform& tr) {
 		tr.origin.y,
 		tr.origin.z,
 		1
-	};
-	sceGumLoadMatrix(matrix);
+	}));
 };
 
 
 _FORCE_INLINE_ static void _gl_mult_transform(const Transform& tr) {
 
-	auto matrix = reinterpret_cast<ScePspFMatrix4 *>(sceGuGetMemory(sizeof(ScePspFMatrix4)));
-	*matrix = { /* build a 16x16 matrix */
+	sceGumMultMatrix(gumake<ScePspFMatrix4>({ /* build a 16x16 matrix */
 		tr.basis.elements[0][0],
 		tr.basis.elements[1][0],
 		tr.basis.elements[2][0],
@@ -83,14 +80,12 @@ _FORCE_INLINE_ static void _gl_mult_transform(const Transform& tr) {
 		tr.origin.y,
 		tr.origin.z,
 		1
-	};
-	sceGumMultMatrix(matrix);
+	}));
 };
 
 _FORCE_INLINE_ static void _gl_mult_transform(const Matrix32& tr) {
 
-	auto matrix = reinterpret_cast<ScePspFMatrix4 *>(sceGuGetMemory(sizeof(ScePspFMatrix4)));
-	*matrix = { /* build a 16x16 matrix */
+	sceGumMultMatrix(gumake<ScePspFMatrix4>({ /* build a 16x16 matrix */
 		tr.elements[0][0],
 		tr.elements[0][1],
 		0,
@@ -107,8 +102,7 @@ _FORCE_INLINE_ static void _gl_mult_transform(const Matrix32& tr) {
 		tr.elements[2][1],
 		0,
 		1
-	};
-	sceGumMultMatrix(matrix);
+	}));
 };
 
 static unsigned int staticOffset = 0;
@@ -211,7 +205,7 @@ static void _draw_primitive(int p_points, const Vector3 *p_vertices, const Vecto
 	vp.color(p_colors);
 	vp.uv(p_uvs);
 
-	sceGumDrawArray(type, vp.attrs()|GU_TRANSFORM_3D, p_points, 0, vp.pack());
+	sceGumDrawArray(type, vp.attrs()|GU_TRANSFORM_3D, vp.size(), nullptr, vp.pack());
 };
 
 /* TEXTURE API */
@@ -614,7 +608,6 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	texture->total_data_size=tsize;
 	_rinfo.texture_mem+=texture->total_data_size;
 
-	printf("texture: %i x %i - size: %i - mipmaps: %d - total: %i\n",texture->width,texture->height,tsize,mipmaps,_rinfo.texture_mem);
 /*
 
 	if (mipmaps==1 && texture->flags&VS::TEXTURE_FLAG_MIPMAPS) {
@@ -3282,55 +3275,43 @@ void RasterizerPSP::_set_cull(bool p_front,bool p_reverse_cull) {
 
 
 void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Material *p_material) {
-	// TODO: Fixed materials.
-	/*
 	if (!shadow) {
 
 		///ambient @TODO offer global ambient group option
 
-		//GLenum side = use_shaders?GL_FRONT:GL_FRONT_AND_BACK;
-		GLenum side = GL_FRONT_AND_BACK;
-
-
 		///diffuse
 		Color diffuse_color=p_material->parameters[VS::FIXED_MATERIAL_PARAM_DIFFUSE];
-		float diffuse_rgba[4]={
+		const auto diffuse_rgba = MK_RGBA_F(
 			diffuse_color.r,
-			 diffuse_color.g,
-			  diffuse_color.b,
-			   diffuse_color.a
-		};
-
+			diffuse_color.g,
+			diffuse_color.b,
+			diffuse_color.a
+		);
 		//color array overrides this
-		glColor4f( diffuse_rgba[0],diffuse_rgba[1],diffuse_rgba[2],diffuse_rgba[3]);
+		sceGuColor(diffuse_rgba);
+		sceGuAmbientColor(diffuse_rgba);
 		last_color=diffuse_color;
-		glMaterialfv(side,GL_AMBIENT,diffuse_rgba);
-		glMaterialfv(side,GL_DIFFUSE,diffuse_rgba);
+		sceGuMaterial(GU_AMBIENT,diffuse_rgba);
+		sceGuMaterial(GU_DIFFUSE,diffuse_rgba);
 		//specular
 
 		const Color specular_color=p_material->parameters[VS::FIXED_MATERIAL_PARAM_SPECULAR];
-		float specular_rgba[4]={
+		sceGuMaterial(GU_SPECULAR, MK_RGBA_F(
 			specular_color.r,
 			specular_color.g,
 			specular_color.b,
 			1.0
-		};
-
-		glMaterialfv(side,GL_SPECULAR,specular_rgba);
+		));
 
 		const Color emission=p_material->parameters[VS::FIXED_MATERIAL_PARAM_EMISSION];
-
-
-		float emission_rgba[4]={
+		sceGuSendCommandi(84, MK_RGBA_F( // EMISSIVE
 			emission.r,
 			emission.g,
 			emission.b,
 			1.0 //p_material->parameters[VS::FIXED_MATERIAL_PARAM_DETAIL_MIX]
-		};
+		));
 
-		glMaterialfv(side,GL_EMISSION,emission_rgba);
-
-		glMaterialf(side,GL_SHININESS,p_material->parameters[VS::FIXED_MATERIAL_PARAM_SPECULAR_EXP]);
+		sceGuSpecular(p_material->parameters[VS::FIXED_MATERIAL_PARAM_SPECULAR_EXP]);
 
 		Plane sparams=p_material->parameters[VS::FIXED_MATERIAL_PARAM_SHADE_PARAM];
 		//depth test?
@@ -3343,14 +3324,22 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 
 		Texture *texture = texture_owner.get( p_material->textures[VS::FIXED_MATERIAL_PARAM_DIFFUSE] );
 		ERR_FAIL_COND(!texture);
-		glEnable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture( GL_TEXTURE_2D,texture->tex_id );
+
+		sceGuEnable(GU_TEXTURE_2D);
+		sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 0);
+		sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+
+		sceGuTexFilter(GU_LINEAR,GU_LINEAR);
+		sceGuTexScale(1.0f,1.0f);
+		sceGuTexOffset(0.0f,0.0f);
+
+		for (int i = 0; i < texture->mipmaps.size(); ++i) {
+			sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
+		}
 	} else {
 
-		glDisable(GL_TEXTURE_2D);
+		sceGuDisable(GU_TEXTURE_2D);
 	}
-*/
 }
 
 void RasterizerPSP::_setup_material(const Geometry *p_geometry,const Material *p_material) {
@@ -3477,150 +3466,103 @@ void RasterizerPSP::_setup_light(LightInstance* p_instance, int p_idx) {
 
 	Light* ld = p_instance->base;
 
-
 	int glid = GU_LIGHT0+p_idx;
-	// TODO: Implement proper lights
-/*
+
+	ERR_FAIL_COND(p_idx > MAX_HW_LIGHTS);
+
 	Color diff_color = ld->colors[VS::LIGHT_COLOR_DIFFUSE];
 	float emult = ld->vars[VS::LIGHT_PARAM_ENERGY];
 
 	if (ld->type!=VS::LIGHT_DIRECTIONAL)
 		emult*=4.0;
 
-	GLfloat diffuse_sdark[4]={
-		diff_color.r*emult,
-		diff_color.g*emult,
-		diff_color.b*emult,
-		1.0
-	};
-
-	glLightfv(glid , GL_DIFFUSE, diffuse_sdark);
-
-	Color amb_color = Color(0,0,0);
-	GLfloat amb_stexsize[4]={
-		amb_color.r,
-		amb_color.g,
-		amb_color.b,
-		1.0
-	};
-
-	glLightfv(glid , GL_AMBIENT, amb_stexsize );
-
-	Color spec_color = ld->colors[VS::LIGHT_COLOR_SPECULAR];
-	GLfloat spec_op[4]={
-		spec_color.r,
-		spec_color.g,
-		spec_color.b,
-		1.0
-	};
-
-	glLightfv(glid , GL_SPECULAR, spec_op );
-
 	switch(ld->type) {
 
 		case VS::LIGHT_DIRECTIONAL: {
 
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
+			sceGumMatrixMode(GU_MODEL);
+			sceGumPushMatrix();
+			sceGumLoadIdentity();
 
-			glLightf(glid,GL_CONSTANT_ATTENUATION, 1);
-			glLightf(glid,GL_LINEAR_ATTENUATION, 0);
-			glLightf(glid,GL_QUADRATIC_ATTENUATION,0); // energy
-
-			float lightdir[4]={
+			sceGuLight(p_idx, GU_DIRECTIONAL, GU_DIFFUSE_AND_SPECULAR, gumake<ScePspFVector3>({
 				p_instance->light_vector.x,
 				p_instance->light_vector.y,
 				p_instance->light_vector.z,
-				0.0
-			};
+			}));
 
-			glLightfv(glid,GL_POSITION,lightdir); //at modelview
-			glLightf(glid,GL_SPOT_CUTOFF,180.0);
-			glLightf(glid,GL_SPOT_EXPONENT, 0);
+			sceGuLightAtt(p_idx, 1, 0, 0);
 
-			float sdir[4]={
-				0,
-				0,
-				-1,
-				0
-			};
-
-			glLightfv(glid,GL_SPOT_DIRECTION,sdir); //at modelview
-
-//			material_shader.set_uniform_default(MaterialShaderGLES1::LIGHT_0_DIRECTION, p_instance->light_vector);
-			glPopMatrix();
+			sceGumPopMatrix();
 
 		} break;
 
 		case VS::LIGHT_OMNI: {
 
+			sceGumMatrixMode(GU_MODEL);
+			sceGumPushMatrix();
+			sceGumLoadIdentity();
 
-			glLightf(glid,GL_SPOT_CUTOFF,180.0);
-			glLightf(glid,GL_SPOT_EXPONENT, 0);
-
-
-			glLightf(glid,GL_CONSTANT_ATTENUATION, 0);
-			glLightf(glid,GL_LINEAR_ATTENUATION, p_instance->linear_att);
-			glLightf(glid,GL_QUADRATIC_ATTENUATION, 0); // wut?
-
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-			float lightpos[4]={
+			sceGuLight(p_idx, GU_POINTLIGHT, GU_DIFFUSE_AND_SPECULAR, gumake<ScePspFVector3>({
 				p_instance->light_vector.x,
 				p_instance->light_vector.y,
 				p_instance->light_vector.z,
-				1.0
-			};
+			})); //at modelview
 
-			glLightfv(glid,GL_POSITION,lightpos); //at modelview
+			sceGuLightAtt(p_idx, 0, p_instance->linear_att, 0);
 
-			glPopMatrix();
+			sceGumPopMatrix();
 
 
 		} break;
 		case VS::LIGHT_SPOT: {
 
-			glLightf(glid,GL_SPOT_CUTOFF, ld->vars[VS::LIGHT_PARAM_SPOT_ANGLE]);
-			glLightf(glid,GL_SPOT_EXPONENT, ld->vars[VS::LIGHT_PARAM_SPOT_ATTENUATION]);
+			sceGumMatrixMode(GU_MODEL);
+			sceGumPushMatrix();
+			sceGumLoadIdentity();
 
-
-			glLightf(glid,GL_CONSTANT_ATTENUATION, 0);
-			glLightf(glid,GL_LINEAR_ATTENUATION, p_instance->linear_att);
-			glLightf(glid,GL_QUADRATIC_ATTENUATION, 0); // wut?
-
-
-			glMatrixMode(GL_MODELVIEW);
-			glPushMatrix();
-			glLoadIdentity();
-			float lightpos[4]={
+			sceGuLight(p_idx,GU_SPOTLIGHT,GU_DIFFUSE_AND_SPECULAR,gumake<ScePspFVector3>({
 				p_instance->light_vector.x,
 				p_instance->light_vector.y,
 				p_instance->light_vector.z,
-				1.0
-			};
+			})); //at modelview
 
-			glLightfv(glid,GL_POSITION,lightpos); //at modelview
+			sceGuLightSpot(p_idx, gumake<ScePspFVector3>({
+					p_instance->spot_vector.x,
+					p_instance->spot_vector.y,
+					p_instance->spot_vector.z,
+				}), ld->vars[VS::LIGHT_PARAM_SPOT_ATTENUATION], ld->vars[VS::LIGHT_PARAM_SPOT_ANGLE]);
 
-			float lightdir[4]={
-				p_instance->spot_vector.x,
-				p_instance->spot_vector.y,
-				p_instance->spot_vector.z,
-				1.0
-			};
+			sceGuLightAtt(p_idx, 0, p_instance->linear_att, 0);
 
-			glLightfv(glid,GL_SPOT_DIRECTION,lightdir); //at modelview
-
-			glPopMatrix();
-
-
+			sceGumPopMatrix();
 
 		} break;
 
-		default: break;
+		default: return;
 	}
-	*/
+
+	sceGuLightColor(p_idx, GU_DIFFUSE, MK_RGBA_F(
+		diff_color.r*emult,
+		diff_color.g*emult,
+		diff_color.b*emult,
+		1.0
+	));
+
+	//Color amb_color = Color(0,0,0);
+	//sceGuLightColor(glid, GU_AMBIENT, MK_RGBA_F(
+	//	amb_color.r,
+	//	amb_color.g,
+	//	amb_color.b,
+	//	1.0
+	//));
+
+	Color spec_color = ld->colors[VS::LIGHT_COLOR_SPECULAR];
+	sceGuLightColor(p_idx, GU_SPECULAR, MK_RGBA_F(
+		spec_color.r,
+		spec_color.g,
+		spec_color.b,
+		1.0
+	));
 };
 
 
@@ -3704,8 +3646,6 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 			uint8_t *base=0;
 			int stride=surf->stride;
 			_setup_geometry_vinfo=surf->array_len;
-
-			const_cast<Surface *>(surf)->vp.resize(surf->array_len);
 
 			bool skeleton_valid = p_skeleton && (surf->format&VS::ARRAY_FORMAT_BONES) && (surf->format&VS::ARRAY_FORMAT_WEIGHTS) && !p_skeleton->bones.empty() && p_skeleton->bones.size() > surf->max_bone;
 
@@ -3936,20 +3876,20 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 //					continue;
 
 				// TODO:XXX:
-				//if (ad.size==0 || i==VS::ARRAY_BONES || i==VS::ARRAY_WEIGHTS || gl_client_states[i]==0 ) {
+				if (ad.size==0 || i==VS::ARRAY_BONES || i==VS::ARRAY_WEIGHTS /*|| gl_client_states[i]==0*/ ) {
 
-				//	if (gl_texcoord_index[i] != -1) {
-				//		glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
-				//	}
+					//if (gl_texcoord_index[i] != -1) {
+					//	glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
+					//}
 
-				//	if (gl_client_states[i] != 0)
-				//		glDisableClientState(gl_client_states[i]);
+					//if (gl_client_states[i] != 0)
+					//	glDisableClientState(gl_client_states[i]);
 
-				//	if (i == VS::ARRAY_COLOR) {
-				//		glColor4f(last_color.r,last_color.g,last_color.b,last_color.a);
-				//	};
-				//	continue; // this one is disabled.
-				//}
+					//if (i == VS::ARRAY_COLOR) {
+					//	glColor4f(last_color.r,last_color.g,last_color.b,last_color.a);
+					//};
+					continue; // this one is disabled.
+				}
 
 				//if (gl_texcoord_index[i] != -1) {
 				//	glClientActiveTexture(GL_TEXTURE0+gl_texcoord_index[i]);
@@ -3962,6 +3902,8 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				case VS::ARRAY_VERTEX: {
 
 					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]));
+
+					const_cast<Surface *>(surf)->vp.resize(ad.count);
 
 				} break;
 				case VS::ARRAY_NORMAL: {
@@ -4037,8 +3979,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-
-			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_TRANSFORM_3D, s->vp.size(), 0, s->vp.pack());
+			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|((s->index_array_len > 0) ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_local, s->vp.pack());
 		} break;
 
 		case Geometry::GEOMETRY_MULTISURFACE: {
@@ -4059,7 +4000,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_TRANSFORM_3D, s->vp.size(), 0, s->vp.pack());
+				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|((s->index_array_len > 0) ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_local, s->vp.pack());
 			}
 		 } break;
 		case Geometry::GEOMETRY_PARTICLES: {
@@ -4349,7 +4290,7 @@ void RasterizerPSP::end_scene() {
 	sceGumMatrixMode(GU_PROJECTION);
 	sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
 
-	sceGumMatrixMode(GU_VIEW);
+	sceGumMatrixMode(GU_VIEW); //TODO:
 	sceGumLoadIdentity();
 	//sceGumPushMatrix();
 
@@ -4529,7 +4470,6 @@ _FORCE_INLINE_ static void _set_glcoloro(const Color& p_color,const float p_opac
 	const auto color = MK_RGBA(p_color.r*255,p_color.g*255,p_color.b*255,p_color.a*p_opac*255);
 	// glColor4f(p_color.r, p_color.g, p_color.b, p_color.a*p_opac);
 	sceGuColor(color);
-	sceGuAmbientColor(color);
 }
 
 
@@ -4584,16 +4524,11 @@ void RasterizerPSP::canvas_set_blend_mode(VS::MaterialBlendMode p_mode) {
 
 
 void RasterizerPSP::canvas_begin_rect(const Matrix32& p_transform) {
-	auto aScale = reinterpret_cast<ScePspFVector3 *>(sceGuGetMemory(sizeof(ScePspFVector3)));
-	*aScale = {2.f / viewport.width, -2.f / viewport.height, 0};
-	auto aTranslate = reinterpret_cast<ScePspFVector3 *>(sceGuGetMemory(sizeof(ScePspFVector3)));
-	*aTranslate = {(-(viewport.width / 2.f)), (-(viewport.height / 2.f)), 0};
-
 	// glMatrixMode(GL_MODELVIEW);
 	sceGumMatrixMode(GU_MODEL);
 	sceGumLoadIdentity();
-	sceGumScale(aScale);
-	sceGumTranslate(aTranslate);
+	sceGumScale(gumake<ScePspFVector3>({2.f / viewport.width, -2.f / viewport.height, 0}));
+	sceGumTranslate(gumake<ScePspFVector3>({(-(viewport.width / 2.f)), (-(viewport.height / 2.f)), 0}));
 	_gl_mult_transform(p_transform);
 
 	sceGumPushMatrix();
@@ -5653,6 +5588,7 @@ void RasterizerPSP::_update_framebuffer() {
 
 void RasterizerPSP::init() {
 
+	//sceGeEdramSetSize(0x400000);
 
 	scene_pass=1;
 	// if (ContextGL::get_singleton())

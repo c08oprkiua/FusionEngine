@@ -33,7 +33,9 @@
 
 #ifdef PSP
 
+#include <bit>
 #include <cstdlib>
+#include <initializer_list>
 #include "image.h"
 #include "rid.h"
 #include "servers/visual_server.h"
@@ -52,20 +54,28 @@
 #define BUF_WIDTH (512)
 #define SCR_WIDTH (480)
 #define SCR_HEIGHT (272)
+#define GU_CMDLIST_SIZE (16*1024)
 
 #include "servers/visual/particle_system_sw.h"
 
 #define MK_RGBA(r,g,b,a) GU_RGBA((int)(r),(int)(g),(int)(b),(int)(a))
-#include <pspge.h>
-// #include "os_psp.h"
-/*
-*/
+#define MK_RGBA_F(r,g,b,a) GU_RGBA((int)((r)*255),(int)((g)*255),(int)((b)*255),(int)((a)*255))
 
-inline const ScePspFVector3 g_idMapping{32768.0f, 32768.0f, 32768.0f};
+#include <pspge.h>
+
+
+template <class T>
+inline T *gumake(T &&il) {
+	constexpr auto sz = sizeof(T);
+
+	auto mem = reinterpret_cast<T *>(sceGuGetMemory(sz));
+	*mem = il;
+	return mem;
+}
 
 
 struct VertexPool {
-	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
+	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_uvs2{nullptr}, m_colors{nullptr} {}
 	~VertexPool() {}
 
 	void resize(int p_points) { m_points = p_points; }
@@ -74,16 +84,16 @@ struct VertexPool {
 
 	void *pack() const {
 		ERR_FAIL_NULL_V(m_vertices, nullptr);
+		ERR_FAIL_COND_V(m_points < 1, nullptr);
 
 		const int sz = m_points * (
 			3 * sizeof(float)
 			+ (m_weights ? 3 * sizeof(float) : 0)
 			+ ((m_uvs || m_uvs2) ? 2 * sizeof(float) : 0)
-			+ (m_colors ? 4 : 0)
+			+ (m_colors ? sizeof(unsigned int) : 0)
 			+ (m_normals ? 3 * sizeof(float) : 0)
 			);
 		void *mem = sceGuGetMemory(sz);
-		ERR_FAIL_NULL_V(mem, nullptr);
 
 		int ptr{};
 
@@ -170,11 +180,11 @@ class RasterizerPSP : public Rasterizer {
 		MAX_SCENE_LIGHTS=2048,
 		LIGHT_SPOT_BIT=0x80,
 		DEFAULT_SKINNED_BUFFER_SIZE = 1024 * 1024, // 10k vertices
-		MAX_HW_LIGHTS = 1,
+		MAX_HW_LIGHTS = 4,
 	};
 	
 	
-	unsigned int list[262144] [[gnu::aligned(16)]];
+	unsigned int list[GU_CMDLIST_SIZE] [[gnu::aligned(16)]];
 	
 
 	uint8_t *skinned_buffer;
