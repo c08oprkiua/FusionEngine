@@ -1445,18 +1445,6 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 				elem_size=2;
 				// datatype=unsigned short;
 
-/*
-				if (use_VBO) {
-
-					glGenBuffers(1,&surface->index_id);
-					ERR_FAIL_COND(surface->index_id==0);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,surface->index_id);
-					glBufferData(GL_ELEMENT_ARRAY_BUFFER,index_array_len*elem_size,NULL,GL_STATIC_DRAW);
-					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0); //unbind
-				} else {
-					surface->index_array_local = (uint8_t*)memalloc(index_array_len*elem_size);
-				};
-*/
 				surface->index_array_len=index_array_len; // only way it can exist
 				ad.ofs=0;
 				ad.size=elem_size;
@@ -1505,29 +1493,12 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 	surface->array_local = (uint8_t*)memalloc(surface->array_len*surface->stride);
 	array_ptr=(uint8_t*)surface->array_local;
 	if (surface->index_array_len) {
-		surface->index_array_local = (uint8_t*)memalloc(index_array_len*surface->array[VS::ARRAY_INDEX].size);
+		surface->index_array_local = (uint8_t*)memalign(16, index_array_len*surface->array[VS::ARRAY_INDEX].size);
 		index_array_ptr=(uint8_t*)surface->index_array_local;
 	}
 
 	_surface_set_arrays(surface,array_ptr,index_array_ptr,p_arrays,true);
-/*
-	if (use_VBO) {
-		glGenBuffers(1,&surface->vertex_id);
-		ERR_FAIL_COND(surface->vertex_id==0);
-		glBindBuffer(GL_ARRAY_BUFFER,surface->vertex_id);
-		glBufferData(GL_ARRAY_BUFFER,surface->array_len*surface->stride,array_ptr,GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER,0); //unbind
-		if (surface->index_array_len) {
 
-			glGenBuffers(1,&surface->index_id);
-			ERR_FAIL_COND(surface->index_id==0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,surface->index_id);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER,index_array_len*surface->array[VS::ARRAY_INDEX].size,index_array_ptr,GL_STATIC_DRAW);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0); //unbind
-
-		}
-	}
-*/
 	mesh->surfaces.push_back(surface);
 
 }
@@ -3010,6 +2981,7 @@ void RasterizerPSP::begin_scene(RID p_viewport_data,RID p_env,VS::ScenarioDebugM
 	//set state
 
 	// sceGuCull(GL_FRONT);
+	sceGuFrontFace(GU_CW);
 	cull_front=true;
 };
 
@@ -3269,6 +3241,11 @@ void RasterizerPSP::_set_cull(bool p_front,bool p_reverse_cull) {
 	if (front!=cull_front) {
 
 		// glCullFace(front?GL_FRONT:GL_BACK);
+		if (cull_front) {
+			sceGuFrontFace(GU_CW);
+		} else {
+			sceGuFrontFace(GU_CCW);
+		}
 		cull_front=front;
 	}
 }
@@ -3433,7 +3410,7 @@ void RasterizerPSP::_setup_material(const Geometry *p_geometry,const Material *p
 	if (current_depth_write!=depth_write) {
 
 		depth_write=current_depth_write;
-		sceGuDepthMask(depth_write);
+		sceGuDepthMask(!depth_write);
 	}
 
 	if (current_depth_test!=depth_test) {
@@ -3604,7 +3581,7 @@ static const int gl_client_states[] = {
 	0,//GL_TEXTURE_COORD_ARRAY, // ARRAY_TEX_UV2
 	0, // ARRAY_BONES
 	0, // ARRAY_WEIGHTS
-};*/
+};
 
 static const int gl_texcoord_index[VS::ARRAY_MAX-1] = {
 
@@ -3616,7 +3593,7 @@ static const int gl_texcoord_index[VS::ARRAY_MAX-1] = {
 	-1,//1, // ARRAY_TEX_UV2
 	-1, // ARRAY_BONES
 	-1, // ARRAY_WEIGHTS
-};
+};*/
 
 
 Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material* p_material, const Skeleton *p_skeleton,const float *p_morphs) {
@@ -3788,7 +3765,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				stride=dst_stride;
 			}
 
-
+#if 0
 			if (skeleton_valid) {
 				//transform stuff
 
@@ -3866,6 +3843,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				}
 
 			}
+#endif
 
 			const_cast<Surface *>(surf)->vp.resize(surf->array_len);
 
@@ -3926,11 +3904,23 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 					//glVertexAttribPointer(i, 4, use_VBO?GL_BYTE:GL_FLOAT, use_VBO?GL_TRUE:GL_FALSE, stride, &base[ad.ofs]);
 
 				} break;
-				case VS::ARRAY_BONES:
+				case VS::ARRAY_BONES: {
+
+					if (skeleton_valid) {
+						for (int k = 0; k < VS::ARRAY_WEIGHTS_SIZE; ++k) {
+							sceGuBoneMatrix(k, &reinterpret_cast<const ScePspFMatrix4 *>(&base[ad.ofs])[k]);
+							sceGuMorphWeight(k, 1.f);
+						}
+					}
+
+				} break;
 				case VS::ARRAY_WEIGHTS: {
 
 					//do none
 					//glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, surf->stride, &base[ad.ofs]);
+					if (skeleton_valid) {
+						const_cast<Surface *>(surf)->vp.weight(reinterpret_cast<const float *>(&base[ad.ofs]));
+					}
 
 				} break;
 				case VS::ARRAY_INDEX:
@@ -3939,13 +3929,14 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				};
 			}
 
+			const_cast<Surface *>(surf)->psp_array_local = surf->vp.pack<pspalloc>();
 
 		} break;
 
 		default: break;
 
 	};
-	//TODO: Setup geometry
+
 	return OK;
 };
 static const int gl_primitive[]={
@@ -3978,7 +3969,11 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|(s->index_array_len ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_len ? s->index_array_local : nullptr, s->vp.pack());
+			void *ia = nullptr;
+			if (s->index_array_len) {
+				ia = s->index_array_local;
+			}
+			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, ia, s->psp_array_local);
 		} break;
 
 		case Geometry::GEOMETRY_MULTISURFACE: {
@@ -3999,7 +3994,11 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|(s->index_array_len ? GU_INDEX_16BIT : 0)|GU_TRANSFORM_3D, s->vp.size(), s->index_array_len ? s->index_array_local : nullptr, s->vp.pack());
+				void *ia = nullptr;
+				if (s->index_array_len) {
+					ia = s->index_array_local;
+				}
+				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, ia, s->psp_array_local);
 			}
 		 } break;
 		case Geometry::GEOMETRY_PARTICLES: {
@@ -4183,19 +4182,12 @@ void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_revers
 void RasterizerPSP::end_scene() {
 
 	sceGuEnable(GU_BLEND);
-	sceGuDepthMask(GU_TRUE);
+	sceGuDepthMask(GU_FALSE);
 	sceGuEnable(GU_DEPTH_TEST);
+	sceGuDepthFunc(GU_LEQUAL);
 	sceGuDisable(GU_SCISSOR_TEST);
 	depth_write=true;
 	depth_test=true;
-
-	// TODO:XXX: remove this {{{
-#if 1
-	// Depth is currently broken...
-	sceGuDepthMask(GU_FALSE);
-	sceGuDisable(GU_DEPTH_TEST);
-#endif
-	// }}} ~~~~~~~~~~~~~~~~~~~~~
 
 	if (current_env) {
 
@@ -4223,6 +4215,7 @@ void RasterizerPSP::end_scene() {
 					sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 				} else {
 					// glClear(GL_DEPTH_BUFFER_BIT);
+					sceGuClearDepth(0xFFFF);
 					sceGuClear(GU_DEPTH_BUFFER_BIT);
 				}
 			} break;
@@ -4233,6 +4226,7 @@ void RasterizerPSP::end_scene() {
 				//a bit broken for now
 
 				// glClear(GL_DEPTH_BUFFER_BIT);
+				sceGuClearDepth(0xFFFF);
 				sceGuClear(GU_DEPTH_BUFFER_BIT);
 			} break;
 
@@ -4242,6 +4236,7 @@ void RasterizerPSP::end_scene() {
 		Color c = Color(0.3,0.3,0.3);
 		sceGuClearColor(MK_RGBA_F(c.r,c.g,c.b,0.f));
 		// glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		sceGuClearDepth(0xFFFF);
 		sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 	}
 #ifdef GLES_OVER_GL
@@ -5302,6 +5297,9 @@ void RasterizerPSP::free(const RID& p_rid) {
 		for (int i=0;i<mesh->surfaces.size();i++) {
 
 			Surface *surface = mesh->surfaces[i];
+			if (surface->psp_array_local != 0) {
+				std::free(surface->psp_array_local);
+			};
 			if (surface->array_local != 0) {
 				memfree(surface->array_local);
 			};
@@ -5632,9 +5630,10 @@ void RasterizerPSP::init() {
 	sceGuDisplay(GU_TRUE);
 
 	// glEnable(GL_DEPTH_TEST);
+	sceGuShadeModel(GU_SMOOTH);
 	sceGuEnable(GU_DEPTH_TEST);
 	sceGuDepthFunc(GU_LEQUAL);
-	sceGuFrontFace(GU_CW);
+	sceGuDepthMask(GU_FALSE);
 	// glDepthFunc(GL_LEQUAL);
 	// glFrontFace(GL_CW);
 	//glEnable(GL_TEXTURE_2D);
@@ -5737,15 +5736,15 @@ bool RasterizerPSP::needs_to_draw_next_frame() const {
 
 void RasterizerPSP::reload_vram() {
 
-	sceGuEnable(GU_DEPTH_TEST);
-	sceGuDepthFunc(GU_LEQUAL);
-	sceGuFrontFace(GU_CW);
+	//sceGuEnable(GU_DEPTH_TEST);
+	//sceGuDepthFunc(GU_LEQUAL);
+	//sceGuFrontFace(GU_CW);
 
-	sceGuClearColor(MK_RGBA(0,0,0,255));
-	//glClearDepth(1.0);
-	sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
+	//sceGuClearColor(MK_RGBA(0,0,0,255));
+	////glClearDepth(1.0);
+	//sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 
-	sceGuEnable(GU_TEXTURE_2D);
+	//sceGuEnable(GU_TEXTURE_2D);
 	// TODO: Reload vram
 	/*
 	glEnable(GL_DEPTH_TEST);

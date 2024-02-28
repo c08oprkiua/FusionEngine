@@ -65,13 +65,15 @@
 
 
 template <class T>
-inline T *gumake(T &&il) {
+_FORCE_INLINE_ T *gumake(T &&il) {
 	constexpr auto sz = sizeof(T);
 
 	auto mem = reinterpret_cast<T *>(sceGuGetMemory(sz));
 	*mem = il;
 	return mem;
 }
+
+_FORCE_INLINE_ void *pspalloc(size_t sz) { return memalign(16, sz); }
 
 
 struct VertexPool {
@@ -82,24 +84,21 @@ struct VertexPool {
 
 	int size() const { return m_points; }
 
+	template <auto Malloc = sceGuGetMemory>
 	void *pack() const {
 		ERR_FAIL_NULL_V(m_vertices, nullptr);
 		ERR_FAIL_COND_V(m_points < 1, nullptr);
 
-		const int sz = m_points * (
-			3 * sizeof(float)
-			+ (m_weights ? 3 * sizeof(float) : 0)
-			+ ((m_uvs || m_uvs2) ? 2 * sizeof(float) : 0)
-			+ (m_colors ? sizeof(unsigned int) : 0)
-			+ (m_normals ? 3 * sizeof(float) : 0)
-			);
-		void *mem = sceGuGetMemory(sz);
+		const int sz = m_points * stride();
+		void *mem = Malloc(sz);
 
 		int ptr{};
 
 		for (int i = 0; i < m_points; ++i) {
 			if (m_weights) {
-				paste<Vector3>(mem, m_weights[i], ptr);
+				for (int j = 0; j < VS::ARRAY_WEIGHTS_SIZE; ++i) {
+					paste<float>(mem, m_weights[i * VS::ARRAY_WEIGHTS_SIZE + j], ptr);
+				}
 			}
 			if (m_uvs) {
 				paste<float>(mem, m_uvs[i].x, ptr);
@@ -108,13 +107,21 @@ struct VertexPool {
 				paste<Vector2>(mem, m_uvs2[i], ptr);
 			}
 			if (m_colors) {
-				paste<int>(mem, MK_RGBA(m_colors[i].r * 255, m_colors[i].g * 255, m_colors[i].b * 255, m_colors[i].a * 255), ptr);
+				paste<unsigned int>(mem, MK_RGBA(m_colors[i].r * 255, m_colors[i].g * 255, m_colors[i].b * 255, m_colors[i].a * 255), ptr);
 			}
 			if (m_normals) {
 				paste<Vector3>(mem, m_normals[i], ptr);
 			}
 
 			paste<Vector3>(mem, m_vertices[i], ptr);
+
+			const auto pad = stride() - elem_size();
+			if (pad > 0) {
+				ptr += pad;
+			}
+
+			ERR_FAIL_COND_V(ptr % stride() != 0, nullptr);
+
 		}
 
 		return mem;
@@ -123,7 +130,7 @@ struct VertexPool {
 	int attrs() const {
 		return (
 			GU_VERTEX_32BITF
-			| (m_weights ? GU_WEIGHT_32BITF : 0)
+			| (m_weights ? (GU_WEIGHT_32BITF | GU_WEIGHTS(VS::ARRAY_WEIGHTS_SIZE)) : 0)
 			| ((m_uvs || m_uvs2) ? GU_TEXTURE_32BITF : 0)
 			| (m_colors ? GU_COLOR_8888 : 0)
 			| (m_normals ? GU_NORMAL_32BITF : 0)
@@ -134,7 +141,7 @@ struct VertexPool {
 		m_vertices = p_vertices;
 	}
 
-	void weight(const Vector3 *p_weights) {
+	void weight(const float *p_weights) {
 		m_weights = p_weights;
 	}
 
@@ -157,15 +164,32 @@ struct VertexPool {
 	}
 
 private:
+	int elem_size() const {
+		return 3 * sizeof(float)
+			+ (m_weights ? VS::ARRAY_WEIGHTS_SIZE * sizeof(float) : 0)
+			+ ((m_uvs || m_uvs2) ? 2 * sizeof(float) : 0)
+			+ (m_colors ? sizeof(unsigned int) : 0)
+			+ (m_normals ? 3 * sizeof(float) : 0);
+	}
+
+	int stride() const {
+		const auto sz = elem_size();
+		//return ((sz % 16) == 0) ? sz : ((sz + 16) - (sz % 16));
+		return sz;
+	}
+
 	template <class T>
 	static inline void paste(void *mem, const T &value, int &ptr) {
+		//if (ptr % 4 != 0) {
+		//	ptr = (ptr + 4) - (ptr % 4);
+		//}
 		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = value;
 		ptr += sizeof(T);
 	}
 
 	int m_points;
 
-	const Vector3 *m_weights;
+	const float *m_weights;
 	const Vector3 *m_uvs;
 	const Vector2 *m_uvs2;
 	const Color *m_colors;
@@ -373,6 +397,8 @@ class RasterizerPSP : public Rasterizer {
 		uint8_t *array_local;
 		uint8_t *index_array_local;
 
+		void *psp_array_local;
+
 		bool packed;	
 
 		VertexPool vp;
@@ -410,7 +436,7 @@ class RasterizerPSP : public Rasterizer {
 
 		Surface() : vp{0} {
 
-			array_local = index_array_local = 0;
+			psp_array_local = array_local = index_array_local = 0;
 
 			array_len=0;
 			local_stride=0;
