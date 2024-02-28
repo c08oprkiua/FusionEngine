@@ -75,6 +75,23 @@ _FORCE_INLINE_ T *gumake(T &&il) {
 
 _FORCE_INLINE_ void *pspalloc(size_t sz) { return memalign(16, sz); }
 
+inline void swizzle(uint8_t *out, const uint8_t *in, uint32_t width, uint32_t height) {
+	int rowblocks = width / 16;
+
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
+			int blockx = i / 16;
+			int blocky = j / 8;
+
+			int x = i - blockx * 16;
+			int y = j - blocky * 8;
+			int block_index   = blockx + blocky * rowblocks;
+			int block_address = block_index * 16 * 8;
+
+			out[block_address + x + y * 16] = in[i + j * width];
+		}
+	}
+}
 
 struct VertexPool {
 	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
@@ -122,8 +139,6 @@ struct VertexPool {
 			ERR_FAIL_COND_V(ptr % stride() != 0, nullptr);
 
 		}
-
-		printf("Pasted %d bytes\n", ptr);
 
 		return mem;
 	}

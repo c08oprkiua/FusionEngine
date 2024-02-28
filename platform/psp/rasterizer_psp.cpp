@@ -584,11 +584,13 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 
 		ERR_FAIL_COND(texture->compressed);
 
+		auto mi = mallinfo();
+
 		// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //			glTexImage2D(blit_target, i, format==GL_RGB?GL_RGB8:format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
 		// glTexImage2D(blit_target, i, format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
 		//glTexSubImage2D( blit_target, i, 0,0,w,h,format,GL_UNSIGNED_BYTE,&read[ofs] );
-		texture->mipmaps.push_back(memalign(16, size));
+		texture->mipmaps.push_back(memnew_arr(uint8_t, size));
 		memcpy((void*)texture->mipmaps[i], &read[ofs], size);
 		//texture->mipmaps.push_back(getStaticVramTexture(mw, mh, GU_PSM_8888));
 		//sceGuCopyImage(GU_PSM_8888, 0, 0, mw, mh, mw, (void *)&read[ofs], 0, 0, mw, (void*)texture->mipmaps[i]);
@@ -607,6 +609,8 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	_rinfo.texture_mem-=texture->total_data_size;
 	texture->total_data_size=tsize;
 	_rinfo.texture_mem+=texture->total_data_size;
+
+	printf("texture: %i x %i - size: %i - total: %i\n",texture->width,texture->height,tsize,_rinfo.texture_mem);
 
 /*
 
@@ -1493,7 +1497,7 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 	surface->array_local = (uint8_t*)memalloc(surface->array_len*surface->stride);
 	array_ptr=(uint8_t*)surface->array_local;
 	if (surface->index_array_len) {
-		surface->index_array_local = (uint8_t*)memalign(16, index_array_len*surface->array[VS::ARRAY_INDEX].size);
+		surface->index_array_local = memnew_arr(uint8_t, index_array_len*surface->array[VS::ARRAY_INDEX].size);
 		index_array_ptr=(uint8_t*)surface->index_array_local;
 	}
 
@@ -3882,8 +3886,6 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride);
 
-					printf("stride = %d\n", stride);
-
 				} break;
 				case VS::ARRAY_NORMAL: {
 
@@ -5295,7 +5297,7 @@ void RasterizerPSP::free(const RID& p_rid) {
 
 			Surface *surface = mesh->surfaces[i];
 			if (surface->psp_array_local != 0) {
-				std::free(surface->psp_array_local);
+				memfree(surface->psp_array_local);
 			};
 			if (surface->array_local != 0) {
 				memfree(surface->array_local);
