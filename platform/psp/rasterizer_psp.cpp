@@ -584,8 +584,6 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 
 		ERR_FAIL_COND(texture->compressed);
 
-		auto mi = mallinfo();
-
 		// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //			glTexImage2D(blit_target, i, format==GL_RGB?GL_RGB8:format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
 		// glTexImage2D(blit_target, i, format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
