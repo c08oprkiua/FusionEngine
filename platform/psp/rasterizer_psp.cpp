@@ -3880,23 +3880,25 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 				case VS::ARRAY_VERTEX: {
 
-					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]));
+					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride);
+
+					printf("stride = %d\n", stride);
 
 				} break;
 				case VS::ARRAY_NORMAL: {
 
-					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]));
+					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride);
 
 				} break;
 				case VS::ARRAY_COLOR: {
 
-					const_cast<Surface *>(surf)->vp.color(reinterpret_cast<Color *>(&base[ad.ofs]));
+					const_cast<Surface *>(surf)->vp.color(reinterpret_cast<Color *>(&base[ad.ofs]), stride);
 
 				} break;
 				case VS::ARRAY_TEX_UV:
 				case VS::ARRAY_TEX_UV2: {
 
-					const_cast<Surface *>(surf)->vp.uv(reinterpret_cast<Vector2 *>(&base[ad.ofs]));
+					const_cast<Surface *>(surf)->vp.uv(reinterpret_cast<Vector2 *>(&base[ad.ofs]), stride);
 
 				} break;
 				case VS::ARRAY_TANGENT: {
@@ -3919,7 +3921,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 					//do none
 					//glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, surf->stride, &base[ad.ofs]);
 					if (skeleton_valid) {
-						const_cast<Surface *>(surf)->vp.weight(reinterpret_cast<const float *>(&base[ad.ofs]));
+						const_cast<Surface *>(surf)->vp.weight(reinterpret_cast<const float *>(&base[ad.ofs]), stride);
 					}
 
 				} break;
@@ -3929,7 +3931,10 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				};
 			}
 
-			const_cast<Surface *>(surf)->psp_array_local = surf->vp.pack<pspalloc>();
+			if (!surf->psp_array_local) {
+				const_cast<Surface *>(surf)->psp_array_local = surf->vp.pack<pspalloc>();
+				const_cast<Surface *>(surf)->psp_vattribs = surf->vp.attrs();
+			}
 
 		} break;
 
@@ -3969,11 +3974,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-			void *ia = nullptr;
-			if (s->index_array_len) {
-				ia = s->index_array_local;
-			}
-			sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, ia, s->psp_array_local);
+			sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 		} break;
 
 		case Geometry::GEOMETRY_MULTISURFACE: {
@@ -3994,11 +3995,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				void *ia = nullptr;
-				if (s->index_array_len) {
-					ia = s->index_array_local;
-				}
-				sceGumDrawArray(gl_primitive[s->primitive], s->vp.attrs()|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, ia, s->psp_array_local);
+				sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 			}
 		 } break;
 		case Geometry::GEOMETRY_PARTICLES: {

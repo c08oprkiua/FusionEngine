@@ -77,7 +77,7 @@ _FORCE_INLINE_ void *pspalloc(size_t sz) { return memalign(16, sz); }
 
 
 struct VertexPool {
-	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_uvs2{nullptr}, m_colors{nullptr} {}
+	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
 	~VertexPool() {}
 
 	void resize(int p_points) { m_points = p_points; }
@@ -97,23 +97,22 @@ struct VertexPool {
 		for (int i = 0; i < m_points; ++i) {
 			if (m_weights) {
 				for (int j = 0; j < VS::ARRAY_WEIGHTS_SIZE; ++i) {
-					paste<float>(mem, m_weights[i * VS::ARRAY_WEIGHTS_SIZE + j], ptr);
+					paste<float>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
 				}
 			}
 			if (m_uvs) {
-				paste<float>(mem, m_uvs[i].x, ptr);
-				paste<float>(mem, m_uvs[i].y, ptr);
-			} else if (m_uvs2) {
-				paste<Vector2>(mem, m_uvs2[i], ptr);
+				paste<float>(mem, &m_uvs[i * m_uvs_stride], ptr);
+				paste<float>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
 			}
 			if (m_colors) {
-				paste<unsigned int>(mem, MK_RGBA(m_colors[i].r * 255, m_colors[i].g * 255, m_colors[i].b * 255, m_colors[i].a * 255), ptr);
+				const auto *color = reinterpret_cast<const Color *>(&m_colors[i * m_colors_stride]);
+				paste<unsigned int>(mem, MK_RGBA_F(color->r, color->g, color->b, color->a), ptr);
 			}
 			if (m_normals) {
-				paste<Vector3>(mem, m_normals[i], ptr);
+				paste<Vector3>(mem, &m_normals[i * m_normals_stride], ptr);
 			}
 
-			paste<Vector3>(mem, m_vertices[i], ptr);
+			paste<Vector3>(mem, &m_vertices[i * m_vertices_stride], ptr);
 
 			const auto pad = stride() - elem_size();
 			if (pad > 0) {
@@ -124,6 +123,8 @@ struct VertexPool {
 
 		}
 
+		printf("Pasted %d bytes\n", ptr);
+
 		return mem;
 	}
 
@@ -131,43 +132,47 @@ struct VertexPool {
 		return (
 			GU_VERTEX_32BITF
 			| (m_weights ? (GU_WEIGHT_32BITF | GU_WEIGHTS(VS::ARRAY_WEIGHTS_SIZE)) : 0)
-			| ((m_uvs || m_uvs2) ? GU_TEXTURE_32BITF : 0)
+			| (m_uvs ? GU_TEXTURE_32BITF : 0)
 			| (m_colors ? GU_COLOR_8888 : 0)
 			| (m_normals ? GU_NORMAL_32BITF : 0)
 		);
 	}
 
-	void vertex(const Vector3 *p_vertices) {
-		m_vertices = p_vertices;
+	void vertex(const Vector3 *p_vertices, int p_stride = 0) {
+		m_vertices = reinterpret_cast<const char *>(p_vertices);
+		m_vertices_stride = p_stride ? p_stride : sizeof(Vector3);
 	}
 
-	void weight(const float *p_weights) {
-		m_weights = p_weights;
+	void weight(const float *p_weights, int p_stride = 0) {
+		m_weights = reinterpret_cast<const char *>(p_weights);
+		m_weights_stride = p_stride ? p_stride : (sizeof(float) * VS::ARRAY_WEIGHTS_SIZE);
 	}
 
-	void uv(const Vector3 *p_uvs) {
-		m_uvs = p_uvs;
-		m_uvs2 = nullptr;
+	void uv(const Vector3 *p_uvs, int p_stride = 0) {
+		m_uvs = reinterpret_cast<const char *>(p_uvs);
+		m_uvs_stride = p_stride ? p_stride : sizeof(Vector3);
 	}
 
-	void uv(const Vector2 *p_uvs) {
-		m_uvs2 = p_uvs;
-		m_uvs = nullptr;
+	void uv(const Vector2 *p_uvs, int p_stride = 0) {
+		m_uvs = reinterpret_cast<const char *>(p_uvs);
+		m_uvs_stride = p_stride ? p_stride : sizeof(Vector2);
 	}
 
-	void color(const Color *p_colors) {
-		m_colors = p_colors;
+	void color(const Color *p_colors, int p_stride = 0) {
+		m_colors = reinterpret_cast<const char *>(p_colors);
+		m_colors_stride = p_stride ? p_stride : sizeof(unsigned int);
 	}
 
-	void normal(const Vector3 *p_normals) {
-		m_normals = p_normals;
+	void normal(const Vector3 *p_normals, int p_stride = 0) {
+		m_normals = reinterpret_cast<const char *>(p_normals);
+		m_normals_stride = p_stride ? p_stride : sizeof(Vector3);
 	}
 
 private:
 	int elem_size() const {
 		return 3 * sizeof(float)
 			+ (m_weights ? VS::ARRAY_WEIGHTS_SIZE * sizeof(float) : 0)
-			+ ((m_uvs || m_uvs2) ? 2 * sizeof(float) : 0)
+			+ (m_uvs ? 2 * sizeof(float) : 0)
 			+ (m_colors ? sizeof(unsigned int) : 0)
 			+ (m_normals ? 3 * sizeof(float) : 0);
 	}
@@ -187,14 +192,28 @@ private:
 		ptr += sizeof(T);
 	}
 
+	template <class T>
+	static inline void paste(void *mem, const void *value, int &ptr) {
+		//if (ptr % 4 != 0) {
+		//	ptr = (ptr + 4) - (ptr % 4);
+		//}
+		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = *reinterpret_cast<const T *>(value);
+		ptr += sizeof(T);
+	}
+
 	int m_points;
 
-	const float *m_weights;
-	const Vector3 *m_uvs;
-	const Vector2 *m_uvs2;
-	const Color *m_colors;
-	const Vector3 *m_normals;
-	const Vector3 *m_vertices;
+	int m_weights_stride;
+	int m_uvs_stride;
+	int m_colors_stride;
+	int m_normals_stride;
+	int m_vertices_stride;
+
+	const char *m_weights;
+	const char *m_uvs;
+	const char *m_colors;
+	const char *m_normals;
+	const char *m_vertices;
 };
 
 class RasterizerPSP : public Rasterizer {
@@ -397,6 +416,7 @@ class RasterizerPSP : public Rasterizer {
 		uint8_t *array_local;
 		uint8_t *index_array_local;
 
+		unsigned int psp_vattribs;
 		void *psp_array_local;
 
 		bool packed;	
@@ -437,6 +457,8 @@ class RasterizerPSP : public Rasterizer {
 		Surface() : vp{0} {
 
 			psp_array_local = array_local = index_array_local = 0;
+
+			psp_vattribs = 0;
 
 			array_len=0;
 			local_stride=0;
