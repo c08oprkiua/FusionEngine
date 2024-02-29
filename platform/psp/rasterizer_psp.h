@@ -318,8 +318,8 @@ class RasterizerPSP : public Rasterizer {
 		int alloc_width, alloc_height;
 		Image::Format format;
 
-		// GLenum target;
-		// GLenum gl_format_cache;
+		bool swizzle;
+		int gu_format_cache;
 		int gl_components_cache;
 		int data_size; //original data size, useful for retrieving back
 		bool format_has_alpha;

@@ -40,7 +40,7 @@
 #include "gl_context/context_gl.h"
 #include <string.h>
 
-#define EDRAM_OFFSET ((512 * 272 * 4 * 2) + (512 * 272 * 2))
+#define EDRAM_OFFSET ((512 * 272 * 2 * 2) + (512 * 272 * 2))
 
 MemoryPoolEDRAM *MemoryPoolEDRAM::m_singleton{nullptr};
  
@@ -478,9 +478,9 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 	ERR_FAIL_COND(!texture);
 	texture->width=p_width;
 	texture->height=p_height;
-	//texture->format=p_format;
-	texture->format=Image::FORMAT_RGBA;
+	texture->format=p_format;
 	texture->flags=p_flags;
+	texture->swizzle=true;
 	// texture->target = /*(p_flags & VS::TEXTURE_FLAG_CUBEMAP) ? GL_TEXTURE_CUBE_MAP :*/ GL_TEXTURE_2D;
 
 	bool scale_textures = (!npo2_textures_available || p_format&VS::TEXTURE_FLAG_MIPMAPS);
@@ -497,8 +497,34 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 
 	// _get_gl_image_and_format(Image(),texture->format,texture->flags,format,components,has_alpha_cache,compressed);
 
+	switch (texture->format) {
+	case Image::FORMAT_RGBA:
+		texture->gu_format_cache=GU_PSM_8888;
+		texture->swizzle=true;
+		break;
+	case Image::FORMAT_BC1:
+		texture->gu_format_cache=GU_PSM_DXT1;
+		texture->swizzle=false;
+		break;
+	case Image::FORMAT_BC2:
+		texture->gu_format_cache=GU_PSM_DXT3;
+		texture->swizzle=false;
+		break;
+	case Image::FORMAT_BC3:
+		texture->gu_format_cache=GU_PSM_DXT5;
+		texture->swizzle=false;
+		break;
+	default:
+		texture->format=Image::FORMAT_RGBA;
+		texture->gu_format_cache=GU_PSM_8888;
+		texture->swizzle=true;
+
+		ERR_PRINT("Unsupported texture format");
+
+		break;
+	}
+
 	texture->gl_components_cache=components;
-	// texture->gl_format_cache=format;
 	texture->format_has_alpha=has_alpha_cache;
 	texture->compressed=compressed;
 	texture->data_size=0;
@@ -587,7 +613,11 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 		img.resize(texture->alloc_width, texture->alloc_height, Image::INTERPOLATE_BILINEAR);
 	};
 	
-	img.convert(Image::FORMAT_RGBA);
+	if (img.get_format() != texture->format) {
+		img.convert(Image::FORMAT_RGBA);
+		texture->gu_format_cache=GU_PSM_8888;
+		texture->swizzle=true;
+	}
 
 
 	// GLenum blit_target = /*(texture->target == GL_TEXTURE_CUBE_MAP)?_cube_side_enum[p_cube_side]:*/GL_TEXTURE_2D;
@@ -631,12 +661,10 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 			printf("small texture: %i x %i - size: %i\n",mw,mh,size);
 			texture->mipmaps.push_back(reinterpret_cast<uint8_t *>(gualloc(size)));
 		}
-		swizzle(texture->mipmaps[i], &read[ofs], mw * 4, mh);
-		//memcpy(texture->mipmaps[i], &read[ofs], size);
-		//texture->mipmaps.push_back(getStaticVramTexture(mw, mh, GU_PSM_8888));
-		//sceGuCopyImage(GU_PSM_8888, 0, 0, mw, mh, mw, (void *)&read[ofs], 0, 0, mw, (void*)texture->mipmaps[i]);
-		//sceGuTexMode(GU_PSM_8888, 0, 0, 0);
-		//sceGuTexImage(i, w, h, w, texture->tex_id);
+		if (texture->swizzle)
+			swizzle(texture->mipmaps[i], &read[ofs], static_cast<int>(mw * (static_cast<float>(size) / mw / mh)), mh);
+		else
+			memcpy(texture->mipmaps[i], &read[ofs], size);
 
 		tsize+=size;
 
@@ -3356,7 +3384,7 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 		ERR_FAIL_COND(!texture);
 
 		sceGuEnable(GU_TEXTURE_2D);
-		sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 1);
+		sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
 		sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 
 		sceGuTexFilter(GU_LINEAR,GU_LINEAR);
@@ -4693,7 +4721,7 @@ void RasterizerPSP::canvas_draw_rect(const Rect2& p_rect, int p_flags, const Rec
 		// glActiveTexture(GL_TEXTURE0);
 		// glBindTexture( GL_TEXTURE_2D,texture->tex_id );
 
-		sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 1);
+		sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
 		sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 
 		sceGuTexFilter(GU_LINEAR,GU_LINEAR);
@@ -4736,7 +4764,7 @@ void RasterizerPSP::canvas_draw_style_box(const Rect2& p_rect, RID p_texture,con
 	ERR_FAIL_COND(!texture);
 
 	sceGuEnable(GU_TEXTURE_2D);
-	sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 1);
+	sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
 	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 	for (int i = 0; i < texture->mipmaps.size(); ++i) {
 		sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
@@ -4822,7 +4850,7 @@ void RasterizerPSP::canvas_draw_primitive(const Vector<Point2>& p_points, const 
 		sceGuEnable(GU_TEXTURE_2D);
 		Texture *texture = texture_owner.get( p_texture );
 		if (texture) {
-			sceGuTexMode(GU_PSM_8888, texture->mipmaps.size()-1, 0, 1);
+			sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
 			sceGuTexFilter(GU_LINEAR,GU_LINEAR);
 			sceGuTexScale(1.0f,1.0f);
 			sceGuTexOffset(0.0f,0.0f);
@@ -5654,8 +5682,8 @@ void RasterizerPSP::init() {
 	// if (ContextGL::get_singleton())
 	// 	ContextGL::get_singleton()->make_current();
 
-	fbp0 = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_8888);
-	fbp1 = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_8888);
+	fbp0 = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_5650);
+	fbp1 = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_5650);
 	zbp = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_4444);
 /*
 	Set<String> extensions;
@@ -5668,7 +5696,7 @@ void RasterizerPSP::init() {
 
 	sceGuInit();
 	sceGuStart(GU_DIRECT, list);
-	sceGuDrawBuffer(GU_PSM_8888,fbp0,BUF_WIDTH);
+	sceGuDrawBuffer(GU_PSM_5650,fbp0,BUF_WIDTH);
 	sceGuDispBuffer(SCR_WIDTH,SCR_HEIGHT,fbp1,BUF_WIDTH);
 	sceGuDepthBuffer(zbp,BUF_WIDTH);
 	sceGuOffset(2048 - (SCR_WIDTH/2),2048 - (SCR_HEIGHT/2));
@@ -5686,13 +5714,13 @@ void RasterizerPSP::init() {
 	sceGuDisplay(GU_TRUE);
 
 
-	//const ScePspIMatrix4 dith =
-	//	{ {-4,  0, -3,  1},
-	//	{ 2, -2,  3, -1},
-	//	{-3,  1, -4,  0},
-	//	{ 3, -1,  2, -2} };
-	//sceGuSetDither(&dith);
-	//sceGuEnable(GU_DITHER);
+	const ScePspIMatrix4 dith{
+		{-4,  0, -3,  1},
+		{ 2, -2,  3, -1},
+		{-3,  1, -4,  0},
+		{ 3, -1,  2, -2}};
+	sceGuSetDither(&dith);
+	sceGuEnable(GU_DITHER);
 
 	// glEnable(GL_DEPTH_TEST);
 	sceGuShadeModel(GU_SMOOTH);
