@@ -25,7 +25,8 @@ def get_opts():
 def get_flags():
 	return [
 		('builtin_zlib', 'no'),
-		('theora','no'), #use builtin openssl
+		('theora','no'),
+		('module_pspmath_enabled', 'yes'),
 	]
 
 
@@ -45,7 +46,6 @@ def configure(env):
 
 	env.Append(CPPPATH=[psp_path+"/psp/sdk/include/"])
 	env.Append(LIBPATH=[psp_path+"/psp/sdk/lib"])
-
 
 	if env["target"]=="release":
 		env.Append(CCFLAGS=['-O2','-ffast-math','-fomit-frame-pointer'])

@@ -53,7 +53,7 @@ const char * OS_PSP::get_video_driver_name(int p_driver) const {
 }
 OS::VideoMode OS_PSP::get_default_video_mode() const {
 
-	return OS::VideoMode(480,272,false);
+	return OS::VideoMode(480,272,true);
 }
 
 static MemoryPoolStaticMalloc *mempool_static=NULL;
@@ -229,7 +229,8 @@ uint64_t OS_PSP::get_ticks_usec() const{
 
 OS::VideoMode OS_PSP::get_video_mode(int p_screen) const {
 
-	return current_videomode;
+	//return current_videomode;
+	return get_default_video_mode();
 }
 void OS_PSP::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {
 

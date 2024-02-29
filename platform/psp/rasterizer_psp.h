@@ -60,9 +60,11 @@
 
 #define MK_RGBA(r,g,b,a) GU_RGBA((int)(r),(int)(g),(int)(b),(int)(a))
 #define MK_RGBA_F(r,g,b,a) GU_RGBA((int)((r)*255),(int)((g)*255),(int)((b)*255),(int)((a)*255))
+#define MK_RGBA_C(c) GU_RGBA((int)((c.r)*255),(int)((c.g)*255),(int)((c.b)*255),(int)((c.a)*255))
 
 #include <pspge.h>
 
+#include "buddy_alloc.h"
 
 template <class T>
 _FORCE_INLINE_ T *gumake(T &&il) {
@@ -72,8 +74,6 @@ _FORCE_INLINE_ T *gumake(T &&il) {
 	*mem = il;
 	return mem;
 }
-
-_FORCE_INLINE_ void *pspalloc(size_t sz) { return memalign(16, sz); }
 
 inline void swizzle(uint8_t *out, const uint8_t *in, uint32_t width, uint32_t height) {
 	int rowblocks = width / 16;
@@ -92,6 +92,57 @@ inline void swizzle(uint8_t *out, const uint8_t *in, uint32_t width, uint32_t he
 		}
 	}
 }
+
+struct MemoryPoolEDRAM final {
+	static _FORCE_INLINE_ MemoryPoolEDRAM *get_singleton();
+
+	void *alloc(size_t p_sz);
+	void *realloc(void *p_ptr, size_t p_sz);
+	void free(void *p_ptr);
+
+	MemoryPoolEDRAM();
+	~MemoryPoolEDRAM();
+
+private:
+	static MemoryPoolEDRAM *m_singleton;
+
+	uint8_t *m_meta;
+	buddy *m_buddy;
+};
+
+_FORCE_INLINE_ void *edalloc(size_t p_sz) { return MemoryPoolEDRAM::get_singleton()->alloc(p_sz); }
+
+_FORCE_INLINE_ void edfree(void *p_mem) { MemoryPoolEDRAM::get_singleton()->free(p_mem); }
+
+_FORCE_INLINE_ void *gualloc(size_t p_sz) {
+	void *mem = edalloc(p_sz);
+	if (mem)
+		return mem;
+	mem = memalign(16, p_sz);
+	if (mem)
+		return mem;
+	ERR_FAIL_V(nullptr);
+}
+
+_FORCE_INLINE_ void gufree(void *p_ptr) {
+	const auto edstart = sceGeEdramGetAddr();
+	const auto edend = edstart + sceGeEdramGetSize();
+	if (p_ptr >= edstart && p_ptr < edend) {
+		edfree(p_ptr);
+	} else {
+		free(p_ptr);
+	}
+}
+
+_FORCE_INLINE_ void *pspalloc(size_t p_sz) {
+	return memalign(16, p_sz);
+}
+
+struct Vector3FE {
+	real_t x;
+	real_t y;
+	real_t z;
+};
 
 struct VertexPool {
 	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
@@ -126,10 +177,10 @@ struct VertexPool {
 				paste<unsigned int>(mem, MK_RGBA_F(color->r, color->g, color->b, color->a), ptr);
 			}
 			if (m_normals) {
-				paste<Vector3>(mem, &m_normals[i * m_normals_stride], ptr);
+				paste<Vector3FE>(mem, &m_normals[i * m_normals_stride], ptr);
 			}
 
-			paste<Vector3>(mem, &m_vertices[i * m_vertices_stride], ptr);
+			paste<Vector3FE>(mem, &m_vertices[i * m_vertices_stride], ptr);
 
 			const auto pad = stride() - elem_size();
 			if (pad > 0) {
@@ -279,7 +330,7 @@ class RasterizerPSP : public Rasterizer {
 		Image image[6];
 
 		bool active;
-		Vector<void *> mipmaps;
+		Vector<uint8_t *> mipmaps;
 
 		ObjectID reloader;
 		StringName reloader_func;
@@ -300,7 +351,7 @@ class RasterizerPSP : public Rasterizer {
 
 		inline void _free_mipmaps() {
 			for (int i = 0; i < mipmaps.size(); ++i) {
-				std::free(mipmaps[i]);
+				gufree(mipmaps[i]);
 			}
 			mipmaps.clear();
 		}

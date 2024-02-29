@@ -3437,7 +3437,7 @@ void RasterizerGLES1::_setup_material(const Geometry *p_geometry,const Material 
 		if (depth_test)
 			glEnable(GL_DEPTH_TEST);
 		else
-			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_DEPTH_TEST);;
 	}
 }
 /*
