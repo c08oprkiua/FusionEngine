@@ -616,6 +616,8 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 		img.get_mipmap_offset_and_size(i,ofs,size,mw,mh);
 		//img.get_mipmap_offset_and_size(i,ofs,size);
 
+		ERR_CONTINUE(size <= 0);
+
 		ERR_FAIL_COND(texture->compressed);
 
 		// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -3691,6 +3693,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				skeleton_valid=false;
 
 			
+#if 0
 
 			if (p_morphs && surf->morph_target_count && can_copy_to_local) {
 
@@ -3823,7 +3826,6 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				stride=dst_stride;
 			}
 
-#if 0
 			if (skeleton_valid) {
 				//transform stuff
 
@@ -5683,6 +5685,15 @@ void RasterizerPSP::init() {
 	sceDisplayWaitVblankStart();
 	sceGuDisplay(GU_TRUE);
 
+
+	//const ScePspIMatrix4 dith =
+	//	{ {-4,  0, -3,  1},
+	//	{ 2, -2,  3, -1},
+	//	{-3,  1, -4,  0},
+	//	{ 3, -1,  2, -2} };
+	//sceGuSetDither(&dith);
+	//sceGuEnable(GU_DITHER);
+
 	// glEnable(GL_DEPTH_TEST);
 	sceGuShadeModel(GU_SMOOTH);
 	sceGuEnable(GU_DEPTH_TEST);
@@ -5714,8 +5725,9 @@ void RasterizerPSP::init() {
 	// glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	// sceGuClear(GU_COLOR_BUFFER_BIT|GU_DEPTH_BUFFER_BIT);
 
-	skinned_buffer_size = GLOBAL_DEF("rasterizer/skinned_buffer_size",DEFAULT_SKINNED_BUFFER_SIZE);
-	skinned_buffer = memnew_arr( uint8_t, skinned_buffer_size );
+	//skinned_buffer_size = GLOBAL_DEF("rasterizer/skinned_buffer_size",DEFAULT_SKINNED_BUFFER_SIZE);
+	//skinned_buffer = memnew_arr( uint8_t, skinned_buffer_size );
+	skinned_buffer_size = 0;
 
 	// glGenTextures(1, &white_tex);
 	// unsigned char whitetexdata[8*8*3];

@@ -48,14 +48,14 @@ def configure(env):
 	env.Append(LIBPATH=[psp_path+"/psp/sdk/lib"])
 
 	if env["target"]=="release":
-		env.Append(CCFLAGS=['-O2','-ffast-math','-fomit-frame-pointer'])
+		env.Append(CCFLAGS=['-Os','-ffast-math','-fomit-frame-pointer'])
 	elif env["target"]=="release_debug":
-		env.Append(CCFLAGS=['-O2','-ffast-math','-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-Os','-ffast-math','-DDEBUG_ENABLED'])
 	elif env["target"]=="debug":
 		env.Append(CCFLAGS=['-g2', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
 
-	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED', '-DGLES1_ENABLED', '-DNO_THREADS'])
-	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum', 'pspvfpu', 'pspctrl']) #TODO detect linux/BSD!
+	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED', '-DNO_THREADS'])
+	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum', 'pspvfpu', 'pspctrl'])
 
 	if (env["CXX"]=="clang++"):
 		env.Append(CPPFLAGS=['-DTYPED_METHOD_BIND'])

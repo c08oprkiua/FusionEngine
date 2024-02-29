@@ -99,7 +99,9 @@ public:
 	
 	virtual int get_audio_driver_count() const { return 1; };
 	virtual const char * get_audio_driver_name(int p_driver) const { return "Dummy"; };
-	virtual void vprint(const char* p_format, va_list p_list, bool p_stderr=false) {};
+	virtual void vprint(const char* p_format, va_list p_list, bool p_stderr=false) {
+		vfprintf(p_stderr ? stderr : stdout, p_format, p_list);
+	};
 	virtual void alert(const String& p_alert,const String& p_title="ALERT!") {};
 	virtual String get_stdin_string(bool p_block = true) { return ""; };
 	virtual Error execute(const String& p_path, const List<String>& p_arguments,bool p_blocking,ProcessID *r_child_id=NULL,String* r_pipe=NULL,int *r_exitcode=NULL) { return FAILED; };
