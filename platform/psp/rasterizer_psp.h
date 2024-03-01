@@ -155,12 +155,6 @@ struct Vector3FE {
 	real_t z;
 };
 
-// Reserve N bits for decimals
-#define DECIMAL_BITS (5)
-// Restore the scale
-//#define COMP16_SCALE (SHRT_MAX>>(sizeof(short) * CHAR_BIT - DECIMAL_BITS - 1))
-#define COMP16_SCALE (SHRT_MAX>>DECIMAL_BITS)
-
 struct VertexPool {
 	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
 	~VertexPool() {}
@@ -170,7 +164,7 @@ struct VertexPool {
 	int size() const { return m_points; }
 
 	template <auto Malloc = sceGuGetMemory>
-	void *pack() const {
+	void *pack(const AABB &aabb = {}) const {
 		ERR_FAIL_NULL_V(m_vertices, nullptr);
 		ERR_FAIL_COND_V(m_points < 1, nullptr);
 
@@ -183,15 +177,15 @@ struct VertexPool {
 			if (m_weights) {
 				for (int j = 0; j < VS::ARRAY_WEIGHTS_SIZE; ++i) {
 					if (m_weights_compressed)
-						paste<float, short, 0>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
+						paste<float, short>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
 					else
 						paste<float>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
 				}
 			}
 			if (m_uvs) {
 				if (m_uvs_compressed) {
-					paste<float, short, 0>(mem, &m_uvs[i * m_uvs_stride], ptr);
-					paste<float, short, 0>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
+					paste<float, short>(mem, &m_uvs[i * m_uvs_stride], ptr);
+					paste<float, short>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
 				} else {
 					paste<float>(mem, &m_uvs[i * m_uvs_stride], ptr);
 					paste<float>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
@@ -203,9 +197,9 @@ struct VertexPool {
 			}
 			if (m_normals) {
 				if (m_normals_compressed) {
-					paste<float, short, 0>(mem, &m_normals[i * m_normals_stride], ptr);
-					paste<float, short, 0>(mem, &m_normals[i * m_normals_stride + 4], ptr);
-					paste<float, short, 0>(mem, &m_normals[i * m_normals_stride + 8], ptr);
+					paste<float, short>(mem, &m_normals[i * m_normals_stride], ptr);
+					paste<float, short>(mem, &m_normals[i * m_normals_stride + 4], ptr);
+					paste<float, short>(mem, &m_normals[i * m_normals_stride + 8], ptr);
 				} else {
 					paste<float>(mem, &m_normals[i * m_normals_stride], ptr);
 					paste<float>(mem, &m_normals[i * m_normals_stride + 4], ptr);
@@ -214,9 +208,9 @@ struct VertexPool {
 			}
 
 			if (m_vertices_compressed) {
-				paste<float, short, DECIMAL_BITS>(mem, &m_vertices[i * m_vertices_stride], ptr);
-				paste<float, short, DECIMAL_BITS>(mem, &m_vertices[i * m_vertices_stride + 4], ptr);
-				paste<float, short, DECIMAL_BITS>(mem, &m_vertices[i * m_vertices_stride + 8], ptr);
+				paste<float, short, true>(mem, &m_vertices[i * m_vertices_stride], ptr, aabb, 0);
+				paste<float, short, true>(mem, &m_vertices[i * m_vertices_stride + 4], ptr, aabb, 1);
+				paste<float, short, true>(mem, &m_vertices[i * m_vertices_stride + 8], ptr, aabb, 2);
 			} else {
 				paste<float>(mem, &m_vertices[i * m_vertices_stride], ptr);
 				paste<float>(mem, &m_vertices[i * m_vertices_stride + 4], ptr);
@@ -295,66 +289,48 @@ private:
 		return sz;
 	}
 
-	// T = input type, U = output type, M = decimal bits
-	template <class T, class U = T, int M = 0>
-	static inline void paste(void *mem, const T &value, int &ptr) {
-		constexpr auto u_bits = sizeof(U) * CHAR_BIT; // bits in U
-		constexpr auto u_bits_num = u_bits - 1; // number bits in signed U
+	template <class T, class U = T, bool UseAABB = false>
+	static inline void paste(void *mem, const T &value, int &ptr, const AABB &aabb = {}, int coord = 0) {
+		constexpr auto u_bits = sizeof(U) * CHAR_BIT;
+		constexpr auto u_bits_num = u_bits - 1;
 
-		// align the pointer to the current value's sizeof
 		if (ptr % sizeof(U) != 0) {
 			ptr = (ptr + sizeof(U)) - (ptr % sizeof(U));
 		}
-		// val = value converted from T to U
+
 		U val = static_cast<U>(value);
 
-		// FIXME:XXX: Currently broken!!
-		if constexpr (M > 0) {
-			// For compressed vertices, ...
-			float intgf;
-			// ...isolate the fractional part...
-			const float frac = modf(Math::abs(value), &intgf);
-			// ...add some magic...
-			constexpr auto intg_bits = u_bits_num - M; // 10 for 16-bit short when M=5
-			constexpr auto intg_scale_factor = // a reasonable scale factor for the integral part
-					1.f;
-					//static_cast<float>(intg_bits) / 32.f;
-			constexpr auto intg_mask = (1 << intg_bits) - 1; // integral part mask, unshifted (!!!)
-			constexpr auto frac_mask = (1 << M) - 1; // fractional part mask
+		if constexpr (UseAABB) {
+			constexpr auto intg_mask = (1 << u_bits_num) - 1;
 			constexpr auto sign_mask = 1 << u_bits_num; // sign bit
 
-			// ...scale down the integral part...
-			unsigned int intg = static_cast<unsigned int>(intgf * intg_scale_factor);
+			const float s = aabb.get_longest_axis_size();//aabb.get_size().coord[coord];
+			const float intgf = Math::abs(value / s);
+
+			unsigned int intg = static_cast<unsigned int>(intgf * intg_mask);
 			if (intg > intg_mask) {
-				// (and if the integral part is too big, clamp it...)
+				printf("out of bounds vertex: %f; %f @ %d\n", intgf, s, coord);
+
 				intg = intg_mask;
 			}
-			// ...emplace the fractional part scaled to available width in the least significant part...
-			val = static_cast<unsigned int>(frac * frac_mask); // scales frac E [0.f; 1.f) to M bits
-			// ...emplace the integral part (also scaled) in the most significant part...
-			val |= intg << M;
-			// ...then just re-set the sign! :grin:
-			//val &= ~sign_mask;
+
+			val = intg & ~sign_mask;
 			if (value < 0)
 				val = -val;
 		} else if constexpr (sizeof(T) != sizeof(U)) {
-			// if no decimal bits, while the size still differs,
-			// just multiply the value by the signed type mask
 			val = value * ((1 << u_bits_num) - 1);
 		}
-		// write back
 		*reinterpret_cast<U *>(&reinterpret_cast<char *>(mem)[ptr]) = val;
-		// increment pointer
 		ptr += sizeof(U);
 	}
 
-	template <class T, class U = T, int M = 0>
-	static inline void paste(void *mem, const void *value, int &ptr) {
+	template <class T, class U = T, bool UseAABB = false>
+	static inline void paste(void *mem, const void *value, int &ptr, const AABB &aabb = {}, int coord = 0) {
 		//if (ptr % 4 != 0) {
 		//	ptr = (ptr + 4) - (ptr % 4);
 		//}
 		const auto &val = *reinterpret_cast<const T *>(value);
-		paste<T, U, M>(mem, val, ptr);
+		paste<T, U, UseAABB>(mem, val, ptr, aabb, coord);
 	}
 
 	int m_points;

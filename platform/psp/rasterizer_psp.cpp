@@ -1562,6 +1562,8 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 
 Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint8_t *p_index_mem,const Array& p_arrays,bool p_main) {
 
+	p_surface->vp.resize(p_surface->array_len);
+
 	uint32_t stride = p_main ? p_surface->stride : p_surface->local_stride;
 
 	for(int ai=0;ai<VS::ARRAY_MAX;ai++) {
@@ -1608,11 +1610,12 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 					}
 				}
 
-				if (p_main) {
+				//if (p_main) {
 					p_surface->aabb=aabb;
 					p_surface->vertex_scale=scale;
-				}
+				//}
 
+				p_surface->vp.vertex(reinterpret_cast<Vector3 *>(&p_mem[a.ofs]), stride, true);
 
 			} break;
 			case VS::ARRAY_NORMAL: {
@@ -1636,6 +1639,7 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 
 				}
 
+				p_surface->vp.normal(reinterpret_cast<Vector3 *>(&p_mem[a.ofs]), stride, true);
 
 			} break;
 			case VS::ARRAY_TANGENT: {
@@ -1697,6 +1701,8 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 				if (p_main)
 					p_surface->has_alpha=alpha;
 
+				p_surface->vp.color(reinterpret_cast<Color *>(&p_mem[a.ofs]), stride);
+
 			} break;
 			case VS::ARRAY_TEX_UV:
 			case VS::ARRAY_TEX_UV2: {
@@ -1733,6 +1739,8 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 					}
 				}
 
+				p_surface->vp.uv(reinterpret_cast<Vector2 *>(&p_mem[a.ofs]), stride);
+
 			} break;
 			case VS::ARRAY_BONES:
 			case VS::ARRAY_WEIGHTS: {
@@ -1765,6 +1773,10 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 					copymem(&p_mem[a.ofs+i*stride], data, a.size);
 
 
+				}
+
+				if (ai==VS::ARRAY_WEIGHTS) {
+					p_surface->vp.uv(reinterpret_cast<Vector3 *>(&p_mem[a.ofs]), stride);
 				}
 
 			} break;
@@ -1805,6 +1817,9 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 
 		p_surface->configured_format|=(1<<ai);
 	}
+
+	p_surface->psp_array_local = p_surface->vp.pack<gualloc>(p_surface->aabb);
+	p_surface->psp_vattribs = p_surface->vp.attrs();
 
 	return OK;
 }
@@ -3934,8 +3949,6 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 			}
 #endif
 
-			const_cast<Surface *>(surf)->vp.resize(surf->array_len);
-
 			for (int i=0;i<(VS::ARRAY_MAX-1);i++) {
 
 				const Surface::ArrayData& ad=surf->array[i];
@@ -3969,23 +3982,15 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 				case VS::ARRAY_VERTEX: {
 
-					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, true);
-
 				} break;
 				case VS::ARRAY_NORMAL: {
-
-					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, true);
 
 				} break;
 				case VS::ARRAY_COLOR: {
 
-					const_cast<Surface *>(surf)->vp.color(reinterpret_cast<Color *>(&base[ad.ofs]), stride);
-
 				} break;
 				case VS::ARRAY_TEX_UV:
 				case VS::ARRAY_TEX_UV2: {
-
-					const_cast<Surface *>(surf)->vp.uv(reinterpret_cast<Vector2 *>(&base[ad.ofs]), stride, false);
 
 				} break;
 				case VS::ARRAY_TANGENT: {
@@ -4007,20 +4012,12 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 					//do none
 					//glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, surf->stride, &base[ad.ofs]);
-					if (skeleton_valid) {
-						const_cast<Surface *>(surf)->vp.weight(reinterpret_cast<const float *>(&base[ad.ofs]), stride, false);
-					}
 
 				} break;
 				case VS::ARRAY_INDEX:
 					ERR_PRINT("Bug");
 					break;
 				};
-			}
-
-			if (!surf->psp_array_local) {
-				const_cast<Surface *>(surf)->psp_array_local = surf->vp.pack<gualloc>();
-				const_cast<Surface *>(surf)->psp_vattribs = surf->vp.attrs();
 			}
 
 		} break;
@@ -4061,7 +4058,11 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-			sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
+			const auto longest = s->aabb.get_longest_axis_size();
+			const Vector3 scale{longest, longest, longest};
+			sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
+			//const auto scale = s->aabb.get_size();
+			//sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
 			sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 		} break;
 
@@ -4083,7 +4084,11 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
+				const auto longest = s->aabb.get_longest_axis_size();
+				const Vector3 scale{longest, longest, longest};
+				sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
+				//const auto scale = s->aabb.get_size() / 2.f;
+				//sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
 				sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 			}
 		 } break;
