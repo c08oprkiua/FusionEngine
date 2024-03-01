@@ -3969,12 +3969,12 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 				case VS::ARRAY_VERTEX: {
 
-					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, false);
+					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, true);
 
 				} break;
 				case VS::ARRAY_NORMAL: {
 
-					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, false);
+					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, true);
 
 				} break;
 				case VS::ARRAY_COLOR: {
@@ -4061,7 +4061,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-			//sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
+			sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
 			sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 		} break;
 
@@ -4083,7 +4083,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				//sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
+				sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
 				sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 			}
 		 } break;
@@ -4245,15 +4245,11 @@ void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_revers
 			_gl_mult_transform(e->instance->transform); // for fixed pipeline
 		}
 
-
-
 		//bool changed_shader = material_shader.bind();
 		//if ( changed_shader && material->shader_cache && !material->shader_cache->params.empty())
 		//	_setup_shader_params(material);
 
 		_render(geometry, material, skeleton,e->owner);
-
-
 
 		prev_material=material;
 		prev_skeleton=skeleton;

@@ -156,8 +156,9 @@ struct Vector3FE {
 };
 
 // Reserve N bits for decimals
-#define DECIMAL_BITS (6)
+#define DECIMAL_BITS (5)
 // Restore the scale
+//#define COMP16_SCALE (SHRT_MAX>>(sizeof(short) * CHAR_BIT - DECIMAL_BITS - 1))
 #define COMP16_SCALE (SHRT_MAX>>DECIMAL_BITS)
 
 struct VertexPool {
@@ -308,25 +309,32 @@ private:
 		U val = static_cast<U>(value);
 
 		// FIXME:XXX: Currently broken!!
-#if 0
 		if constexpr (M > 0) {
 			// For compressed vertices, ...
-			float intg;
+			float intgf;
 			// ...isolate the fractional part...
-			float frac = modf(Math::abs(value), &intg);
+			const float frac = modf(Math::abs(value), &intgf);
 			// ...add some magic...
-			constexpr auto intg_bits = u_bits_num - M; // 10 for short when M=5
-			constexpr auto intg_scale_factor = // 0.66(6) for short when M=5
-					static_cast<float>(intg_bits) / static_cast<float>(u_bits_num);
+			constexpr auto intg_bits = u_bits_num - M; // 10 for 16-bit short when M=5
+			constexpr auto intg_scale_factor = // a reasonable scale factor for the integral part
+					1.f;
+					//static_cast<float>(intg_bits) / 32.f;
 			constexpr auto intg_mask = (1 << intg_bits) - 1; // integral part mask, unshifted (!!!)
 			constexpr auto frac_mask = (1 << M) - 1; // fractional part mask
-			constexpr auto sign_mask = 1 << u_bits_num;
+			constexpr auto sign_mask = 1 << u_bits_num; // sign bit
+
+			// ...scale down the integral part...
+			unsigned int intg = static_cast<unsigned int>(intgf * intg_scale_factor);
+			if (intg > intg_mask) {
+				// (and if the integral part is too big, clamp it...)
+				intg = intg_mask;
+			}
 			// ...emplace the fractional part scaled to available width in the least significant part...
-			val = static_cast<unsigned int>(frac * frac_mask) & frac_mask;
+			val = static_cast<unsigned int>(frac * frac_mask); // scales frac E [0.f; 1.f) to M bits
 			// ...emplace the integral part (also scaled) in the most significant part...
-			val |= (static_cast<unsigned int>(intg * intg_scale_factor) & intg_mask) << M;
+			val |= intg << M;
 			// ...then just re-set the sign! :grin:
-			val &= ~sign_mask;
+			//val &= ~sign_mask;
 			if (value < 0)
 				val = -val;
 		} else if constexpr (sizeof(T) != sizeof(U)) {
@@ -334,7 +342,6 @@ private:
 			// just multiply the value by the signed type mask
 			val = value * ((1 << u_bits_num) - 1);
 		}
-#endif
 		// write back
 		*reinterpret_cast<U *>(&reinterpret_cast<char *>(mem)[ptr]) = val;
 		// increment pointer
