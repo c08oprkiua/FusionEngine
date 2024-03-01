@@ -22,7 +22,7 @@ platform_exporters=[]
 global_defaults=[]
 
 for x in glob.glob("platform/*"):
-	if (not os.path.isdir(x)):
+	if not os.path.isdir(x):
 		continue
 	tmppath="./"+x
 

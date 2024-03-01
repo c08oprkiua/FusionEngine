@@ -40,8 +40,6 @@
 #include "gl_context/context_gl.h"
 #include <string.h>
 
-#define EDRAM_OFFSET ((512 * 272 * 2 * 2) + (512 * 272 * 2))
-
 MemoryPoolEDRAM *MemoryPoolEDRAM::m_singleton{nullptr};
  
 MemoryPoolEDRAM::MemoryPoolEDRAM() {
@@ -52,9 +50,8 @@ MemoryPoolEDRAM::MemoryPoolEDRAM() {
 	const auto m_edramOffset = sceGeEdramGetAddr() + EDRAM_OFFSET;
 	const auto m_edramSize = sceGeEdramGetSize() - EDRAM_OFFSET;
 
-	m_meta = memnew_arr(uint8_t, buddy_sizeof(m_edramSize));
-	//printf("Allocated %d for buddy\n", buddy_sizeof(m_edramSize));
-	m_buddy = buddy_init_alignment(m_meta, reinterpret_cast<uint8_t *>(m_edramOffset), m_edramSize, 16 * CHAR_BIT);
+	m_meta = memnew_arr(uint8_t, buddy_sizeof_alignment(m_edramSize, 16));
+	m_buddy = buddy_init_alignment(m_meta, reinterpret_cast<uint8_t *>(m_edramOffset), m_edramSize, 16);
 }
 
 MemoryPoolEDRAM::~MemoryPoolEDRAM() {
@@ -467,6 +464,20 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 	int components;
 	// GLenum format;
 	bool compressed = false;
+	switch (p_format) {
+	case Image::FORMAT_BC1:
+	case Image::FORMAT_BC2:
+	case Image::FORMAT_BC3:
+	case Image::FORMAT_BC4:
+	case Image::FORMAT_BC5:
+	case Image::FORMAT_ETC:
+	case Image::FORMAT_PVRTC2:
+	case Image::FORMAT_PVRTC2_ALPHA:
+	case Image::FORMAT_PVRTC4:
+	case Image::FORMAT_PVRTC4_ALPHA:
+		compressed = true;
+		break;
+	}
 
 	int po2_width = nearest_power_of_2(p_width);
 	int po2_height = nearest_power_of_2(p_height);
@@ -483,25 +494,22 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 	texture->swizzle=true;
 	// texture->target = /*(p_flags & VS::TEXTURE_FLAG_CUBEMAP) ? GL_TEXTURE_CUBE_MAP :*/ GL_TEXTURE_2D;
 
-	bool scale_textures = (!npo2_textures_available || p_format&VS::TEXTURE_FLAG_MIPMAPS);
-
-
-	if (scale_textures) {
-		texture->alloc_width = po2_width;
-		texture->alloc_height = po2_height;
-	} else {
-
-		texture->alloc_width = texture->width;
-		texture->alloc_height = texture->height;
-	};
+	texture->alloc_width = po2_width;
+	texture->alloc_height = po2_height;
 
 	// _get_gl_image_and_format(Image(),texture->format,texture->flags,format,components,has_alpha_cache,compressed);
+
+	texture->gl_components_cache=components;
+	texture->format_has_alpha=has_alpha_cache;
+	texture->compressed=compressed;
+	texture->data_size=0;
 
 	switch (texture->format) {
 	case Image::FORMAT_RGBA:
 		texture->gu_format_cache=GU_PSM_8888;
 		texture->swizzle=true;
 		break;
+#if 0
 	case Image::FORMAT_BC1:
 		texture->gu_format_cache=GU_PSM_DXT1;
 		texture->swizzle=false;
@@ -514,6 +522,7 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 		texture->gu_format_cache=GU_PSM_DXT5;
 		texture->swizzle=false;
 		break;
+#endif
 	default:
 		texture->format=Image::FORMAT_RGBA;
 		texture->gu_format_cache=GU_PSM_8888;
@@ -524,16 +533,10 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 		break;
 	}
 
-	texture->gl_components_cache=components;
-	texture->format_has_alpha=has_alpha_cache;
-	texture->compressed=compressed;
-	texture->data_size=0;
-
 
 	// glActiveTexture(GL_TEXTURE0);
 	// glBindTexture(texture->target, texture->tex_id);
 	//texture->tex_id = (unsigned char*)memalign(16, texture->alloc_width*texture->alloc_height*4);
-	ERR_FAIL_COND(compressed);
 	// texture->tex_id = 1;
 	/*
 	if (compressed) {
@@ -563,23 +566,6 @@ void RasterizerPSP::texture_allocate(RID p_texture,int p_width, int p_height,Ima
 		glTexParameteri(texture->target,GL_TEXTURE_MAG_FILTER,GL_NEAREST);	// raw Filtering
 
 	}*/
-	bool force_clamp_to_edge = !(p_flags&VS::TEXTURE_FLAG_MIPMAPS) && (nearest_power_of_2(texture->alloc_height)!=texture->alloc_height || nearest_power_of_2(texture->alloc_width)!=texture->alloc_width);
-
-#if 0
-	if (!force_clamp_to_edge && texture->flags&VS::TEXTURE_FLAG_REPEAT) {
-
-		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		// glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-
-		sceGuTexWrap(GU_REPEAT, GU_REPEAT);
-	} else {
-
-		//glTexParameterf( texture->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
-		// glTexParameterf( texture->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		// glTexParameterf( texture->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		sceGuTexWrap(GU_CLAMP, GU_CLAMP);
-	}
-#endif
 
 	texture->active=true;
 }
@@ -602,7 +588,18 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	}
 
 
-	Image img = p_image;//_get_gl_image_and_format(p_image, p_image.get_format(),texture->flags,format,components,alpha,compressed);
+	Image img = p_image;
+	//_get_gl_image_and_format(p_image, p_image.get_format(),texture->flags,format,components,alpha,compressed);
+	
+	if (img.get_format() != texture->format) {
+		WARN_PRINT("Image format conversion required");
+		if (texture->compressed) {
+			img.decompress();
+			texture->compressed = false;
+		}
+		img.convert(texture->format);
+	}
+
 	texture->alloc_width = nearest_power_of_2(img.get_width());
 	texture->alloc_height = nearest_power_of_2(img.get_height());
 	if (texture->alloc_width < 16) {
@@ -612,27 +609,20 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 
 		img.resize(texture->alloc_width, texture->alloc_height, Image::INTERPOLATE_BILINEAR);
 	};
-	
-	if (img.get_format() != texture->format) {
-		img.convert(Image::FORMAT_RGBA);
-		texture->gu_format_cache=GU_PSM_8888;
-		texture->swizzle=true;
-	}
-
 
 	// GLenum blit_target = /*(texture->target == GL_TEXTURE_CUBE_MAP)?_cube_side_enum[p_cube_side]:*/GL_TEXTURE_2D;
 
 	texture->data_size=img.get_data().size();
 	DVector<uint8_t>::Read read = img.get_data().read();
-	
-	
-	
-	
 
 	// glActiveTexture(GL_TEXTURE0);
 	// glBindTexture(texture->target, texture->tex_id);
 
 	int mipmaps=(texture->flags&VS::TEXTURE_FLAG_MIPMAPS && img.get_mipmaps()>0) ? img.get_mipmaps() +1 : 1;
+
+	//if (mipmaps > 1) {
+	//	texture->swizzle = false;
+	//}
 
 	int w=img.get_width();
 	int h=img.get_height();
@@ -642,27 +632,26 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 	int tsize=0;
 	for(int i=0;i<mipmaps;i++) {
 
-		int size,ofs,mw,mh;
-		img.get_mipmap_offset_and_size(i,ofs,size,mw,mh);
-		//img.get_mipmap_offset_and_size(i,ofs,size);
+		int size,ofs;
+		img.get_mipmap_offset_and_size(i,ofs,size);
 
-		ERR_CONTINUE(size <= 0);
+		ERR_BREAK((w % 16) != 0)
 
-		ERR_FAIL_COND(texture->compressed);
+		//ERR_FAIL_COND(texture->compressed);
 
 		// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //			glTexImage2D(blit_target, i, format==GL_RGB?GL_RGB8:format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
 		// glTexImage2D(blit_target, i, format, w, h, 0, format, GL_UNSIGNED_BYTE,&read[ofs]);
 		//glTexSubImage2D( blit_target, i, 0,0,w,h,format,GL_UNSIGNED_BYTE,&read[ofs] );
-		if (w > 256 && h > 256) {
-			printf("large texture: %i x %i - size: %i\n",mw,mh,size);
-			texture->mipmaps.push_back(reinterpret_cast<uint8_t *>(memalign(16, size)));
+		if (w > 128 && h > 128) {
+			printf("large mipmap: %i x %i - size: %i\n",w,h,size);
+			texture->mipmaps.push_back(reinterpret_cast<uint8_t *>(memalloc(size)));
 		} else {
-			printf("small texture: %i x %i - size: %i\n",mw,mh,size);
+			printf("small mipmap: %i x %i - size: %i\n",w,h,size);
 			texture->mipmaps.push_back(reinterpret_cast<uint8_t *>(gualloc(size)));
 		}
 		if (texture->swizzle)
-			swizzle(texture->mipmaps[i], &read[ofs], static_cast<int>(mw * (static_cast<float>(size) / mw / mh)), mh);
+			swizzle(texture->mipmaps[i], &read[ofs], static_cast<int>(w * (static_cast<float>(size) / w / h)), h);
 		else
 			memcpy(texture->mipmaps[i], &read[ofs], size);
 
@@ -670,10 +659,9 @@ void RasterizerPSP::texture_set_data(RID p_texture,const Image& p_image,VS::Cube
 
 		w = MAX(1,w>>1);
 		h = MAX(1,h>>1);
-
 	}
 
-	sceGuTexSync();
+	//sceGuTexSync();
 
 	_rinfo.texture_mem-=texture->total_data_size;
 	texture->total_data_size=tsize;
@@ -1557,16 +1545,12 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 
 	uint8_t *array_ptr=NULL;
 	uint8_t *index_array_ptr=NULL;
-	DVector<uint8_t> array_pre_vbo;
-	DVector<uint8_t>::Write vaw;
-	DVector<uint8_t> index_array_pre_vbo;
-	DVector<uint8_t>::Write iaw;
 
 	/* create pointers */
 	surface->array_local = (uint8_t*)memalloc(surface->array_len*surface->stride);
 	array_ptr=(uint8_t*)surface->array_local;
 	if (surface->index_array_len) {
-		surface->index_array_local = memnew_arr(uint8_t, index_array_len*surface->array[VS::ARRAY_INDEX].size);
+		surface->index_array_local = reinterpret_cast<uint8_t *>(gualloc(index_array_len*surface->array[VS::ARRAY_INDEX].size));
 		index_array_ptr=(uint8_t*)surface->index_array_local;
 	}
 
@@ -2045,7 +2029,7 @@ void RasterizerPSP::multimesh_set_instance_count(RID p_multimesh,int p_count) {
 
 			if (nearest_power_of_2(p_count)!=nearest_power_of_2(multimesh->elements.size())) {
 			if (multimesh->tex_id) {
-				std::free((void*)multimesh->tex_id);
+				memfree((void*)multimesh->tex_id);
 				multimesh->tex_id=0;
 			}
 			/*
@@ -3323,6 +3307,37 @@ void RasterizerPSP::_set_cull(bool p_front,bool p_reverse_cull) {
 	}
 }
 
+void RasterizerPSP::_setup_texture(const Texture *texture) {
+	if (!texture) {
+		sceGuDisable(GU_TEXTURE_2D);
+		return;
+	}
+
+	sceGuEnable(GU_TEXTURE_2D);
+	sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
+	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+	if (texture->flags&VS::TEXTURE_FLAG_REPEAT) {
+		sceGuTexWrap(GU_REPEAT, GU_REPEAT);
+	} else {
+		sceGuTexWrap(GU_CLAMP, GU_CLAMP);
+	}
+
+	if (texture->mipmaps.size() > 1) {
+		sceGuTexLevelMode(GU_TEXTURE_AUTO, 0.f);
+		sceGuTexFilter(GU_LINEAR_MIPMAP_LINEAR, GU_LINEAR);
+	} else {
+		sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+	}
+
+	int w = texture->alloc_width;
+	int h = texture->alloc_height;
+	for (int i = 0; i < texture->mipmaps.size(); ++i) {
+		sceGuTexImage(i,w,h,w,texture->mipmaps[i]);
+
+		w>>=1;
+		h>>=1;
+	}
+}
 
 void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Material *p_material) {
 	if (!shadow) {
@@ -3331,12 +3346,7 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 
 		///diffuse
 		Color diffuse_color=p_material->parameters[VS::FIXED_MATERIAL_PARAM_DIFFUSE];
-		const auto diffuse_rgba = MK_RGBA_F(
-			diffuse_color.r,
-			diffuse_color.g,
-			diffuse_color.b,
-			diffuse_color.a
-		);
+		const auto diffuse_rgba = MK_RGBA_C(diffuse_color);
 		//color array overrides this
 		sceGuColorMaterial(GU_AMBIENT | GU_DIFFUSE | GU_SPECULAR);
 
@@ -3383,17 +3393,8 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 		Texture *texture = texture_owner.get( p_material->textures[VS::FIXED_MATERIAL_PARAM_DIFFUSE] );
 		ERR_FAIL_COND(!texture);
 
-		sceGuEnable(GU_TEXTURE_2D);
-		sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
-		sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+		_setup_texture(texture);
 
-		sceGuTexFilter(GU_LINEAR,GU_LINEAR);
-		sceGuTexScale(1.0f,1.0f);
-		sceGuTexOffset(0.0f,0.0f);
-
-		for (int i = 0; i < texture->mipmaps.size(); ++i) {
-			sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
-		}
 	} else {
 
 		sceGuDisable(GU_TEXTURE_2D);
@@ -3968,12 +3969,12 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 				case VS::ARRAY_VERTEX: {
 
-					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride);
+					const_cast<Surface *>(surf)->vp.vertex(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, false);
 
 				} break;
 				case VS::ARRAY_NORMAL: {
 
-					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride);
+					const_cast<Surface *>(surf)->vp.normal(reinterpret_cast<Vector3 *>(&base[ad.ofs]), stride, false);
 
 				} break;
 				case VS::ARRAY_COLOR: {
@@ -3984,7 +3985,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				case VS::ARRAY_TEX_UV:
 				case VS::ARRAY_TEX_UV2: {
 
-					const_cast<Surface *>(surf)->vp.uv(reinterpret_cast<Vector2 *>(&base[ad.ofs]), stride);
+					const_cast<Surface *>(surf)->vp.uv(reinterpret_cast<Vector2 *>(&base[ad.ofs]), stride, false);
 
 				} break;
 				case VS::ARRAY_TANGENT: {
@@ -4007,7 +4008,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 					//do none
 					//glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, surf->stride, &base[ad.ofs]);
 					if (skeleton_valid) {
-						const_cast<Surface *>(surf)->vp.weight(reinterpret_cast<const float *>(&base[ad.ofs]), stride);
+						const_cast<Surface *>(surf)->vp.weight(reinterpret_cast<const float *>(&base[ad.ofs]), stride, false);
 					}
 
 				} break;
@@ -4060,6 +4061,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
+			//sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
 			sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 		} break;
 
@@ -4081,6 +4083,7 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
+				//sceGumScale(gumake<ScePspFVector3>({COMP16_SCALE, COMP16_SCALE, COMP16_SCALE}));
 				sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 			}
 		 } break;
@@ -4280,6 +4283,7 @@ void RasterizerPSP::end_scene() {
 			case VS::ENV_BG_KEEP: {
 				//copy from framebuffer if framebuffer
 				// glClear(GL_DEPTH_BUFFER_BIT);
+				sceGuClearDepth(0xFFFF);
 				sceGuClear(GU_DEPTH_BUFFER_BIT);
 			} break;
 			case VS::ENV_BG_DEFAULT_COLOR:
@@ -4378,12 +4382,12 @@ void RasterizerPSP::end_scene() {
 	sceGumMatrixMode(GU_PROJECTION);
 	sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
 
-	sceGumMatrixMode(GU_VIEW); //TODO:
-	sceGumLoadIdentity();
+	sceGumMatrixMode(GU_VIEW);
+	_gl_load_transform(camera_transform_inverse);
 	//sceGumPushMatrix();
 
 	sceGumMatrixMode(GU_MODEL);
-	_gl_load_transform(camera_transform_inverse);
+	sceGumLoadIdentity();
 	sceGumPushMatrix();
 
 	sceGuDisable(GU_BLEND);
@@ -4538,6 +4542,7 @@ void RasterizerPSP::reset_state() {
 	// glDisable(GL_CULL_FACE);
 	// glDisable(GL_DEPTH_TEST);
 	// glEnable(GL_BLEND);
+	//sceGuDisable(GU_FOG);
 	sceGuDisable(GU_CULL_FACE);
 	sceGuDisable(GU_DEPTH_TEST);
 	sceGuEnable(GU_BLEND);
@@ -4554,9 +4559,9 @@ void RasterizerPSP::reset_state() {
 
 _FORCE_INLINE_ static void _set_glcoloro(const Color& p_color,const float p_opac) {
 
-	const auto color = MK_RGBA(p_color.r*255,p_color.g*255,p_color.b*255,p_color.a*p_opac*255);
-	// glColor4f(p_color.r, p_color.g, p_color.b, p_color.a*p_opac);
+	const auto color = MK_RGBA_F(p_color.r,p_color.g,p_color.b,p_color.a*p_opac);
 	sceGuColor(color);
+	sceGuAmbientColor(color);
 }
 
 
@@ -4715,22 +4720,10 @@ void RasterizerPSP::canvas_draw_rect(const Rect2& p_rect, int p_flags, const Rec
 
 	if ( p_texture.is_valid() ) {
 
-		sceGuEnable(GU_TEXTURE_2D);
 		Texture *texture = texture_owner.get( p_texture );
 		ERR_FAIL_COND(!texture);
-		// glActiveTexture(GL_TEXTURE0);
-		// glBindTexture( GL_TEXTURE_2D,texture->tex_id );
 
-		sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
-		sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
-
-		sceGuTexFilter(GU_LINEAR,GU_LINEAR);
-		sceGuTexScale(1.0f,1.0f);
-		sceGuTexOffset(0.0f,0.0f);
-
-		for (int i = 0; i < texture->mipmaps.size(); ++i) {
-			sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
-		}
+		_setup_texture(texture);
 
 		if (!(p_flags&CANVAS_RECT_REGION)) {
 
@@ -4763,13 +4756,7 @@ void RasterizerPSP::canvas_draw_style_box(const Rect2& p_rect, RID p_texture,con
 	Texture *texture = texture_owner.get( p_texture );
 	ERR_FAIL_COND(!texture);
 
-	sceGuEnable(GU_TEXTURE_2D);
-	sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
-	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
-	for (int i = 0; i < texture->mipmaps.size(); ++i) {
-		sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
-	}
-
+	_setup_texture(texture);
 
 	/* CORNERS */
 
@@ -4847,19 +4834,7 @@ void RasterizerPSP::canvas_draw_primitive(const Vector<Point2>& p_points, const 
 	}
 
 	if (p_texture.is_valid()) {
-		sceGuEnable(GU_TEXTURE_2D);
-		Texture *texture = texture_owner.get( p_texture );
-		if (texture) {
-			sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
-			sceGuTexFilter(GU_LINEAR,GU_LINEAR);
-			sceGuTexScale(1.0f,1.0f);
-			sceGuTexOffset(0.0f,0.0f);
-			sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
-
-			for (int i = 0; i < texture->mipmaps.size(); ++i) {
-				sceGuTexImage(i,texture->alloc_width,texture->alloc_height,texture->alloc_width,texture->mipmaps[i]);
-			}
-		}
+		_setup_texture(texture_owner.get( p_texture ));
 	}
 
 	// glLineWidth(p_width);
@@ -5390,7 +5365,7 @@ void RasterizerPSP::free(const RID& p_rid) {
 				memfree(surface->array_local);
 			};
 			if (surface->index_array_local != 0) {
-				memfree(surface->index_array_local);
+				gufree(surface->index_array_local);
 			};
 
 			if (mesh->morph_target_count>0) {
@@ -5682,9 +5657,9 @@ void RasterizerPSP::init() {
 	// if (ContextGL::get_singleton())
 	// 	ContextGL::get_singleton()->make_current();
 
-	fbp0 = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_5650);
-	fbp1 = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_5650);
-	zbp = getStaticVramBuffer(BUF_WIDTH,SCR_HEIGHT,GU_PSM_4444);
+	fbp0 = reinterpret_cast<void *>(FBP0_OFFSET);
+	fbp1 = reinterpret_cast<void *>(FBP1_OFFSET);
+	zbp = reinterpret_cast<void *>(FBP2_OFFSET);
 /*
 	Set<String> extensions;
 	Vector<String> strings = String((const char*)glGetString( GL_EXTENSIONS )).split(" ",false);
@@ -5721,6 +5696,8 @@ void RasterizerPSP::init() {
 		{ 3, -1,  2, -2}};
 	sceGuSetDither(&dith);
 	sceGuEnable(GU_DITHER);
+
+	sceGuEnable(GU_CLIP_PLANES);
 
 	// glEnable(GL_DEPTH_TEST);
 	sceGuShadeModel(GU_SMOOTH);
@@ -5768,10 +5745,9 @@ void RasterizerPSP::init() {
 	// glBindTexture(GL_TEXTURE_2D,white_tex);
 	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 8, 8, 0, GL_RGB, GL_UNSIGNED_BYTE,whitetexdata);
 
-	npo2_textures_available=false;
 	pvr_supported=false;
-	etc_supported=true;
-	s3tc_supported=false;
+	etc_supported=false;
+	s3tc_supported=true;
 	_rinfo.texture_mem=0;
 
 

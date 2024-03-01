@@ -62,6 +62,12 @@
 #define MK_RGBA_F(r,g,b,a) GU_RGBA((int)((r)*255),(int)((g)*255),(int)((b)*255),(int)((a)*255))
 #define MK_RGBA_C(c) GU_RGBA((int)((c.r)*255),(int)((c.g)*255),(int)((c.b)*255),(int)((c.a)*255))
 
+#define FBP0_OFFSET (0)
+#define FBP1_OFFSET (FBP0_OFFSET + (512 * 272 * 2))
+#define FBP2_OFFSET (FBP1_OFFSET + (512 * 272 * 2))
+
+#define EDRAM_OFFSET (FBP2_OFFSET + (512 * 272 * 2))
+
 #include <pspge.h>
 
 #include "buddy_alloc.h"
@@ -116,33 +122,43 @@ _FORCE_INLINE_ void edfree(void *p_mem) { MemoryPoolEDRAM::get_singleton()->free
 
 _FORCE_INLINE_ void *gualloc(size_t p_sz) {
 	void *mem = edalloc(p_sz);
-	if (mem)
+	if (mem) {
+		const auto *edstart = sceGeEdramGetAddr() + EDRAM_OFFSET;
+		const auto *edend = edstart + sceGeEdramGetSize() - EDRAM_OFFSET;
+		ERR_FAIL_COND_V(mem < edstart || mem >= edend, nullptr);
 		return mem;
-	mem = memalign(16, p_sz);
+	}
+	mem = memalloc(p_sz);
 	if (mem)
 		return mem;
 	ERR_FAIL_V(nullptr);
 }
 
 _FORCE_INLINE_ void gufree(void *p_ptr) {
-	const auto edstart = sceGeEdramGetAddr();
-	const auto edend = edstart + sceGeEdramGetSize();
+	const auto *edstart = sceGeEdramGetAddr();
+	const auto *edend = edstart + sceGeEdramGetSize();
 	if (p_ptr >= edstart && p_ptr < edend) {
 		edfree(p_ptr);
 	} else {
-		free(p_ptr);
+		memfree(p_ptr);
 	}
 }
 
-_FORCE_INLINE_ void *pspalloc(size_t p_sz) {
-	return memalign(16, p_sz);
-}
+struct Vector2FE {
+	real_t x;
+	real_t y;
+};
 
 struct Vector3FE {
 	real_t x;
 	real_t y;
 	real_t z;
 };
+
+// Reserve N bits for decimals
+#define DECIMAL_BITS (6)
+// Restore the scale
+#define COMP16_SCALE (SHRT_MAX>>DECIMAL_BITS)
 
 struct VertexPool {
 	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
@@ -165,22 +181,46 @@ struct VertexPool {
 		for (int i = 0; i < m_points; ++i) {
 			if (m_weights) {
 				for (int j = 0; j < VS::ARRAY_WEIGHTS_SIZE; ++i) {
-					paste<float>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
+					if (m_weights_compressed)
+						paste<float, short, 0>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
+					else
+						paste<float>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
 				}
 			}
 			if (m_uvs) {
-				paste<float>(mem, &m_uvs[i * m_uvs_stride], ptr);
-				paste<float>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
+				if (m_uvs_compressed) {
+					paste<float, short, 0>(mem, &m_uvs[i * m_uvs_stride], ptr);
+					paste<float, short, 0>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
+				} else {
+					paste<float>(mem, &m_uvs[i * m_uvs_stride], ptr);
+					paste<float>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
+				}
 			}
 			if (m_colors) {
 				const auto *color = reinterpret_cast<const Color *>(&m_colors[i * m_colors_stride]);
 				paste<unsigned int>(mem, MK_RGBA_F(color->r, color->g, color->b, color->a), ptr);
 			}
 			if (m_normals) {
-				paste<Vector3FE>(mem, &m_normals[i * m_normals_stride], ptr);
+				if (m_normals_compressed) {
+					paste<float, short, 0>(mem, &m_normals[i * m_normals_stride], ptr);
+					paste<float, short, 0>(mem, &m_normals[i * m_normals_stride + 4], ptr);
+					paste<float, short, 0>(mem, &m_normals[i * m_normals_stride + 8], ptr);
+				} else {
+					paste<float>(mem, &m_normals[i * m_normals_stride], ptr);
+					paste<float>(mem, &m_normals[i * m_normals_stride + 4], ptr);
+					paste<float>(mem, &m_normals[i * m_normals_stride + 8], ptr);
+				}
 			}
 
-			paste<Vector3FE>(mem, &m_vertices[i * m_vertices_stride], ptr);
+			if (m_vertices_compressed) {
+				paste<float, short, DECIMAL_BITS>(mem, &m_vertices[i * m_vertices_stride], ptr);
+				paste<float, short, DECIMAL_BITS>(mem, &m_vertices[i * m_vertices_stride + 4], ptr);
+				paste<float, short, DECIMAL_BITS>(mem, &m_vertices[i * m_vertices_stride + 8], ptr);
+			} else {
+				paste<float>(mem, &m_vertices[i * m_vertices_stride], ptr);
+				paste<float>(mem, &m_vertices[i * m_vertices_stride + 4], ptr);
+				paste<float>(mem, &m_vertices[i * m_vertices_stride + 8], ptr);
+			}
 
 			const auto pad = stride() - elem_size();
 			if (pad > 0) {
@@ -196,32 +236,36 @@ struct VertexPool {
 
 	int attrs() const {
 		return (
-			GU_VERTEX_32BITF
-			| (m_weights ? (GU_WEIGHT_32BITF | GU_WEIGHTS(VS::ARRAY_WEIGHTS_SIZE)) : 0)
-			| (m_uvs ? GU_TEXTURE_32BITF : 0)
+			(m_vertices_compressed ? GU_VERTEX_16BIT : GU_VERTEX_32BITF)
+			| (m_weights ? ((m_weights_compressed ? GU_WEIGHT_16BIT : GU_WEIGHT_32BITF) | GU_WEIGHTS(VS::ARRAY_WEIGHTS_SIZE)) : 0)
+			| (m_uvs ? (m_uvs_compressed ? GU_TEXTURE_16BIT : GU_TEXTURE_32BITF) : 0)
 			| (m_colors ? GU_COLOR_8888 : 0)
-			| (m_normals ? GU_NORMAL_32BITF : 0)
+			| (m_normals ? (m_normals_compressed ? GU_NORMAL_16BIT : GU_NORMAL_32BITF) : 0)
 		);
 	}
 
-	void vertex(const Vector3 *p_vertices, int p_stride = 0) {
+	void vertex(const Vector3 *p_vertices, int p_stride = 0, bool compress=false) {
 		m_vertices = reinterpret_cast<const char *>(p_vertices);
 		m_vertices_stride = p_stride ? p_stride : sizeof(Vector3);
+		m_vertices_compressed = compress;
 	}
 
-	void weight(const float *p_weights, int p_stride = 0) {
+	void weight(const float *p_weights, int p_stride = 0, bool compress=false) {
 		m_weights = reinterpret_cast<const char *>(p_weights);
 		m_weights_stride = p_stride ? p_stride : (sizeof(float) * VS::ARRAY_WEIGHTS_SIZE);
+		m_weights_compressed = compress;
 	}
 
-	void uv(const Vector3 *p_uvs, int p_stride = 0) {
+	void uv(const Vector3 *p_uvs, int p_stride = 0, bool compress=false) {
 		m_uvs = reinterpret_cast<const char *>(p_uvs);
 		m_uvs_stride = p_stride ? p_stride : sizeof(Vector3);
+		m_uvs_compressed = compress;
 	}
 
-	void uv(const Vector2 *p_uvs, int p_stride = 0) {
+	void uv(const Vector2 *p_uvs, int p_stride = 0, bool compress=false) {
 		m_uvs = reinterpret_cast<const char *>(p_uvs);
 		m_uvs_stride = p_stride ? p_stride : sizeof(Vector2);
+		m_uvs_compressed = compress;
 	}
 
 	void color(const Color *p_colors, int p_stride = 0) {
@@ -229,18 +273,19 @@ struct VertexPool {
 		m_colors_stride = p_stride ? p_stride : sizeof(unsigned int);
 	}
 
-	void normal(const Vector3 *p_normals, int p_stride = 0) {
+	void normal(const Vector3 *p_normals, int p_stride = 0, bool compress=false) {
 		m_normals = reinterpret_cast<const char *>(p_normals);
 		m_normals_stride = p_stride ? p_stride : sizeof(Vector3);
+		m_normals_compressed = compress;
 	}
 
 private:
 	int elem_size() const {
-		return 3 * sizeof(float)
-			+ (m_weights ? VS::ARRAY_WEIGHTS_SIZE * sizeof(float) : 0)
-			+ (m_uvs ? 2 * sizeof(float) : 0)
+		return 3 * (m_vertices_compressed ? 2 : 4)
+			+ (m_weights ? VS::ARRAY_WEIGHTS_SIZE * (m_weights_compressed ? 2 : 4) : 0)
+			+ (m_uvs ? 2 * (m_uvs_compressed ? 2 : 4) : 0)
 			+ (m_colors ? sizeof(unsigned int) : 0)
-			+ (m_normals ? 3 * sizeof(float) : 0);
+			+ (m_normals ? 3 * (m_normals_compressed ? 2 : 4) : 0);
 	}
 
 	int stride() const {
@@ -249,22 +294,60 @@ private:
 		return sz;
 	}
 
-	template <class T>
+	// T = input type, U = output type, M = decimal bits
+	template <class T, class U = T, int M = 0>
 	static inline void paste(void *mem, const T &value, int &ptr) {
-		//if (ptr % 4 != 0) {
-		//	ptr = (ptr + 4) - (ptr % 4);
-		//}
-		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = value;
-		ptr += sizeof(T);
+		constexpr auto u_bits = sizeof(U) * CHAR_BIT; // bits in U
+		constexpr auto u_bits_num = u_bits - 1; // number bits in signed U
+
+		// align the pointer to the current value's sizeof
+		if (ptr % sizeof(U) != 0) {
+			ptr = (ptr + sizeof(U)) - (ptr % sizeof(U));
+		}
+		// val = value converted from T to U
+		U val = static_cast<U>(value);
+
+		// FIXME:XXX: Currently broken!!
+#if 0
+		if constexpr (M > 0) {
+			// For compressed vertices, ...
+			float intg;
+			// ...isolate the fractional part...
+			float frac = modf(Math::abs(value), &intg);
+			// ...add some magic...
+			constexpr auto intg_bits = u_bits_num - M; // 10 for short when M=5
+			constexpr auto intg_scale_factor = // 0.66(6) for short when M=5
+					static_cast<float>(intg_bits) / static_cast<float>(u_bits_num);
+			constexpr auto intg_mask = (1 << intg_bits) - 1; // integral part mask, unshifted (!!!)
+			constexpr auto frac_mask = (1 << M) - 1; // fractional part mask
+			constexpr auto sign_mask = 1 << u_bits_num;
+			// ...emplace the fractional part scaled to available width in the least significant part...
+			val = static_cast<unsigned int>(frac * frac_mask) & frac_mask;
+			// ...emplace the integral part (also scaled) in the most significant part...
+			val |= (static_cast<unsigned int>(intg * intg_scale_factor) & intg_mask) << M;
+			// ...then just re-set the sign! :grin:
+			val &= ~sign_mask;
+			if (value < 0)
+				val = -val;
+		} else if constexpr (sizeof(T) != sizeof(U)) {
+			// if no decimal bits, while the size still differs,
+			// just multiply the value by the signed type mask
+			val = value * ((1 << u_bits_num) - 1);
+		}
+#endif
+		// write back
+		*reinterpret_cast<U *>(&reinterpret_cast<char *>(mem)[ptr]) = val;
+		// increment pointer
+		ptr += sizeof(U);
 	}
 
-	template <class T>
+	template <class T, class U = T, int M = 0>
 	static inline void paste(void *mem, const void *value, int &ptr) {
 		//if (ptr % 4 != 0) {
 		//	ptr = (ptr + 4) - (ptr % 4);
 		//}
-		*reinterpret_cast<T *>(&reinterpret_cast<char *>(mem)[ptr]) = *reinterpret_cast<const T *>(value);
-		ptr += sizeof(T);
+		const auto &val = *reinterpret_cast<const T *>(value);
+		paste<T, U, M>(mem, val, ptr);
 	}
 
 	int m_points;
@@ -274,6 +357,12 @@ private:
 	int m_colors_stride;
 	int m_normals_stride;
 	int m_vertices_stride;
+
+	int m_weights_compressed;
+	int m_uvs_compressed;
+	//int m_colors_compressed;
+	int m_normals_compressed;
+	int m_vertices_compressed;
 
 	const char *m_weights;
 	const char *m_uvs;
@@ -301,7 +390,6 @@ class RasterizerPSP : public Rasterizer {
 	bool pvr_supported;
 	bool s3tc_supported;
 	bool etc_supported;
-	bool npo2_textures_available;
 	bool pack_arrays;
 	bool use_reload_hooks;
 	void* fbp0;
@@ -1012,6 +1100,8 @@ class RasterizerPSP : public Rasterizer {
 
 	void _setup_light(LightInstance* p_instance, int p_idx);
 	void _setup_lights(const uint16_t * p_lights,int p_light_count);
+
+	_FORCE_INLINE_ void _setup_texture(const Texture *texture);
 
 	_FORCE_INLINE_ void _setup_shader_params(const Material *p_material);
 	void _setup_fixed_material(const Geometry *p_geometry,const Material *p_material);

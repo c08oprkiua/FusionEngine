@@ -49,7 +49,6 @@ void* MemoryPoolStaticMalloc::alloc(size_t p_bytes,const char *p_description) {
 
 	#else
 
-		
 		size_t total;
 		#if defined(_add_overflow)
 			if (_add_overflow(p_bytes, DEFAULT_ALIGNMENT, &total)) return NULL;

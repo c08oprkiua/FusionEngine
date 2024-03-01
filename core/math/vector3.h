@@ -348,7 +348,7 @@ real_t Vector3::length_squared() const {
 }
 
 void Vector3::normalize() {
-#if defined(MODULE_PSPMATH_ENABLED) && defined(USE_QUAD_VECTORS)
+#if defined(MODULE_PSPMATH_ENABLED) //&& defined(USE_QUAD_VECTORS)
         // FIXME:XXX: This might crash when using non-quad vectors, but FE breaks with quad vectors
         vfpu_normalize_vector(reinterpret_cast<ScePspFVector4 *>(this));
 #else

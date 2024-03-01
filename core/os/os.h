@@ -46,7 +46,6 @@ class OS {
 	List<String> _cmdline;
 	int ips;
 	bool low_processor_usage_mode;
-	bool _verbose_stdout;
 	String _local_clipboard;
 	uint64_t frames_drawn;
 	uint32_t _frame_delay;
@@ -76,6 +75,8 @@ public:
 	};
 protected:
 friend class Main;
+
+	bool _verbose_stdout;
 	
 	RenderThreadMode _render_thread_mode;
 

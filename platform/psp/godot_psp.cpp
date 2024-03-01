@@ -32,6 +32,7 @@
 #include <psptypes.h>
 #include <pspiofilemgr.h>
 #include <pspmodulemgr.h>
+#include <psppower.h>
 #include <pspsysmem.h>
 #include <pspthreadman.h>
 #include <psputils.h>
@@ -51,6 +52,8 @@ int main(int argc, char* argv[]) {
 	// glutInitWindowSize(480, 272);
  // 	glutInitWindowPosition(0, 0);
  // 	glutCreateWindow("Godot");
+    scePowerSetClockFrequency(333, 333, 166);
+
 	OS_PSP os;
 	
 	char* args[] = {"-path", "."};

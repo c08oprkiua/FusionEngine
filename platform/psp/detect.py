@@ -55,7 +55,7 @@ def configure(env):
 		env.Append(CCFLAGS=['-g2', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
 
 	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED'])
-	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum', 'pspvfpu', 'pspctrl'])
+	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum', 'pspvfpu', 'pspctrl', 'psppower'])
 
 	if (env["CXX"]=="clang++"):
 		env.Append(CPPFLAGS=['-DTYPED_METHOD_BIND'])
