@@ -54,7 +54,7 @@ def configure(env):
 	elif env["target"]=="debug":
 		env.Append(CCFLAGS=['-g2', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
 
-	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED'])
+	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED', '-fno-exceptions', '-DNO_SAFE_CAST', '-fno-rtti'])
 	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum', 'pspvfpu', 'pspctrl', 'psppower'])
 
 	if (env["CXX"]=="clang++"):
