@@ -40,41 +40,6 @@
 #include "gl_context/context_gl.h"
 #include <string.h>
 
-MemoryPoolEDRAM *MemoryPoolEDRAM::m_singleton{nullptr};
- 
-MemoryPoolEDRAM::MemoryPoolEDRAM() {
-	m_singleton = this;
-
-	sceGeEdramSetSize(0x400000);
-
-	const auto m_edramOffset = sceGeEdramGetAddr() + EDRAM_OFFSET;
-	const auto m_edramSize = sceGeEdramGetSize() - EDRAM_OFFSET;
-
-	m_meta = memnew_arr(uint8_t, buddy_sizeof_alignment(m_edramSize, 16));
-	m_buddy = buddy_init_alignment(m_meta, reinterpret_cast<uint8_t *>(m_edramOffset), m_edramSize, 16);
-}
-
-MemoryPoolEDRAM::~MemoryPoolEDRAM() {
-	memfree(m_meta);
-}
-
-
-_FORCE_INLINE_ MemoryPoolEDRAM *MemoryPoolEDRAM::get_singleton() {
-	return m_singleton;
-}
-
-void *MemoryPoolEDRAM::alloc(size_t p_sz) {
-	return buddy_malloc(m_buddy, p_sz);
-}
-
-void *MemoryPoolEDRAM::realloc(void *p_ptr, size_t p_sz) {
-	return buddy_realloc(m_buddy, p_ptr, p_sz, false);
-}
-
-void MemoryPoolEDRAM::free(void *p_ptr) {
-	return buddy_free(m_buddy, p_ptr);
-}
-
 _FORCE_INLINE_ static void _gl_load_transform(const Transform& tr) {
 
 	sceGumLoadMatrix(gumake<ScePspFMatrix4>({ /* build a 16x16 matrix */
@@ -1547,10 +1512,10 @@ void RasterizerPSP::mesh_add_surface(RID p_mesh,VS::PrimitiveType p_primitive,co
 	uint8_t *index_array_ptr=NULL;
 
 	/* create pointers */
-	surface->array_local = (uint8_t*)memalloc(surface->array_len*surface->stride);
+	surface->array_local = (uint8_t*)vtalloc(surface->array_len*surface->stride);
 	array_ptr=(uint8_t*)surface->array_local;
 	if (surface->index_array_len) {
-		surface->index_array_local = reinterpret_cast<uint8_t *>(gualloc(index_array_len*surface->array[VS::ARRAY_INDEX].size));
+		surface->index_array_local = reinterpret_cast<uint8_t *>(vtalloc(index_array_len*surface->array[VS::ARRAY_INDEX].size));
 		index_array_ptr=(uint8_t*)surface->index_array_local;
 	}
 
@@ -1818,7 +1783,7 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 		p_surface->configured_format|=(1<<ai);
 	}
 
-	p_surface->psp_array_local = p_surface->vp.pack<gualloc>(p_surface->aabb);
+	p_surface->psp_array_local = p_surface->vp.pack<vtalloc>(p_surface->aabb);
 	p_surface->psp_vattribs = p_surface->vp.attrs();
 
 	return OK;
@@ -5360,13 +5325,13 @@ void RasterizerPSP::free(const RID& p_rid) {
 
 			Surface *surface = mesh->surfaces[i];
 			if (surface->psp_array_local != 0) {
-				gufree(surface->psp_array_local);
+				vtfree(surface->psp_array_local);
 			};
 			if (surface->array_local != 0) {
-				memfree(surface->array_local);
+				vtfree(surface->array_local);
 			};
 			if (surface->index_array_local != 0) {
-				gufree(surface->index_array_local);
+				vtfree(surface->index_array_local);
 			};
 
 			if (mesh->morph_target_count>0) {
@@ -5884,6 +5849,7 @@ RasterizerPSP::RasterizerPSP(bool p_keep_copies,bool p_use_reload_hooks) {
 	frame = 0;
 
 	memnew(MemoryPoolEDRAM);
+	memnew(MemoryPoolPSPVolatile);
 };
 
 RasterizerPSP::~RasterizerPSP() {

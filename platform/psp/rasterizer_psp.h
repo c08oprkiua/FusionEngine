@@ -35,6 +35,7 @@
 
 #include <bit>
 #include <cstdlib>
+#include <climits>
 #include <initializer_list>
 #include "image.h"
 #include "rid.h"
@@ -45,104 +46,14 @@
 #include "sort.h"
 // #include "tools/editor/scene_tree_editor.h"
 #include "platform_config.h"
-#include <psptypes.h>
-#include <pspgu.h>
-#include <pspdisplay.h>
-#include <pspgum.h>
-
-#include <malloc.h>
-#define BUF_WIDTH (512)
-#define SCR_WIDTH (480)
-#define SCR_HEIGHT (272)
-#define GU_CMDLIST_SIZE (16*1024)
-
 #include "servers/visual/particle_system_sw.h"
 
-#define MK_RGBA(r,g,b,a) GU_RGBA((int)(r),(int)(g),(int)(b),(int)(a))
-#define MK_RGBA_F(r,g,b,a) GU_RGBA((int)((r)*255),(int)((g)*255),(int)((b)*255),(int)((a)*255))
-#define MK_RGBA_C(c) GU_RGBA((int)((c.r)*255),(int)((c.g)*255),(int)((c.b)*255),(int)((c.a)*255))
+#include "gu_common.h"
 
-#define FBP0_OFFSET (0)
-#define FBP1_OFFSET (FBP0_OFFSET + (512 * 272 * 2))
-#define FBP2_OFFSET (FBP1_OFFSET + (512 * 272 * 2))
+#include "psp_edram.h"
+#include "psp_volatile.h"
 
-#define EDRAM_OFFSET (FBP2_OFFSET + (512 * 272 * 2))
-
-#include <pspge.h>
-
-#include "buddy_alloc.h"
-
-template <class T>
-_FORCE_INLINE_ T *gumake(T &&il) {
-	constexpr auto sz = sizeof(T);
-
-	auto mem = reinterpret_cast<T *>(sceGuGetMemory(sz));
-	*mem = il;
-	return mem;
-}
-
-inline void swizzle(uint8_t *out, const uint8_t *in, uint32_t width, uint32_t height) {
-	int rowblocks = width / 16;
-
-	for (int j = 0; j < height; j++) {
-		for (int i = 0; i < width; i++) {
-			int blockx = i / 16;
-			int blocky = j / 8;
-
-			int x = i - blockx * 16;
-			int y = j - blocky * 8;
-			int block_index   = blockx + blocky * rowblocks;
-			int block_address = block_index * 16 * 8;
-
-			out[block_address + x + y * 16] = in[i + j * width];
-		}
-	}
-}
-
-struct MemoryPoolEDRAM final {
-	static _FORCE_INLINE_ MemoryPoolEDRAM *get_singleton();
-
-	void *alloc(size_t p_sz);
-	void *realloc(void *p_ptr, size_t p_sz);
-	void free(void *p_ptr);
-
-	MemoryPoolEDRAM();
-	~MemoryPoolEDRAM();
-
-private:
-	static MemoryPoolEDRAM *m_singleton;
-
-	uint8_t *m_meta;
-	buddy *m_buddy;
-};
-
-_FORCE_INLINE_ void *edalloc(size_t p_sz) { return MemoryPoolEDRAM::get_singleton()->alloc(p_sz); }
-
-_FORCE_INLINE_ void edfree(void *p_mem) { MemoryPoolEDRAM::get_singleton()->free(p_mem); }
-
-_FORCE_INLINE_ void *gualloc(size_t p_sz) {
-	void *mem = edalloc(p_sz);
-	if (mem) {
-		const auto *edstart = sceGeEdramGetAddr() + EDRAM_OFFSET;
-		const auto *edend = edstart + sceGeEdramGetSize() - EDRAM_OFFSET;
-		ERR_FAIL_COND_V(mem < edstart || mem >= edend, nullptr);
-		return mem;
-	}
-	mem = memalloc(p_sz);
-	if (mem)
-		return mem;
-	ERR_FAIL_V(nullptr);
-}
-
-_FORCE_INLINE_ void gufree(void *p_ptr) {
-	const auto *edstart = sceGeEdramGetAddr();
-	const auto *edend = edstart + sceGeEdramGetSize();
-	if (p_ptr >= edstart && p_ptr < edend) {
-		edfree(p_ptr);
-	} else {
-		memfree(p_ptr);
-	}
-}
+namespace {
 
 struct Vector2FE {
 	real_t x;
@@ -154,6 +65,7 @@ struct Vector3FE {
 	real_t y;
 	real_t z;
 };
+}
 
 struct VertexPool {
 	VertexPool(int p_points) : m_points{p_points}, m_weights{nullptr}, m_vertices{nullptr}, m_normals{nullptr}, m_uvs{nullptr}, m_colors{nullptr} {}
@@ -294,7 +206,7 @@ private:
 		constexpr auto u_bits = sizeof(U) * CHAR_BIT;
 		constexpr auto u_bits_num = u_bits - 1;
 
-		if (ptr % sizeof(U) != 0) {
+		if (ptr % 2 != 0) {
 			ptr = (ptr + sizeof(U)) - (ptr % sizeof(U));
 		}
 
@@ -353,6 +265,33 @@ private:
 	const char *m_normals;
 	const char *m_vertices;
 };
+
+template <class T>
+_FORCE_INLINE_ T *gumake(T &&il) {
+	constexpr auto sz = sizeof(T);
+
+	auto mem = reinterpret_cast<T *>(sceGuGetMemory(sz));
+	*mem = il;
+	return mem;
+}
+
+inline void swizzle(uint8_t *out, const uint8_t *in, uint32_t width, uint32_t height) {
+	int rowblocks = width / 16;
+
+	for (int j = 0; j < height; j++) {
+		for (int i = 0; i < width; i++) {
+			int blockx = i / 16;
+			int blocky = j / 8;
+
+			int x = i - blockx * 16;
+			int y = j - blocky * 8;
+			int block_index   = blockx + blocky * rowblocks;
+			int block_address = block_index * 16 * 8;
+
+			out[block_address + x + y * 16] = in[i + j * width];
+		}
+	}
+}
 
 class RasterizerPSP : public Rasterizer {
 
