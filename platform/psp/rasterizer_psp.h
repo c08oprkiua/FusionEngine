@@ -87,9 +87,9 @@ struct VertexPool {
 
 		for (int i = 0; i < m_points; ++i) {
 			if (m_weights) {
-				for (int j = 0; j < VS::ARRAY_WEIGHTS_SIZE; ++i) {
+				for (int j = 0; j < VS::ARRAY_WEIGHTS_SIZE; ++j) {
 					if (m_weights_compressed)
-						paste<float, short>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
+						paste<float, char>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
 					else
 						paste<float>(mem, &m_weights[i * m_weights_stride + j * sizeof(float)], ptr);
 				}
@@ -144,7 +144,7 @@ struct VertexPool {
 	int attrs() const {
 		return (
 			(m_vertices_compressed ? GU_VERTEX_16BIT : GU_VERTEX_32BITF)
-			| (m_weights ? ((m_weights_compressed ? GU_WEIGHT_16BIT : GU_WEIGHT_32BITF) | GU_WEIGHTS(VS::ARRAY_WEIGHTS_SIZE)) : 0)
+			| (m_weights ? ((m_weights_compressed ? GU_WEIGHT_8BIT : GU_WEIGHT_32BITF) | GU_WEIGHTS(VS::ARRAY_WEIGHTS_SIZE)) : 0)
 			| (m_uvs ? (m_uvs_compressed ? GU_TEXTURE_16BIT : GU_TEXTURE_32BITF) : 0)
 			| (m_colors ? GU_COLOR_8888 : 0)
 			| (m_normals ? (m_normals_compressed ? GU_NORMAL_16BIT : GU_NORMAL_32BITF) : 0)
@@ -189,7 +189,7 @@ struct VertexPool {
 private:
 	int elem_size() const {
 		return 3 * (m_vertices_compressed ? 2 : 4)
-			+ (m_weights ? VS::ARRAY_WEIGHTS_SIZE * (m_weights_compressed ? 2 : 4) : 0)
+			+ (m_weights ? VS::ARRAY_WEIGHTS_SIZE * (m_weights_compressed ? 1 : 4) : 0)
 			+ (m_uvs ? 2 * (m_uvs_compressed ? 2 : 4) : 0)
 			+ (m_colors ? sizeof(unsigned int) : 0)
 			+ (m_normals ? 3 * (m_normals_compressed ? 2 : 4) : 0);
@@ -205,10 +205,6 @@ private:
 	static inline void paste(void *mem, const T &value, int &ptr, const AABB &aabb = {}, int coord = 0) {
 		constexpr auto u_bits = sizeof(U) * CHAR_BIT;
 		constexpr auto u_bits_num = u_bits - 1;
-
-		if (ptr % 2 != 0) {
-			ptr = (ptr + sizeof(U)) - (ptr % sizeof(U));
-		}
 
 		U val = static_cast<U>(value);
 

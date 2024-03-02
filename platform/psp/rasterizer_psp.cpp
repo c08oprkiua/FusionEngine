@@ -1704,7 +1704,9 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 					}
 				}
 
-				p_surface->vp.uv(reinterpret_cast<Vector2 *>(&p_mem[a.ofs]), stride);
+				if  (ai==VS::ARRAY_TEX_UV) {
+					p_surface->vp.uv(reinterpret_cast<Vector2 *>(&p_mem[a.ofs]), stride, false);
+				}
 
 			} break;
 			case VS::ARRAY_BONES:
@@ -1741,7 +1743,7 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 				}
 
 				if (ai==VS::ARRAY_WEIGHTS) {
-					p_surface->vp.uv(reinterpret_cast<Vector3 *>(&p_mem[a.ofs]), stride);
+					p_surface->vp.weight(reinterpret_cast<float *>(&p_mem[a.ofs]), stride, true);
 				}
 
 			} break;
@@ -1785,6 +1787,9 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 
 	p_surface->psp_array_local = p_surface->vp.pack<vtalloc>(p_surface->aabb);
 	p_surface->psp_vattribs = p_surface->vp.attrs();
+
+	//vtfree(p_surface->array_local);
+	//p_surface->array_local = nullptr;
 
 	return OK;
 }
@@ -3701,219 +3706,6 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 			if (!can_copy_to_local)
 				skeleton_valid=false;
 
-			
-#if 0
-
-			if (p_morphs && surf->morph_target_count && can_copy_to_local) {
-
-				base = skinned_buffer;
-				stride=surf->local_stride;
-
-				//copy all first
-				float coef=1.0;
-
-				for(int i=0;i<surf->morph_target_count;i++) {
-					if (surf->mesh->morph_target_mode==VS::MORPH_MODE_NORMALIZED)
-						coef-=p_morphs[i];
-					ERR_FAIL_COND_V( surf->morph_format != surf->morph_targets_local[i].configured_format, ERR_INVALID_DATA );
-
-				}
-
-
-				for(int i=0;i<VS::ARRAY_MAX-1;i++) {
-
-					const Surface::ArrayData& ad=surf->array[i];
-					if (ad.size==0)
-						continue;
-
-					int ofs = ad.ofs;
-					int src_stride=surf->stride;
-					int dst_stride=surf->local_stride;
-					int count = surf->array_len;
-
-					switch(i) {
-
-						case VS::ARRAY_VERTEX:
-						case VS::ARRAY_NORMAL:
-						case VS::ARRAY_TANGENT:
-							{
-
-							for(int k=0;k<count;k++) {
-
-								const float *src = (const float*)&surf->array_local[ofs+k*src_stride];
-								float *dst = (float*)&base[ofs+k*dst_stride];
-
-								dst[0]= src[0]*coef;
-								dst[1]= src[1]*coef;
-								dst[2]= src[2]*coef;
-							} break;
-
-						} break;
-						case VS::ARRAY_TEX_UV:
-						case VS::ARRAY_TEX_UV2: {
-
-							for(int k=0;k<count;k++) {
-
-								const float *src = (const float*)&surf->array_local[ofs+k*src_stride];
-								float *dst = (float*)&base[ofs+k*dst_stride];
-
-								dst[0]= src[0]*coef;
-								dst[1]= src[1]*coef;
-							} break;
-
-						} break;
-					}
-				}
-
-
-				for(int j=0;j<surf->morph_target_count;j++) {
-
-					for(int i=0;i<VS::ARRAY_MAX-1;i++) {
-
-						const Surface::ArrayData& ad=surf->array[i];
-						if (ad.size==0)
-							continue;
-
-
-						int ofs = ad.ofs;
-						int dst_stride=surf->local_stride;
-						int count = surf->array_len;
-						const uint8_t *morph=surf->morph_targets_local[j].array;
-						float w = p_morphs[j];
-
-						switch(i) {
-
-							case VS::ARRAY_VERTEX:
-							case VS::ARRAY_NORMAL:
-							case VS::ARRAY_TANGENT:
-								{
-
-								for(int k=0;k<count;k++) {
-
-									const float *src_morph = (const float*)&morph[ofs+k*dst_stride];
-									float *dst = (float*)&base[ofs+k*dst_stride];
-
-									dst[0]+= src_morph[0]*w;
-									dst[1]+= src_morph[1]*w;
-									dst[2]+= src_morph[2]*w;
-								} break;
-
-							} break;
-							case VS::ARRAY_TEX_UV:
-							case VS::ARRAY_TEX_UV2: {
-
-								for(int k=0;k<count;k++) {
-
-									const float *src_morph = (const float*)&morph[ofs+k*dst_stride];
-									float *dst = (float*)&base[ofs+k*dst_stride];
-
-									dst[0]+= src_morph[0]*w;
-									dst[1]+= src_morph[1]*w;
-								} break;
-
-							} break;
-						}
-					}
-				}
-
-			} else if (skeleton_valid) {
-
-				base = skinned_buffer;
-				//copy stuff and get it ready for the skeleton
-
-				int len = surf->array_len;
-				int src_stride = surf->stride;
-				int dst_stride = surf->stride - ( surf->array[VS::ARRAY_BONES].size + surf->array[VS::ARRAY_WEIGHTS].size );
-
-				for(int i=0;i<len;i++) {
-					const uint8_t *src = &surf->array_local[i*src_stride];
-					uint8_t *dst = &base[i*dst_stride];
-					memcpy(dst,src,dst_stride);
-				}
-
-
-				stride=dst_stride;
-			}
-
-			if (skeleton_valid) {
-				//transform stuff
-
-				const uint8_t *src_weights=&surf->array_local[surf->array[VS::ARRAY_WEIGHTS].ofs];
-				const uint8_t *src_bones=&surf->array_local[surf->array[VS::ARRAY_BONES].ofs];
-				int src_stride = surf->stride;
-				int count = surf->array_len;
-				const Transform *skeleton = &p_skeleton->bones[0];
-
-				for(int i=0;i<VS::ARRAY_MAX-1;i++) {
-
-					const Surface::ArrayData& ad=surf->array[i];
-					if (ad.size==0)
-						continue;
-
-					int ofs = ad.ofs;
-
-
-					switch(i) {
-
-						case VS::ARRAY_VERTEX: {
-							for(int k=0;k<count;k++) {
-
-								float *ptr=  (float*)&base[ofs+k*stride];
-								const float* weights = reinterpret_cast<const float*>(&src_weights[k*src_stride]);
-								const float *bones = reinterpret_cast<const float*>(&src_bones[k*src_stride]);
-
-								Vector3 src( ptr[0], ptr[1], ptr[2] );
-								Vector3 dst;
-								for(int j=0;j<VS::ARRAY_WEIGHTS_SIZE;j++) {
-
-									float w = weights[j];
-									if (w==0)
-										break;
-
-									//print_line("accum "+itos(i)+" += "+rtos(Math::ftoi(bones[j]))+" * "+skeleton[ Math::ftoi(bones[j]) ]+" * "+rtos(w));
-									dst+=skeleton[ Math::fast_ftoi(bones[j]) ].xform(src) * w;
-								}
-
-								ptr[0]=dst.x;
-								ptr[1]=dst.y;
-								ptr[2]=dst.z;
-
-							} break;
-
-						} break;
-						case VS::ARRAY_NORMAL:
-						case VS::ARRAY_TANGENT: {
-							for(int k=0;k<count;k++) {
-
-								float *ptr=  (float*)&base[ofs+k*stride];
-								const float* weights = reinterpret_cast<const float*>(&src_weights[k*src_stride]);
-								const float *bones = reinterpret_cast<const float*>(&src_bones[k*src_stride]);
-
-								Vector3 src( ptr[0], ptr[1], ptr[2] );
-								Vector3 dst;
-								for(int j=0;j<VS::ARRAY_WEIGHTS_SIZE;j++) {
-
-									float w = weights[j];
-									if (w==0)
-										break;
-
-									//print_line("accum "+itos(i)+" += "+rtos(Math::ftoi(bones[j]))+" * "+skeleton[ Math::ftoi(bones[j]) ]+" * "+rtos(w));
-									dst+=skeleton[ Math::fast_ftoi(bones[j]) ].basis.xform(src) * w;
-								}
-
-								ptr[0]=dst.x;
-								ptr[1]=dst.y;
-								ptr[2]=dst.z;
-
-							} break;
-
-						} break;
-					}
-				}
-
-			}
-#endif
-
 			for (int i=0;i<(VS::ARRAY_MAX-1);i++) {
 
 				const Surface::ArrayData& ad=surf->array[i];
@@ -3967,7 +3759,16 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 
 					if (skeleton_valid) {
 						for (int k = 0; k < VS::ARRAY_WEIGHTS_SIZE; ++k) {
-							sceGuBoneMatrix(k, &reinterpret_cast<const ScePspFMatrix4 *>(&base[ad.ofs])[k]);
+							const auto t = reinterpret_cast<const Transform *>(&base[ad.ofs])[k];
+							auto *m = gumake<ScePspFMatrix4>({});
+							gumLoadIdentity(m);
+							const auto euler = t.basis.get_euler();
+							gumRotateXYZ(m, reinterpret_cast<const ScePspFVector3 *>(&euler));
+							const auto scale = t.basis.get_scale();
+							gumScale(m, reinterpret_cast<const ScePspFVector3 *>(&scale));
+							gumTranslate(m, reinterpret_cast<const ScePspFVector3 *>(&t.basis));
+
+							sceGuBoneMatrix(k, m);
 							sceGuMorphWeight(k, 1.f);
 						}
 					}
@@ -3983,6 +3784,16 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 					ERR_PRINT("Bug");
 					break;
 				};
+			}
+
+			if (!skeleton_valid) {
+				for (int k = 0; k < VS::ARRAY_WEIGHTS_SIZE; ++k) {
+					auto *m = gumake<ScePspFMatrix4>({});
+					gumLoadIdentity(m);
+
+					sceGuBoneMatrix(k, m);
+					sceGuMorphWeight(k, 1.f);
+				}
 			}
 
 		} break;
