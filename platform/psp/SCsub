@@ -9,6 +9,7 @@ common_psp=[\
 	"rasterizer_psp.cpp",\
 	"psp_volatile.cpp",\
 	"psp_edram.cpp",\
+	"audio_driver_psp.cpp",\
 ]
 
 prog = env.Program('#bin/godot_psp',['godot_psp.cpp']+common_psp)

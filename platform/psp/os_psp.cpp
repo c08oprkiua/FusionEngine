@@ -42,6 +42,7 @@
 #include "main/main.h"
 #include <sys/time.h>
 #include <unistd.h>
+
 // #include <GL/glut.h>
 int OS_PSP::get_video_driver_count() const {
 
@@ -102,7 +103,8 @@ void OS_PSP::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 	current_videomode=p_desired;
 	main_loop=NULL;
 
-	
+	sceCtrlSetSamplingCycle(0);
+	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 	rasterizer = memnew( RasterizerPSP );
 
 	visual_server = memnew( VisualServerRaster(rasterizer) );
@@ -173,6 +175,58 @@ void OS_PSP::set_mouse_show(bool p_show) {
 
 
 }
+
+PspCtrlButtons buttons[16] = {
+		PSP_CTRL_CROSS,
+		PSP_CTRL_CIRCLE,
+		PSP_CTRL_SQUARE,
+		PSP_CTRL_TRIANGLE,
+		(PspCtrlButtons)0,
+		(PspCtrlButtons)0,
+		PSP_CTRL_LTRIGGER,
+		PSP_CTRL_RTRIGGER,
+		(PspCtrlButtons)0,
+		(PspCtrlButtons)0,
+		PSP_CTRL_SELECT,
+		PSP_CTRL_START,
+		PSP_CTRL_UP,
+		PSP_CTRL_DOWN,
+		PSP_CTRL_LEFT,
+		PSP_CTRL_RIGHT
+};
+
+void OS_PSP::process_keys() {
+	sceCtrlReadBufferPositive(&pad, 1);
+
+	last++;
+
+	for(int i = 0; i < 16; i++) {
+		if (pad.Buttons & buttons[i]) {
+			InputEvent event;
+			event.type = InputEvent::JOYSTICK_BUTTON;
+			event.device = 0;
+			event.joy_button.button_index = i;
+			event.joy_button.pressed = true;
+			event.ID = last;
+			input->parse_input_event(event);
+		} else {
+			InputEvent event;
+			event.type = InputEvent::JOYSTICK_BUTTON;
+			event.device = 0;
+			event.joy_button.button_index = i;
+			event.joy_button.pressed = false;
+			event.ID = last;
+			input->parse_input_event(event);
+		}
+	}
+
+	uint8_t lx = (pad.Lx - 128);
+	uint8_t ly = (pad.Ly - 128);
+
+	input->set_joy_axis(0, 0, lx);
+	input->set_joy_axis(0, 1, ly);
+}
+
 void OS_PSP::set_mouse_grab(bool p_grab) {
 
 	grab=p_grab;
@@ -288,7 +342,8 @@ void OS_PSP::run() {
 	main_loop->init();
 		
 	while (!force_quit) {
-	
+		process_keys();
+		
 		if (Main::iteration()==true)
 			break;
 	};

@@ -34,7 +34,7 @@
 #include "drivers/unix/os_unix.h"
 #include "servers/visual_server.h"
 #include "servers/visual/rasterizer.h"
-#include "servers/audio/audio_driver_dummy.h"
+#include "audio_driver_psp.h"
 #include "servers/physics_server.h"
 #include "servers/audio/audio_server_sw.h"
 #include "servers/audio/sample_manager_sw.h"
@@ -42,6 +42,7 @@
 #include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
+#include <pspctrl.h>
 
 #undef CursorShape
 // #define GLdouble float
@@ -58,7 +59,7 @@ class OS_PSP : public OS {
 	List<String> args;
 	MainLoop *main_loop;	
 
-	AudioDriverDummy driver_dummy;
+	AudioDriverPSP driver_dummy;
 	bool grab;
 	uint64_t ticks_start;
 	
@@ -72,6 +73,8 @@ class OS_PSP : public OS {
 	SampleManagerMallocSW *sample_manager;
 	SpatialSoundServerSW *spatial_sound_server;
 	SpatialSound2DServerSW *spatial_sound_2d_server;
+	SceCtrlData pad;
+	int last;
 
 	bool force_quit;
 
@@ -89,6 +92,8 @@ protected:
 	virtual void finalize();
 
 	virtual void set_main_loop( MainLoop * p_main_loop );    
+	
+	virtual void process_keys();
 
 public:
 	virtual void initialize_core();
