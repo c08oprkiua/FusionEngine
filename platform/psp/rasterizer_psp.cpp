@@ -1683,12 +1683,19 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 				const Vector2 * src=read.ptr();
 				float scale=1.0;
 
+				Rect2 uv_bb;
 
 				for (int i=0;i<p_surface->array_len;i++) {
 
-					float uv[2]={ src[i].x , src[i].y };
+					Vector2 uv{ src[i].x , src[i].y };
+					
+					if (i == 0) {
+						uv_bb = {uv, {0.f, 0.f}};
+					} else {
+						uv_bb.expand_to(uv);
+					}
 
-					copymem(&p_mem[a.ofs+i*stride], uv, a.size);
+					copymem(&p_mem[a.ofs+i*stride], &uv, a.size);
 
 				}
 
@@ -1703,6 +1710,8 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 						p_surface->uv2_scale=scale;
 					}
 				}
+
+				p_surface->uv_bb = uv_bb;
 
 				if  (ai==VS::ARRAY_TEX_UV) {
 					p_surface->vp.uv(reinterpret_cast<Vector2 *>(&p_mem[a.ofs]), stride, false);
@@ -1785,7 +1794,7 @@ Error RasterizerPSP::_surface_set_arrays(Surface *p_surface, uint8_t *p_mem,uint
 		p_surface->configured_format|=(1<<ai);
 	}
 
-	p_surface->psp_array_local = p_surface->vp.pack<vtalloc>(p_surface->aabb);
+	p_surface->psp_array_local = p_surface->vp.pack<vtalloc>(p_surface->aabb, p_surface->uv_bb);
 	p_surface->psp_vattribs = p_surface->vp.attrs();
 
 	//vtfree(p_surface->array_local);
@@ -3301,11 +3310,11 @@ void RasterizerPSP::_setup_texture(const Texture *texture) {
 	sceGuEnable(GU_TEXTURE_2D);
 	sceGuTexMode(texture->gu_format_cache, texture->mipmaps.size()-1, 0, texture->swizzle);
 	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
-	if (texture->flags&VS::TEXTURE_FLAG_REPEAT) {
-		sceGuTexWrap(GU_REPEAT, GU_REPEAT);
-	} else {
+	// if (texture->flags&VS::TEXTURE_FLAG_REPEAT) {
+	// 	sceGuTexWrap(GU_REPEAT, GU_REPEAT);
+	// } else {
 		sceGuTexWrap(GU_CLAMP, GU_CLAMP);
-	}
+	// }
 
 	if (texture->mipmaps.size() > 1) {
 		sceGuTexLevelMode(GU_TEXTURE_AUTO, 0.f);
@@ -3757,6 +3766,7 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 				} break;
 				case VS::ARRAY_BONES: {
 
+					// FIXME:XXX: this is wrong; see the GLES1 renderer; morph transforms are stored somewhere else
 					if (skeleton_valid) {
 						for (int k = 0; k < VS::ARRAY_WEIGHTS_SIZE; ++k) {
 							const auto t = reinterpret_cast<const Transform *>(&base[ad.ofs])[k];
@@ -3766,10 +3776,10 @@ Error RasterizerPSP::_setup_geometry(const Geometry *p_geometry, const Material*
 							gumRotateXYZ(m, reinterpret_cast<const ScePspFVector3 *>(&euler));
 							const auto scale = t.basis.get_scale();
 							gumScale(m, reinterpret_cast<const ScePspFVector3 *>(&scale));
-							gumTranslate(m, reinterpret_cast<const ScePspFVector3 *>(&t.basis));
+							gumTranslate(m, reinterpret_cast<const ScePspFVector3 *>(&t.origin));
 
 							sceGuBoneMatrix(k, m);
-							sceGuMorphWeight(k, 1.f);
+							sceGuMorphWeight(k, p_morphs[k]);
 						}
 					}
 
@@ -3834,12 +3844,21 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 			_rinfo.vertex_count+=s->array_len;
 
-			const auto longest = s->aabb.get_longest_axis_size();
-			const Vector3 scale{longest, longest, longest};
-			sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
-			//const auto scale = s->aabb.get_size();
-			//sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
+			const auto t = s->aabb.pos;
+			sceGumTranslate(reinterpret_cast<const ScePspFVector3 *>(&t));
+			sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&s->aabb.size));
+
+			//sceGumMatrixMode(GU_TEXTURE);
+			//sceGumPushMatrix();
+			//const Vector3 t2{-s->uv_bb.pos.x, -s->uv_bb.pos.y, .0f};
+			//sceGumTranslate(reinterpret_cast<const ScePspFVector3 *>(&t2));
+			//const Vector3 s2{s->uv_bb.size.width, s->uv_bb.size.height, .0f};
+			//sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&s2));
+
 			sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
+
+			//sceGumPopMatrix();
+			//sceGumMatrixMode(GU_MODEL);
 		} break;
 
 		case Geometry::GEOMETRY_MULTISURFACE: {
@@ -3860,11 +3879,10 @@ void RasterizerPSP::_render(const Geometry *p_geometry,const Material *p_materia
 
 				sceGumMultMatrix(reinterpret_cast<const ScePspFMatrix4 *>(elements[i].matrix));
 
-				const auto longest = s->aabb.get_longest_axis_size();
-				const Vector3 scale{longest, longest, longest};
-				sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
-				//const auto scale = s->aabb.get_size() / 2.f;
-				//sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&scale));
+				const auto t = s->aabb.pos;
+				sceGumTranslate(reinterpret_cast<const ScePspFVector3 *>(&t));
+				sceGumScale(reinterpret_cast<const ScePspFVector3 *>(&s->aabb.size));
+
 				sceGumDrawArray(gl_primitive[s->primitive], s->psp_vattribs|GU_INDEX_16BIT|GU_TRANSFORM_3D, s->index_array_len, s->index_array_local, s->psp_array_local);
 			}
 		 } break;

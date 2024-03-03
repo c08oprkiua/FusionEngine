@@ -76,7 +76,7 @@ struct VertexPool {
 	int size() const { return m_points; }
 
 	template <auto Malloc = sceGuGetMemory>
-	void *pack(const AABB &aabb = {}) const {
+	void *pack(const AABB &aabb = {}, const Rect2 &uvbb = {}) const {
 		ERR_FAIL_NULL_V(m_vertices, nullptr);
 		ERR_FAIL_COND_V(m_points < 1, nullptr);
 
@@ -96,8 +96,8 @@ struct VertexPool {
 			}
 			if (m_uvs) {
 				if (m_uvs_compressed) {
-					paste<float, short>(mem, &m_uvs[i * m_uvs_stride], ptr);
-					paste<float, short>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
+					paste<float, short, 2>(mem, &m_uvs[i * m_uvs_stride], ptr, aabb, uvbb, 0);
+					paste<float, short, 2>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr, aabb, uvbb, 1);
 				} else {
 					paste<float>(mem, &m_uvs[i * m_uvs_stride], ptr);
 					paste<float>(mem, &m_uvs[i * m_uvs_stride + sizeof(float)], ptr);
@@ -120,9 +120,9 @@ struct VertexPool {
 			}
 
 			if (m_vertices_compressed) {
-				paste<float, short, true>(mem, &m_vertices[i * m_vertices_stride], ptr, aabb, 0);
-				paste<float, short, true>(mem, &m_vertices[i * m_vertices_stride + 4], ptr, aabb, 1);
-				paste<float, short, true>(mem, &m_vertices[i * m_vertices_stride + 8], ptr, aabb, 2);
+				paste<float, short, 3>(mem, &m_vertices[i * m_vertices_stride], ptr, aabb, uvbb, 0);
+				paste<float, short, 3>(mem, &m_vertices[i * m_vertices_stride + 4], ptr, aabb, uvbb, 1);
+				paste<float, short, 3>(mem, &m_vertices[i * m_vertices_stride + 8], ptr, aabb, uvbb, 2);
 			} else {
 				paste<float>(mem, &m_vertices[i * m_vertices_stride], ptr);
 				paste<float>(mem, &m_vertices[i * m_vertices_stride + 4], ptr);
@@ -201,29 +201,50 @@ private:
 		return sz;
 	}
 
-	template <class T, class U = T, bool UseAABB = false>
-	static inline void paste(void *mem, const T &value, int &ptr, const AABB &aabb = {}, int coord = 0) {
+	template <class T, class U = T, int Dims = 1>
+	static inline void paste(void *mem, const T &value, int &ptr, const AABB &aabb = {}, const Rect2 &uvbb = {}, int coord = 0) {
 		constexpr auto u_bits = sizeof(U) * CHAR_BIT;
 		constexpr auto u_bits_num = u_bits - 1;
 
 		U val = static_cast<U>(value);
 
-		if constexpr (UseAABB) {
+		if constexpr (Dims == 2) {
 			constexpr auto intg_mask = (1 << u_bits_num) - 1;
 			constexpr auto sign_mask = 1 << u_bits_num; // sign bit
 
-			const float s = aabb.get_longest_axis_size();//aabb.get_size().coord[coord];
-			const float intgf = Math::abs(value / s);
+			const float s = coord == 1 ? uvbb.size.y : uvbb.size.x;
+			const float p = coord == 1 ? uvbb.pos.y : uvbb.pos.x;
+			const float cv = value + p;
+			const float intgf = Math::abs(cv / s);
 
 			unsigned int intg = static_cast<unsigned int>(intgf * intg_mask);
-			if (intg > intg_mask) {
-				printf("out of bounds vertex: %f; %f @ %d\n", intgf, s, coord);
+			//if (intg > intg_mask) {
+			//	printf("out of bounds uv: %f; %f @ %d\n", intgf, s, coord);
 
-				intg = intg_mask;
-			}
+			//	intg = intg_mask;
+			//}
 
 			val = intg & ~sign_mask;
-			if (value < 0)
+			if (cv < 0)
+				val = -val;
+		} else if constexpr (Dims == 3) {
+			constexpr auto intg_mask = (1 << u_bits_num) - 1;
+			constexpr auto sign_mask = 1 << u_bits_num; // sign bit
+
+			const float s = aabb.size.coord[coord];
+			const float p = aabb.pos.coord[coord];
+			const float cv = value - p;
+			const float intgf = Math::abs(cv / s);
+
+			unsigned int intg = static_cast<unsigned int>(intgf * intg_mask);
+			//if (intg > intg_mask) {
+			//	printf("out of bounds vertex: %f; %f @ %d\n", intgf, s, coord);
+
+			//	intg = intg_mask;
+			//}
+
+			val = intg & ~sign_mask;
+			if (cv < 0)
 				val = -val;
 		} else if constexpr (sizeof(T) != sizeof(U)) {
 			val = value * ((1 << u_bits_num) - 1);
@@ -232,13 +253,10 @@ private:
 		ptr += sizeof(U);
 	}
 
-	template <class T, class U = T, bool UseAABB = false>
-	static inline void paste(void *mem, const void *value, int &ptr, const AABB &aabb = {}, int coord = 0) {
-		//if (ptr % 4 != 0) {
-		//	ptr = (ptr + 4) - (ptr % 4);
-		//}
+	template <class T, class U = T, int Dims = 1>
+	static inline void paste(void *mem, const void *value, int &ptr, const AABB &aabb = {}, const Rect2 &uvbb = {}, int coord = 0) {
 		const auto &val = *reinterpret_cast<const T *>(value);
-		paste<T, U, UseAABB>(mem, val, ptr, aabb, coord);
+		paste<T, U, Dims>(mem, val, ptr, aabb, uvbb, coord);
 	}
 
 	int m_points;
@@ -523,8 +541,7 @@ class RasterizerPSP : public Rasterizer {
 
 		bool active;
 
-		Point2 uv_min;
-		Point2 uv_max;
+		Rect2 uv_bb;
 
 		Surface() : vp{0} {
 
