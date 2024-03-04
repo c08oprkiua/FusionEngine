@@ -42,6 +42,7 @@
 #include "main/main.h"
 #include <sys/time.h>
 #include <unistd.h>
+#include <pspaudio.h>
 
 // #include <GL/glut.h>
 int OS_PSP::get_video_driver_count() const {
@@ -105,6 +106,10 @@ void OS_PSP::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 	sceCtrlSetSamplingCycle(0);
 	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
+	sceAudioOutput2Reserve(1024);
+	samples_in = memnew_arr(int32_t, 2048);
+	samples_out = memnew_arr(int16_t, 2048);
+	
 	rasterizer = memnew( RasterizerPSP );
 
 	visual_server = memnew( VisualServerRaster(rasterizer) );
@@ -169,6 +174,9 @@ void OS_PSP::finalize() {
 	memdelete(input);
 
 	args.clear();
+	
+	memdelete_arr(samples_in);
+	memdelete_arr(samples_out);
 }
 
 void OS_PSP::set_mouse_show(bool p_show) {
@@ -332,6 +340,18 @@ void OS_PSP::set_cursor_shape(CursorShape p_shape) {
 
 }
 
+void OS_PSP::process_audio() {
+	audio_server->driver_process(1024, samples_in);
+	for(int i = 0; i < 2048; ++i) {
+		samples_out[i] = samples_in[i] >> 16;
+	}
+	
+	printf("%d\n", samples_out[1]);
+	
+	sceAudioOutput2OutputBlocking(0x8000, samples_out);
+	// sceAudioOutput
+}
+
 void OS_PSP::run() {
 
 	force_quit = false;
@@ -342,6 +362,7 @@ void OS_PSP::run() {
 	main_loop->init();
 		
 	while (!force_quit) {
+		process_audio();
 		process_keys();
 		
 		if (Main::iteration()==true)

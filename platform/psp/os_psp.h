@@ -34,7 +34,7 @@
 #include "drivers/unix/os_unix.h"
 #include "servers/visual_server.h"
 #include "servers/visual/rasterizer.h"
-#include "audio_driver_psp.h"
+#include "servers/audio/audio_driver_dummy.h"
 #include "servers/physics_server.h"
 #include "servers/audio/audio_server_sw.h"
 #include "servers/audio/sample_manager_sw.h"
@@ -45,11 +45,6 @@
 #include <pspctrl.h>
 
 #undef CursorShape
-// #define GLdouble float
-// #include <GLES/gl.h>
-// #include <GL/glut.h>
-
-// void glutSwapBuffers();
 
 class OS_PSP : public OS {
 
@@ -59,7 +54,7 @@ class OS_PSP : public OS {
 	List<String> args;
 	MainLoop *main_loop;	
 
-	AudioDriverPSP driver_dummy;
+	AudioDriverDummy driver_dummy;
 	bool grab;
 	uint64_t ticks_start;
 	
@@ -75,6 +70,8 @@ class OS_PSP : public OS {
 	SpatialSound2DServerSW *spatial_sound_2d_server;
 	SceCtrlData pad;
 	int last;
+	int32_t* samples_in;
+	int16_t* samples_out;
 
 	bool force_quit;
 
@@ -94,6 +91,7 @@ protected:
 	virtual void set_main_loop( MainLoop * p_main_loop );    
 	
 	virtual void process_keys();
+	virtual void process_audio();
 
 public:
 	virtual void initialize_core();
@@ -103,7 +101,7 @@ public:
 	virtual void set_cursor_shape(CursorShape p_shape);
 	
 	virtual int get_audio_driver_count() const { return 1; };
-	virtual const char * get_audio_driver_name(int p_driver) const { return "Dummy"; };
+	virtual const char * get_audio_driver_name(int p_driver) const { return "pspaudio"; };
 	virtual void vprint(const char* p_format, va_list p_list, bool p_stderr=false) {
 		vfprintf(p_stderr ? stderr : stdout, p_format, p_list);
 	};

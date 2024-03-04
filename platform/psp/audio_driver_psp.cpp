@@ -60,8 +60,9 @@ Error AudioDriverPSP::init() {
 	// thread = Thread::create(AudioDriverPSP::thread_func, this);
 	SceUID thid;
 	thid = sceKernelCreateThread("audio_thread", (SceKernelThreadEntry)AudioDriverPSP::thread_func, 0x18, 0x10000, PSP_THREAD_ATTR_USER, NULL);
-    void* self = this;
+	void* self = this;
 	sceKernelStartThread(thid, sizeof(self), &self);
+	// sceKernelStartThread(thid, sizeof(this), this);
 
 	return OK;
 };
@@ -80,15 +81,18 @@ void AudioDriverPSP::thread_func(SceSize args, void *p_udata) {
  			break;
 
 		if (ad->active) {
-			ad->lock();
+			// ad->lock();
 
-			ad->audio_server_process(ad->buffer_size, ad->samples_in);
+			// ad->audio_server_process(ad->buffer_size, ad->samples_in);
 
-			ad->unlock();
+			// ad->unlock();
+			/*
 
 			for(int i = 0; i < sample_count*2; ++i) {
 				ad->samples_out[i] = ad->samples_in[i] >> 16;
-			}
+			}*/
+			
+			printf("%d\n", ad->samples_out[0]);
 		} 
 		else
 		{
@@ -96,11 +100,13 @@ void AudioDriverPSP::thread_func(SceSize args, void *p_udata) {
 
 				ad->samples_out[i] = 0;
 			}
+			
+			printf("e\n");
 		}
 		
 		sceAudioOutput2OutputBlocking(0x8000*3, ad->samples_out);
         
-        sceKernelDelayThread(1);
+        sceKernelDelayThread(1000);
 	}
 
 
