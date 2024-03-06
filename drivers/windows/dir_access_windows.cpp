@@ -34,6 +34,7 @@
 
 #include <windows.h>
 #include <wchar.h>
+#include <direct.h>
 #include <stdio.h>
 #include "print_string.h"
 
@@ -306,9 +307,7 @@ bool DirAccessWindows::file_exists(String p_file) {
 	if (!p_file.is_abs_path())
 		p_file=get_current_dir()+"/"+p_file;
 
-	p_file=fix_path(p_file);
-	
-	p_file.replace("/","\\");
+	p_file=fix_path(p_file).replace("/","\\");
 
 	WIN32_FILE_ATTRIBUTE_DATA    fileInfo;
 
@@ -343,9 +342,7 @@ bool DirAccessWindows::dir_exists(String p_dir) {
 	if (!p_dir.is_abs_path())
 		p_dir=get_current_dir()+"/"+p_dir;
 
-	p_dir=fix_path(p_dir);
-
-	p_dir.replace("/","\\");
+	p_dir=fix_path(p_dir).replace("/","\\");
 
 	WIN32_FILE_ATTRIBUTE_DATA    fileInfo;
 
@@ -385,7 +382,11 @@ Error DirAccessWindows::rename(String p_path,String p_new_path) {
 		};
 	};
 
-	return ::_wrename(p_path.c_str(),p_new_path.c_str())==0?OK:FAILED;
+#ifdef WIN98_ENABLED
+	return rename(p_path.replace("/", "\\").utf8().get_data(),p_new_path.replace("/", "\\").utf8().get_data())==0?OK:FAILED;
+#else
+	return ::_wrename(p_path.replace("/", "\\").c_str(),p_new_path.replace("/", "\\").c_str())==0?OK:FAILED;
+#endif
 }
 
 Error DirAccessWindows::remove(String p_path)  {
@@ -398,10 +399,17 @@ Error DirAccessWindows::remove(String p_path)  {
 	if (fileAttr == INVALID_FILE_ATTRIBUTES)
 		return FAILED;
 
+#ifdef WIN98_ENABLED
 	if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-		return ::_wrmdir(p_path.c_str())==0?OK:FAILED;
+		return _rmdir(p_path.replace("/", "\\").utf8().get_data())==0?OK:FAILED;
 	else
-		return ::_wunlink(p_path.c_str())==0?OK:FAILED;
+		return unlink(p_path.replace("/", "\\").utf8().get_data())==0?OK:FAILED;
+#else
+	if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
+		return ::_wrmdir(p_path.replace("/", "\\").c_str())==0?OK:FAILED;
+	else
+		return ::_wunlink(p_path.replace("/", "\\").c_str())==0?OK:FAILED;
+#endif
 }
 /*
 

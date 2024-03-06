@@ -53,11 +53,26 @@ void FileAccessWindows::check_errors() const {
 
 Error FileAccessWindows::_open(const String& p_filename, int p_mode_flags) {
 
+	printf("open1 %ls\n", p_filename.c_str());
 	String filename=fix_path(p_filename);
+	printf("open2 %ls\n", filename.c_str());
+	String file_c = filename.replace("/", "\\");
 	if (f)
 		close();
 
 
+#ifdef WIN98_ENABLED
+	const char* mode_string;
+
+	if (p_mode_flags==READ)
+		mode_string="rb";
+	else if (p_mode_flags==WRITE)
+		mode_string="wb";
+	else if (p_mode_flags==READ_WRITE)
+		mode_string="wb+";
+	else
+		return ERR_INVALID_PARAMETER;
+#else
 	const wchar_t* mode_string;
 
 	if (p_mode_flags==READ)
@@ -68,12 +83,18 @@ Error FileAccessWindows::_open(const String& p_filename, int p_mode_flags) {
 		mode_string=L"wb+";
 	else
 		return ERR_INVALID_PARAMETER;
+#endif
 
 	/* pretty much every implementation that uses fopen as primary
 	   backend supports utf8 encoding */
 
+#ifdef WIN98_ENABLED
+	struct stat st;
+	if (stat(filename.replace("/", "\\").utf8().get_data(), &st) == 0) {
+#else
 	struct _stat st;
-	if (_wstat(filename.c_str(), &st) == 0) {
+	if (_wstat(filename.replace("/", "\\").c_str(), &st) == 0) {
+#endif
 
 		if (!S_ISREG(st.st_mode))
 			return ERR_FILE_CANT_OPEN;
@@ -86,7 +107,12 @@ Error FileAccessWindows::_open(const String& p_filename, int p_mode_flags) {
 		//print_line("saving instead to "+path);
 	}
 
-	f=_wfopen(filename.c_str(), mode_string);
+#ifdef WIN98_ENABLED
+	f=fopen(file_c.utf8().get_data(), mode_string);
+#else
+	f=_wfopen(file_c.c_str(), mode_string);
+#endif
+	printf("result for %ls = %p\n", file_c.c_str(), (void *)f);
 
 
 	if (f==NULL) {
@@ -111,8 +137,13 @@ void FileAccessWindows::close() {
 
 		//unlink(save_path.utf8().get_data());
 		//print_line("renaming..");
+#ifdef WIN98_ENABLED
+		unlink(save_path.utf8().get_data()); //unlink if exists
+		int rename_error = rename((save_path+".tmp").utf8().get_data(),save_path.utf8().get_data());
+#else
 		_wunlink(save_path.c_str()); //unlink if exists
 		int rename_error = _wrename((save_path+".tmp").c_str(),save_path.c_str());
+#endif
 		save_path="";
 		ERR_FAIL_COND( rename_error != 0);
 	}
@@ -200,9 +231,14 @@ void FileAccessWindows::store_8(uint8_t p_dest) {
 bool FileAccessWindows::file_exists(const String& p_name) {
 
 	FILE *g;
-	//printf("opening file %s\n", p_fname.c_str());
 	String filename=fix_path(p_name);
-	g=_wfopen(filename.c_str(),L"rb");
+	String cfname = filename.replace("/", "\\");
+#ifdef WIN98_ENABLED
+	g=fopen(cfname.utf8().get_data(),"rb");
+#else
+	g=_wfopen(cfname.c_str(),L"rb");
+#endif
+	printf("result for %ls = %p\n", cfname.c_str(), g);
 	if (g==NULL) {
 
 		return false;
@@ -219,8 +255,13 @@ uint64_t FileAccessWindows::_get_modified_time(const String& p_file) {
 	if (file.ends_with("/") && file!="/")
 		file=file.substr(0,file.length()-1);
 
+#ifdef WIN98_ENABLED
+	struct stat st;
+	int rv = stat(file.replace("/", "\\").utf8().get_data(), &st);
+#else
 	struct _stat st;
-	int rv = _wstat(file.c_str(), &st);
+	int rv = _wstat(file.replace("/", "\\").c_str(), &st);
+#endif
 
 	if (rv == 0) {
 
