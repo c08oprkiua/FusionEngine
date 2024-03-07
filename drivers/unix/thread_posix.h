@@ -33,7 +33,7 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
-#if defined(UNIX_ENABLED) || defined(PTHREAD_ENABLED)
+#if defined(UNIX_ENABLED) || defined(PTHREAD_ENABLED) || defined(__psp2__)
 
 #include <sys/types.h>
 #include <pthread.h>

@@ -29,7 +29,7 @@
 #include "mutex_posix.h"
 #include "os/memory.h"
 
-#if defined(UNIX_ENABLED) || defined(PTHREAD_ENABLED)
+#if defined(UNIX_ENABLED) || defined(PTHREAD_ENABLED) || defined(__psp2__)
 
 void MutexPosix::lock() {
 

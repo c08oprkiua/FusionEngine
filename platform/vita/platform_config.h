@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  dir_access_unix.h                                                    */
+/*  platform_config.h                                                    */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,65 +26,5 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef DIR_ACCESS_UNIX_H
-#define DIR_ACCESS_UNIX_H
+#include <alloca.h>
 
-#if defined(UNIX_ENABLED) || defined(LIBC_FILEIO_ENABLED) || defined(PSP) || defined(__psp2__)
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-
-#include "os/dir_access.h"
-
-
-/**
-	@author Juan Linietsky <reduzio@gmail.com>
-*/
-class DirAccessUnix : public DirAccess {
-	
-	DIR *dir_stream;
-	
-	static DirAccess *create_fs();
-	
-	String current_dir;
-	bool _cisdir;
-	
-public:
-	
-	virtual bool list_dir_begin(); ///< This starts dir listing
-	virtual String get_next();
-	virtual bool current_is_dir() const;
-	
-	virtual void list_dir_end(); ///< 
-	
-	virtual int get_drive_count();
-	virtual String get_drive(int p_drive);
-	
-	virtual Error change_dir(String p_dir); ///< can be relative or absolute, return false on success
-	virtual String get_current_dir(); ///< return current dir location
-	virtual Error make_dir(String p_dir);
-	
-	virtual bool file_exists(String p_file);
-	virtual bool dir_exists(String p_dir);
-
-	virtual uint64_t get_modified_time(String p_file);
-
-
-		
-	virtual Error rename(String p_from, String p_to);
-	virtual Error remove(String p_name);
-
-	virtual size_t get_space_left();
-	
-	
-	DirAccessUnix();
-	~DirAccessUnix();
-
-};
-
-
-
-#endif //UNIX ENABLED
-#endif
