@@ -36,6 +36,8 @@
 #include "tchar.h"
 #endif
 
+#include <cstring>
+
 /**
 	@author red <red@killy>
 */
@@ -190,11 +192,14 @@ public:
 #ifdef _UNICODE
 		return c_str();
 #else
-		if (!has_ascii_) {
-			ascii_ = ascii();
+		CharString stage = ascii();
+		if (!has_ascii_ || strcmp(ascii_.get_data(), stage.get_data()) != 0) {
+			ascii_ = stage;
 			has_ascii_ = true;
 		}
-		return ascii_.get_data();
+		const char *r = ascii_.get_data();
+		ERR_FAIL_NULL_V(r, NULL);
+		return r;
 #endif
 	}
 #endif

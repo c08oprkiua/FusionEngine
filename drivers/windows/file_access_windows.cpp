@@ -69,11 +69,7 @@ Error FileAccessWindows::_open(const String& p_filename, int p_mode_flags) {
 	else
 		return ERR_INVALID_PARAMETER;
 
-#ifdef UNICODE
 	struct _stat st;
-#else
-	struct stat st;
-#endif
 	if (_tstat(file_c.t_str(), &st) == 0) {
 
 		if (!S_ISREG(st.st_mode))
@@ -222,11 +218,7 @@ uint64_t FileAccessWindows::_get_modified_time(const String& p_file) {
 	if (file.ends_with("/") && file!="/")
 		file=file.substr(0,file.length()-1);
 
-#ifdef UNICODE
 	struct _stat st;
-#else
-	struct stat st;
-#endif
 	String tfile = file.replace("/", "\\");
 	int rv = _tstat(tfile.t_str(), &st);
 

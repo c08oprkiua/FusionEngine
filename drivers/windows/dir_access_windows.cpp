@@ -74,10 +74,7 @@ bool DirAccessWindows::list_dir_begin() {
 	_tprintf(_T("-> %s\n"), f.t_str());
 	p->h = FindFirstFileEx(f.t_str(), FindExInfoStandard, &p->f, FindExSearchNameMatch, NULL, 0);
 
-	if (p->h==INVALID_HANDLE_VALUE) {
-
-	}
-	printf("p->h for %s? %d\n", (p->h==INVALID_HANDLE_VALUE));
+	_tprintf(_T("p->h for %s? %d\n"), f.t_str(), (p->h==INVALID_HANDLE_VALUE));
 
 	return (p->h==INVALID_HANDLE_VALUE);
 }
@@ -144,7 +141,6 @@ Error DirAccessWindows::change_dir(String p_dir) {
 #else
 
 
-	_tprintf(_T("Change to PDIR: %s\n"), p_dir.t_str());
 	p_dir=fix_path(p_dir);
 	String tdir = p_dir.replace("/", "\\");
 
@@ -153,7 +149,9 @@ Error DirAccessWindows::change_dir(String p_dir) {
 	String prev_dir=real_current_dir_name;
 
 	String tcurdir = current_dir.replace("/", "\\");
+	_tprintf(_T("Change to TCURDIR: %s\n"), tcurdir.t_str());
 	SetCurrentDirectory(tcurdir.t_str());
+	_tprintf(_T("Change to TDIR: %s\n"), tdir.t_str());
 	bool worked=(SetCurrentDirectory(tdir.t_str())!=0);
 	if (!worked) {
 		_tprintf(_T("Failed to change the directory to %s: 0x%08x\n"), tdir.t_str(), GetLastError());
@@ -164,8 +162,9 @@ Error DirAccessWindows::change_dir(String p_dir) {
 
 		GetCurrentDirectory(2048,real_current_dir_name);
 		String new_dir;
-		new_dir = String(real_current_dir_name).replace("\\","/");
-		if (!new_dir.to_lower().begins_with(base.to_lower())) {
+		new_dir = String(real_current_dir_name).replace("\\", "/");
+		if (!new_dir.to_lower().begins_with(base.replace("\\", "/").to_lower())) {
+			puts("BAD BASE!");
 			worked=false;
 		}
 	}
@@ -173,12 +172,13 @@ Error DirAccessWindows::change_dir(String p_dir) {
 	if (worked) {
 
 		GetCurrentDirectory(2048,real_current_dir_name);
-		current_dir=real_current_dir_name; // TODO, utf8 parser
-		current_dir=current_dir.replace("\\", "/"); // TODO, utf8 parser
+		current_dir=String(real_current_dir_name); // TODO, utf8 parser
+		current_dir=current_dir.replace("\\", "/");
+		_tprintf(_T("Succeeded in changing the directory to %s: 0x%08x\n"), current_dir.t_str(), GetLastError());
 
-	} //else {
-		SetCurrentDirectory(prev_dir.t_str());
-	//}
+	}
+
+	SetCurrentDirectory(prev_dir.t_str());
 
 	return worked?OK:ERR_INVALID_PARAMETER;
 #endif
