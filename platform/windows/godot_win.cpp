@@ -223,7 +223,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     char filename[_MAX_PATH];
 
-    GetModuleFileName(NULL, filename, _MAX_PATH);
+    GetModuleFileNameA(NULL, filename, _MAX_PATH);
     argv[0] = filename;
 
     // call the user specified main function

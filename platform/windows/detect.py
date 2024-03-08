@@ -166,9 +166,9 @@ def configure(env):
 		nulstr=""
 
 		if (os.name=="posix"):
-			nulstr=">/dev/null"
+		    nulstr=">/dev/null"
 		else:
-			nulstr=">nul"
+		    nulstr=">nul"
 
 
 
@@ -179,12 +179,12 @@ def configure(env):
 
 		if (env["target"]=="release"):
 			
-			env.Append(CCFLAGS=['-Os','-ffast-math','-fomit-frame-pointer'])
+			env.Append(CCFLAGS=['-O3','-ffast-math','-fomit-frame-pointer','-msse2'])
 			env.Append(LINKFLAGS=['-Wl,--subsystem,windows'])
 
 		elif (env["target"]=="release_debug"):
 
-			env.Append(CCFLAGS=['-Os','-DDEBUG_ENABLED'])
+			env.Append(CCFLAGS=['-O2','-DDEBUG_ENABLED'])
 
 		elif (env["target"]=="debug"):
 					
@@ -195,34 +195,29 @@ def configure(env):
 			env.Append(CPPPATH=['#tools/freetype'])
 			env.Append(CPPPATH=['#tools/freetype/freetype/include'])
 
-		mingw_suffix=".exe"
-		mingw_prefix=""
-		env["CC"]=mingw_prefix+"gcc"+mingw_suffix
-		env['AS']=mingw_prefix+"as"+mingw_suffix
-		env['CXX'] = mingw_prefix+"g++"+mingw_suffix
-		env['AR'] = mingw_prefix+"ar"+mingw_suffix
-		env['RANLIB'] = mingw_prefix+"ranlib"+mingw_suffix
-		env['LD'] = mingw_prefix+"g++"+mingw_suffix
+		env["CC"]=mingw_prefix+"gcc"
+		env['AS']=mingw_prefix+"as"
+		env['CXX'] = mingw_prefix+"g++"
+		env['AR'] = mingw_prefix+"ar"
+		env['RANLIB'] = mingw_prefix+"ranlib"
+		env['LD'] = mingw_prefix+"g++"
 
 		#env['CC'] = "winegcc"
 		#env['CXX'] = "wineg++"
 
-		env.Append(CCFLAGS=['-DWINDOWS_ENABLED','-DWIN98_ENABLED','-mwindows','-D__MSVCRT_VERSION__=0x400'])
-		#env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED'])
-		env.Append(CCFLAGS=['-DOPENGL_ENABLED','-DGLES1_ENABLED','-DGLES_OVER_GL','-DGLEW_ENABLED','-DNO_THREADS','-DNO_SAFE_CAST','-fno-rtti'])
-		#env.Append(LIBS=['mingw32','opengl32', 'dsound', 'ole32','winmm','gdi32','iphlpapi','wsock32','kernel32'])
-		env.Append(LIBS=['mingw32','opengl32', 'dsound', 'ole32','winmm','gdi32','iphlpapi','kernel32'])
+		env.Append(CCFLAGS=['-DWINDOWS_ENABLED','-mwindows','-D_UNICODE','-DUNICODE'])
+		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED','-D_UNICODE'])
+		env.Append(CCFLAGS=['-DGLES2_ENABLED','-DGLES1_ENABLED','-DGLEW_ENABLED'])
+		env.Append(LIBS=['mingw32','opengl32', 'dsound', 'ole32', 'd3d9','winmm','gdi32','iphlpapi','wsock32','kernel32'])
 
 		if (env["bits"]=="32" and env["mingw64_for_32"]!="yes"):
 #			env.Append(LIBS=['gcc_s'])
 			#--with-arch=i686
-			env.Append(CPPFLAGS=['-march=i386'])
-			env.Append(LINKFLAGS=['-march=i386'])
+			env.Append(CPPFLAGS=['-march=i686'])
+			env.Append(LINKFLAGS=['-march=i686'])
 
-		env.Append(CPPFLAGS=['-march=i386'])
-		env.Append(CCFLAGS=['-march=i386'])
-		env.Append(LINKFLAGS=['-march=i386'])
-		#env.Append(LINKFLAGS=['-Bstatic'])
+
+
 
 		#'d3dx9d'
 		env.Append(CPPFLAGS=['-DMINGW_ENABLED'])

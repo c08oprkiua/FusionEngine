@@ -73,6 +73,9 @@ void String::copy_from(const char *p_cstr) {
 		set(i,p_cstr[i]);
 	}
 
+#ifndef _UNICODE
+	has_ascii_ = false;
+#endif
 }
 
 void String::copy_from(const CharType* p_cstr, int p_clip_to) {

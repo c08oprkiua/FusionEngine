@@ -27,6 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "drivers/gles1/rasterizer_gles1.h"
+//#include "drivers/gles2/rasterizer_gles2.h"
 #include "os_windows.h"
 #include "drivers/nedmalloc/memory_pool_static_nedmalloc.h"
 #include "drivers/unix/memory_pool_static_malloc.h"
@@ -53,7 +54,18 @@
 #include "globals.h"
 #include "io/marshalls.h"
 
-#include "wchar.h"
+#if defined(_UNICODE) && defined(WIN98_ENABLED)
+#error "Cannot enable W9X and _UNICODE at the same time!"
+#endif
+
+#include "tchar.h"
+#ifndef _tpopen
+#ifdef _UNICODE
+#define _tpopen _wpopen
+#else
+#define _tpopen _popen
+#endif
+#endif
 
 #include "shlobj.h"
 static const WORD MAX_CONSOLE_LINES = 1500;
@@ -136,8 +148,7 @@ int OS_Windows::get_video_driver_count() const {
 }
 const char * OS_Windows::get_video_driver_name(int p_driver) const {
 
-	//return p_driver==0?"GLES2":"GLES1";
-  return "GLES1";
+	return p_driver==0?"GLES1":"Glide";
 }
 
 OS::VideoMode OS_Windows::get_default_video_mode() const {
@@ -661,12 +672,12 @@ LRESULT OS_Windows::WndProc(HWND hWnd,UINT uMsg, WPARAM	wParam,	LPARAM	lParam) {
 
 			if (user_proc) {
 
-				return CallWindowProcA(user_proc, hWnd, uMsg, wParam, lParam);
+				return CallWindowProc(user_proc, hWnd, uMsg, wParam, lParam);
 			};
 		};
 	}
 
-	return DefWindowProcA(hWnd,uMsg,wParam,lParam);
+	return DefWindowProc(hWnd,uMsg,wParam,lParam);
 
 }
 
@@ -676,7 +687,7 @@ LRESULT CALLBACK WndProc(HWND	hWnd,UINT uMsg,	WPARAM	wParam,	LPARAM	lParam)	{
 	if (os_win)
 		return os_win->WndProc(hWnd,uMsg,wParam,lParam);
 	else
-		return DefWindowProcA(hWnd,uMsg,wParam,lParam);
+		return DefWindowProc(hWnd,uMsg,wParam,lParam);
 
 }
 
@@ -954,7 +965,7 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
     main_loop=NULL;
     outside=true;
 
-	WNDCLASSEXA	wc;
+	WNDCLASSEX	wc;
 	
 	video_mode=p_desired;
 	//printf("**************** desired %s, mode %s\n", p_desired.fullscreen?"true":"false", video_mode.fullscreen?"true":"false");
@@ -965,8 +976,8 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 	WindowRect.top=0;
 	WindowRect.bottom=video_mode.height;
 
-	memset(&wc,0,sizeof(WNDCLASSEXA));
-	wc.cbSize=sizeof(WNDCLASSEXA);
+	memset(&wc,0,sizeof(WNDCLASSEX));
+	wc.cbSize=sizeof(WNDCLASSEX);
 	wc.style= CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_DBLCLKS;
 	wc.lpfnWndProc = (WNDPROC)::WndProc;
 	wc.cbClsExtra = 0;
@@ -974,13 +985,13 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 	//wc.hInstance = hInstance;
 	wc.hInstance = godot_hinstance ? godot_hinstance : GetModuleHandle(NULL);
 	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);		
-	wc.hCursor = NULL;//LoadCursor(NULL, IDC_ARROW);
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName	= NULL;	
-	wc.lpszClassName	= "Engine";
+	wc.lpszClassName	= _T("Engine");
 
-	if (!RegisterClassExA(&wc)) {
-		MessageBox(NULL,"Failed To Register The Window Class.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+	if (!RegisterClassEx(&wc)) {
+		MessageBox(NULL,_T("Failed To Register The Window Class."),_T("ERROR"),MB_OK|MB_ICONEXCLAMATION);
 		return;											// Return 
 	}
 	
@@ -1050,7 +1061,7 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 
 		RECT rect;
 		if (!GetClientRect(hWnd, &rect)) {
-			MessageBox(NULL,"Window Re-Creation Error.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+			MessageBox(NULL,_T("Window Re-Creation Error."),_T("ERROR"),MB_OK|MB_ICONEXCLAMATION);
 			return;								// Return FALSE
 		};
 		video_mode.width = rect.right;
@@ -1058,24 +1069,34 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 		video_mode.fullscreen = false;
 	} else {
 
-		if (!(hWnd=CreateWindowExA(dwExStyle,"Engine","", dwStyle|WS_CLIPSIBLINGS|WS_CLIPCHILDREN, 0, 0,WindowRect.right-WindowRect.left,WindowRect.bottom-WindowRect.top, NULL,NULL,	hInstance,NULL))) {
-			printf("Oopsie: 0x%08X", GetLastError());
-			MessageBox(NULL,"Window Creation Error.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+		if (!(hWnd=CreateWindowEx(dwExStyle,_T("Engine"),_T(""), dwStyle|WS_CLIPSIBLINGS|WS_CLIPCHILDREN, 0, 0,WindowRect.right-WindowRect.left,WindowRect.bottom-WindowRect.top, NULL,NULL,	hInstance,NULL))) {
+			MessageBox(NULL,_T("Window Creation Error."),_T("ERROR"),MB_OK|MB_ICONEXCLAMATION);
 			return;								// Return FALSE
 		}
 
 
 	};
 	
-#if defined(OPENGL_ENABLED) || defined(GLES1_ENABLED) || defined(GLES2_ENABLED) || defined(LEGACYGL_ENABLED)
-	gl_context = memnew( ContextGL_Win(hWnd,false) );
-	gl_context->initialize();
-	rasterizer = memnew( RasterizerGLES1 );
-#else
- #ifdef DX9_ENABLED
-	rasterizer = memnew( RasterizerDX9(hWnd) );
- #endif
+	if (strcmp(get_video_driver_name(p_video_driver), "GLES1") == 0) {
+		gl_context = memnew( ContextGL_Win(hWnd,false) );
+		gl_context->initialize();
+		rasterizer = memnew( RasterizerGLES1 );
+	}
+#ifdef DX9_ENABLED
+	else if (strcmp(get_video_driver_name(p_video_driver), "DX9") == 0) {
+		rasterizer = memnew( RasterizerDX9(hWnd) );
+	}
 #endif
+	else if (strcmp(get_video_driver_name(p_video_driver), "Glide") == 0) {
+		//rasterizer = memnew( RasterizerGlide(hWnd) );
+		MessageBox(NULL,_T("Glide is not available on this system!"),_T("ERROR"),MB_OK|MB_ICONEXCLAMATION);
+		abort();
+	}
+	//else if (strcmp(get_video_driver_name(p_video_driver), "GLES2") == 0) {
+	//	gl_context = memnew( ContextGL_Win(hWnd,false) );
+	//	gl_context->initialize();
+	//	rasterizer = memnew( RasterizerGLES2 );
+	//}
 
 	visual_server = memnew( VisualServerRaster(rasterizer) );
 	if (get_render_thread_mode()!=RENDER_THREAD_UNSAFE) {
@@ -1155,6 +1176,8 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 
 void OS_Windows::set_clipboard(const String& p_text) {
 
+#ifndef WIN98_ENABLED
+
 	if (!OpenClipboard(hWnd)) {
 		ERR_EXPLAIN("Unable to open clipboard.");
 		ERR_FAIL();
@@ -1188,9 +1211,17 @@ void OS_Windows::set_clipboard(const String& p_text) {
 	SetClipboardData(CF_TEXT, mem);
 
 	CloseClipboard();
+
+#endif
 };
 
 String OS_Windows::get_clipboard() const {
+
+#ifdef WIN98_ENABLED
+
+	return {};
+
+#else
 
 	String ret;
 	if (!OpenClipboard(hWnd)) {
@@ -1228,6 +1259,8 @@ String OS_Windows::get_clipboard() const {
 	CloseClipboard();
 
 	return ret;
+
+#endif
 };
 
 
@@ -1308,6 +1341,7 @@ void OS_Windows::vprint(const char* p_format, va_list p_list, bool p_stderr) {
 		return;
 	buf[len]=0;
 
+#ifdef _UNICODE
 
 	int wlen = MultiByteToWideChar(CP_UTF8,0,buf,len,NULL,0);
 	if (wlen<0)
@@ -1327,13 +1361,22 @@ void OS_Windows::vprint(const char* p_format, va_list p_list, bool p_stderr) {
 #endif
 	free(wbuf);
 
+#else
+
+	if (p_stderr)
+		fprintf(stderr,"%s",buf);
+	else
+		printf("%s",buf);
+
+#endif
+
 	fflush(stdout);
 };
 
 void OS_Windows::alert(const String& p_alert,const String& p_title) {
 
 	if (!is_no_window_mode_enabled())
-		MessageBoxW(NULL,p_alert.c_str(),p_title.c_str(),MB_OK|MB_ICONEXCLAMATION);
+		MessageBox(NULL,p_alert.t_str(),p_title.t_str(),MB_OK|MB_ICONEXCLAMATION);
 	else
 		print_line("ALERT: "+p_alert);
 }
@@ -1395,7 +1438,7 @@ int OS_Windows::get_mouse_button_state() const {
 
 void OS_Windows::set_window_title(const String& p_title) {
 
-	SetWindowTextW(hWnd,p_title.c_str());
+	SetWindowText(hWnd,p_title.t_str());
 }
 
 void OS_Windows::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
@@ -1562,11 +1605,11 @@ void OS_Windows::process_events() {
 
 	process_joysticks();
 	
-	while(PeekMessageW(&msg,NULL,0,0,PM_REMOVE)) {
+	while(PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
 
 
 		TranslateMessage(&msg);
-		DispatchMessageW(&msg);
+		DispatchMessage(&msg);
 		
 	}
 
@@ -1622,7 +1665,7 @@ Error OS_Windows::execute(const String& p_path, const List<String>& p_arguments,
 		//argss+"\"";
 		//argss+=" 2>nul";
 
-		FILE* f=_wpopen(argss.c_str(),L"r");
+		FILE* f=_tpopen(argss.t_str(),_T("r"));
 
 		ERR_FAIL_COND_V(!f,ERR_CANT_OPEN);
 
@@ -1655,14 +1698,15 @@ Error OS_Windows::execute(const String& p_path, const List<String>& p_arguments,
 	ZeroMemory( &pi.si, sizeof(pi.si) );
 	pi.si.cb = sizeof(pi.si);
 	ZeroMemory( &pi.pi, sizeof(pi.pi) );
-	LPSTARTUPINFOW si_w = (LPSTARTUPINFOW) &pi.si;
+	LPSTARTUPINFO si_w = (LPSTARTUPINFO) &pi.si;
 
 	print_line("running cmdline: "+cmdline);
-	Vector<CharType> modstr; //windows wants to change this no idea why
-	modstr.resize(cmdline.size());
-	for(int i=0;i<cmdline.size();i++)
-		modstr[i]=cmdline[i];
-	int ret = CreateProcessW(NULL, modstr.ptr(), NULL, NULL, 0, NORMAL_PRIORITY_CLASS, NULL, NULL, si_w, &pi.pi);
+	//Vector<CharType> modstr; //windows wants to change this no idea why
+	//modstr.resize(cmdline.size());
+	//for(int i=0;i<cmdline.size();i++)
+	//	modstr[i]=cmdline[i];
+	LPTSTR modstr = _tcsdup(cmdline.t_str());
+	int ret = CreateProcess(NULL, modstr, NULL, NULL, 0, NORMAL_PRIORITY_CLASS, NULL, NULL, si_w, &pi.pi);
 	ERR_FAIL_COND_V(ret == 0, ERR_CANT_FORK);
 
 	if (p_blocking) {
@@ -1679,6 +1723,7 @@ Error OS_Windows::execute(const String& p_path, const List<String>& p_arguments,
 		};
 		process_map->insert(pid, pi);
 	};
+	free(modstr);
 	return OK;
 };
 
@@ -1701,7 +1746,7 @@ Error OS_Windows::kill(const ProcessID& p_pid) {
 
 Error OS_Windows::set_cwd(const String& p_cwd) {
 
-	if (_wchdir(p_cwd.replace("/", "\\").c_str())!=0)
+	if (_tchdir(p_cwd.replace("/", "\\").t_str())!=0)
 		return ERR_CANT_OPEN;
 
 	return OK;
@@ -1709,8 +1754,8 @@ Error OS_Windows::set_cwd(const String& p_cwd) {
 
 String OS_Windows::get_executable_path() const {
 
-	wchar_t bufname[4096];
-	GetModuleFileNameW(NULL,bufname,4096);
+	TCHAR bufname[4096];
+	GetModuleFileName(NULL,bufname,4096);
 	String s= bufname;
 	return s;
 }
@@ -1802,7 +1847,7 @@ void OS_Windows::move_window_to_foreground() {
 
 Error OS_Windows::shell_open(String p_uri) {
 
-	ShellExecuteW(NULL, L"open", p_uri.c_str(), NULL, NULL, SW_SHOWNORMAL);
+	ShellExecute(NULL, _T("open"), p_uri.t_str(), NULL, NULL, SW_SHOWNORMAL);
 	return OK;
 }
 
@@ -1945,7 +1990,6 @@ String OS_Windows::get_data_dir() const {
 
 
 }
-
 
 OS_Windows::OS_Windows(HINSTANCE _hInstance) {
 

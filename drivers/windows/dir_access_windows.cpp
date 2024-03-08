@@ -33,7 +33,7 @@
 #include "os/memory.h"
 
 #include <windows.h>
-#include <wchar.h>
+#include <tchar.h>
 #include <direct.h>
 #include <stdio.h>
 #include "print_string.h"
@@ -61,7 +61,6 @@ struct DirAccessWindowsPrivate {
 
 	HANDLE h; //handle for findfirstfile
 	WIN32_FIND_DATA f;
-	WIN32_FIND_DATAW fu; //unicode version
 };
 
 // CreateFolderAsync
@@ -70,21 +69,17 @@ bool DirAccessWindows::list_dir_begin() {
 
 	_cisdir=false;
 	
-	if (unicode) {
-		list_dir_end();
-		p->h = FindFirstFileExW((current_dir+"\\*").c_str(), FindExInfoStandard, &p->fu, FindExSearchNameMatch, NULL, 0);
+	list_dir_end();
+	String f = current_dir.replace("/", "\\")+"\\*";
+	_tprintf(_T("-> %s\n"), f.t_str());
+	p->h = FindFirstFileEx(f.t_str(), FindExInfoStandard, &p->f, FindExSearchNameMatch, NULL, 0);
 
-		return (p->h==INVALID_HANDLE_VALUE);
-	} else {
-
-		list_dir_end();
-		p->h = FindFirstFileExA((current_dir+"\\*").ascii().get_data(), FindExInfoStandard, &p->fu, FindExSearchNameMatch, NULL, 0);
-
-		return (p->h==INVALID_HANDLE_VALUE);
+	if (p->h==INVALID_HANDLE_VALUE) {
 
 	}
+	printf("p->h for %s? %d\n", (p->h==INVALID_HANDLE_VALUE));
 
-	return false;
+	return (p->h==INVALID_HANDLE_VALUE);
 }
 
 
@@ -93,35 +88,20 @@ String DirAccessWindows::get_next() {
 	if (p->h==INVALID_HANDLE_VALUE)
 		return "";
 
-	if (unicode) {
-	
-		_cisdir=(p->fu.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
-		String name=p->fu.cFileName;
-
-		if (FindNextFileW(p->h, &p->fu) == 0) {
-
-			FindClose(p->h);
-			p->h=INVALID_HANDLE_VALUE;
-		}
-
-		return name;
-	} else {
-
 #ifndef WINRT_ENABLED
-		_cisdir=(p->fu.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+	_cisdir=(p->f.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+	String name=p->f.cFileName;
 
-		String name=p->f.cFileName;
+	if (FindNextFile(p->h, &p->f) == 0) {
 
-		if (FindNextFileA(p->h, &p->f) == 0) {
-
-			FindClose(p->h);
-			p->h=INVALID_HANDLE_VALUE;
-		}
-
-		return name;
-#endif
-		return "";
+		FindClose(p->h);
+		p->h=INVALID_HANDLE_VALUE;
 	}
+
+	return name;
+#else
+	return ""
+#endif
 }
 
 bool DirAccessWindows::current_is_dir() const {
@@ -164,65 +144,43 @@ Error DirAccessWindows::change_dir(String p_dir) {
 #else
 
 
+	_tprintf(_T("Change to PDIR: %s\n"), p_dir.t_str());
 	p_dir=fix_path(p_dir);
+	String tdir = p_dir.replace("/", "\\");
 
-	if (unicode) {
+	TCHAR real_current_dir_name[2048];
+	GetCurrentDirectory(2048,real_current_dir_name);
+	String prev_dir=real_current_dir_name;
 
-		wchar_t real_current_dir_name[2048];
-		GetCurrentDirectoryW(2048,real_current_dir_name);
-		String prev_dir=real_current_dir_name;
-
-		SetCurrentDirectoryW(current_dir.c_str());
-		bool worked=(SetCurrentDirectoryW(p_dir.c_str())!=0);
-
-		String base = _get_root_path();
-		if (base!="") {
-
-			GetCurrentDirectoryW(2048,real_current_dir_name);
-			String new_dir;
-			new_dir = String(real_current_dir_name).replace("\\","/");
-			if (!new_dir.begins_with(base)) {
-				worked=false;
-			}
-		}
-
-		if (worked) {
-
-			GetCurrentDirectoryW(2048,real_current_dir_name);
-			current_dir=real_current_dir_name; // TODO, utf8 parser
-			current_dir=current_dir.replace("\\","/");
-
-		} //else {
-
-			SetCurrentDirectoryW(prev_dir.c_str());
-		//}
-
-		return worked?OK:ERR_INVALID_PARAMETER;
-	} else {
-
-		char real_current_dir_name[2048];
-		GetCurrentDirectoryA(2048,real_current_dir_name);
-		String prev_dir=real_current_dir_name;
-
-		SetCurrentDirectoryA(current_dir.ascii().get_data());
-		bool worked=(SetCurrentDirectory(p_dir.ascii().get_data())!=0);
-
-		if (worked) {
-
-			GetCurrentDirectoryA(2048,real_current_dir_name);
-			current_dir=real_current_dir_name; // TODO, utf8 parser
-			current_dir=current_dir.replace("\\","/");
-
-		}// else {
-
-			SetCurrentDirectoryA(prev_dir.ascii().get_data());
-		//}
-
-		return worked?OK:ERR_INVALID_PARAMETER;
-
+	String tcurdir = current_dir.replace("/", "\\");
+	SetCurrentDirectory(tcurdir.t_str());
+	bool worked=(SetCurrentDirectory(tdir.t_str())!=0);
+	if (!worked) {
+		_tprintf(_T("Failed to change the directory to %s: 0x%08x\n"), tdir.t_str(), GetLastError());
 	}
 
-	return OK;
+	String base = _get_root_path();
+	if (base!="") {
+
+		GetCurrentDirectory(2048,real_current_dir_name);
+		String new_dir;
+		new_dir = String(real_current_dir_name).replace("\\","/");
+		if (!new_dir.to_lower().begins_with(base.to_lower())) {
+			worked=false;
+		}
+	}
+
+	if (worked) {
+
+		GetCurrentDirectory(2048,real_current_dir_name);
+		current_dir=real_current_dir_name; // TODO, utf8 parser
+		current_dir=current_dir.replace("\\", "/"); // TODO, utf8 parser
+
+	} //else {
+		SetCurrentDirectory(prev_dir.t_str());
+	//}
+
+	return worked?OK:ERR_INVALID_PARAMETER;
 #endif
 }
 
@@ -238,34 +196,21 @@ Error DirAccessWindows::make_dir(String p_dir) {
 
 	p_dir=fix_path(p_dir);
 	
-	p_dir.replace("/","\\");
+	p_dir=p_dir.replace("/","\\");
 
 	bool success;
 	int err;
 
-	if (unicode) {
-		wchar_t real_current_dir_name[2048];
-		GetCurrentDirectoryW(2048,real_current_dir_name);
+	TCHAR real_current_dir_name[2048];
+	GetCurrentDirectory(2048,real_current_dir_name);
 
-		SetCurrentDirectoryW(current_dir.c_str());
+	String tcurdir = current_dir.replace("/", "\\");
+	SetCurrentDirectory(tcurdir.t_str());
 
-		success=CreateDirectoryW(p_dir.c_str(), NULL);
-		err = GetLastError();
+	success=CreateDirectory(p_dir.t_str(), NULL);
+	err = GetLastError();
 
-		SetCurrentDirectoryW(real_current_dir_name);
-
-	} else {
-
-		char real_current_dir_name[2048];
-		GetCurrentDirectoryA(2048,real_current_dir_name);
-
-		SetCurrentDirectoryA(current_dir.ascii().get_data());
-
-		success=CreateDirectoryA(p_dir.ascii().get_data(), NULL);
-		err = GetLastError();
-
-		SetCurrentDirectoryA(real_current_dir_name);
-	}
+	SetCurrentDirectory(real_current_dir_name);
 
 	if (success) {
 		return OK;
@@ -311,28 +256,13 @@ bool DirAccessWindows::file_exists(String p_file) {
 
 	WIN32_FILE_ATTRIBUTE_DATA    fileInfo;
 
-	if (unicode) {
+	DWORD fileAttr;
 
-		DWORD fileAttr;
+	fileAttr = GetFileAttributesEx(p_file.t_str(), GetFileExInfoStandard, &fileInfo);
+	if (0 == fileAttr)
+		return false;
 
-		fileAttr = GetFileAttributesExW(p_file.c_str(), GetFileExInfoStandard, &fileInfo);
-		if (0 == fileAttr)
-			return false;
-
-		return !(fileAttr&FILE_ATTRIBUTE_DIRECTORY);
-
-	} else {
-		DWORD fileAttr;
-
-		fileAttr = GetFileAttributesExA(p_file.ascii().get_data(), GetFileExInfoStandard, &fileInfo);
-		if (0 == fileAttr)
-			return false;
-
-		return !(fileAttr&FILE_ATTRIBUTE_DIRECTORY);
-
-	}
-
-	return false;
+	return !(fileAttr&FILE_ATTRIBUTE_DIRECTORY);
 }
 
 bool DirAccessWindows::dir_exists(String p_dir) {
@@ -346,35 +276,23 @@ bool DirAccessWindows::dir_exists(String p_dir) {
 
 	WIN32_FILE_ATTRIBUTE_DATA    fileInfo;
 
-	if (unicode) {
-
-		DWORD fileAttr;
-
-		fileAttr = GetFileAttributesExW(p_dir.c_str(), GetFileExInfoStandard, &fileInfo);
-		if (0 == fileAttr)
-			return false;
-
-		return (fileAttr&FILE_ATTRIBUTE_DIRECTORY);
-
-	} else {
 #ifndef WINRT_ENABLED
-		DWORD fileAttr;
+	DWORD fileAttr;
 
-		fileAttr = GetFileAttributesExA(p_dir.ascii().get_data(), GetFileExInfoStandard, &fileInfo);
-		if (0 == fileAttr)
-			return false;
+	fileAttr = GetFileAttributesEx(p_dir.t_str(), GetFileExInfoStandard, &fileInfo);
+	if (0 == fileAttr)
+		return false;
 
-		return (fileAttr&FILE_ATTRIBUTE_DIRECTORY);
-
-#endif
-	}
+	return (fileAttr&FILE_ATTRIBUTE_DIRECTORY);
+#else
 	return false;
+#endif
 }
 
 Error DirAccessWindows::rename(String p_path,String p_new_path) {
 
-	p_path=fix_path(p_path);
-	p_new_path=fix_path(p_new_path);
+	p_path=fix_path(p_path).replace("/", "\\");
+	p_new_path=fix_path(p_new_path).replace("/", "\\");
 	
 	if (file_exists(p_new_path)) {
 		if (remove(p_new_path) != OK) {
@@ -382,34 +300,22 @@ Error DirAccessWindows::rename(String p_path,String p_new_path) {
 		};
 	};
 
-#ifdef WIN98_ENABLED
-	return rename(p_path.replace("/", "\\").utf8().get_data(),p_new_path.replace("/", "\\").utf8().get_data())==0?OK:FAILED;
-#else
-	return ::_wrename(p_path.replace("/", "\\").c_str(),p_new_path.replace("/", "\\").c_str())==0?OK:FAILED;
-#endif
+	return ::_trename(p_path.t_str(),p_new_path.t_str())==0?OK:FAILED;
 }
 
 Error DirAccessWindows::remove(String p_path)  {
 
-	p_path=fix_path(p_path);
+	p_path=fix_path(p_path).replace("/", "\\");
 	
-	printf("erasing %s\n",p_path.utf8().get_data());
 	WIN32_FILE_ATTRIBUTE_DATA    fileInfo;
-	DWORD fileAttr = GetFileAttributesExW(p_path.c_str(), GetFileExInfoStandard, &fileInfo);
+	DWORD fileAttr = GetFileAttributesEx(p_path.t_str(), GetFileExInfoStandard, &fileInfo);
 	if (fileAttr == INVALID_FILE_ATTRIBUTES)
 		return FAILED;
 
-#ifdef WIN98_ENABLED
 	if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-		return _rmdir(p_path.replace("/", "\\").utf8().get_data())==0?OK:FAILED;
+		return ::_trmdir(p_path.t_str())==0?OK:FAILED;
 	else
-		return unlink(p_path.replace("/", "\\").utf8().get_data())==0?OK:FAILED;
-#else
-	if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-		return ::_wrmdir(p_path.replace("/", "\\").c_str())==0?OK:FAILED;
-	else
-		return ::_wunlink(p_path.replace("/", "\\").c_str())==0?OK:FAILED;
-#endif
+		return ::_tunlink(p_path.t_str())==0?OK:FAILED;
 }
 /*
 
@@ -469,13 +375,6 @@ DirAccessWindows::DirAccessWindows() {
 			drive_count++;
 		}
 	}
-
-	unicode=true;
-
-
-	/* We are running Windows 95/98/ME, so no unicode allowed */
-	if ( SetCurrentDirectoryW ( L"." ) == FALSE && GetLastError () == ERROR_CALL_NOT_IMPLEMENTED )
-		unicode=false;
 
 	change_dir(".");
 #endif
