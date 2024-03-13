@@ -529,6 +529,9 @@ class RasterizerGLES1 : public Rasterizer {
 	struct SampledLight {
 
 		int w,h;
+		GLuint texture;
+		float multiplier;
+		bool is_float;
 	};
 
 	mutable RID_Owner<SampledLight> sampled_light_owner;
@@ -815,7 +818,7 @@ class RasterizerGLES1 : public Rasterizer {
 
 	float shadow_near_far_split_size_ratio;
 	bool _allocate_shadow_buffers(LightInstance *p_instance, Vector<ShadowBuffer>& p_buffers);
-	void _debug_draw_shadow(ShadowBuffer *p_buffer, const Rect2& p_rect);
+	void _debug_draw_shadow(GLuint tex, const Rect2& p_rect);
 	void _debug_draw_shadows_type(Vector<ShadowBuffer>& p_shadows,Point2& ofs);
 	void _debug_shadows();
 	void reset_state();

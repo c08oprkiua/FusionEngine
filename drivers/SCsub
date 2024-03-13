@@ -8,7 +8,8 @@ Export('env')
 SConscript('unix/SCsub');
 SConscript('alsa/SCsub');
 SConscript('windows/SCsub');
-#SConscript('gles2/SCsub');
+if env["platform"] == "x11":
+	SConscript('gles2/SCsub');
 SConscript('gles1/SCsub');
 SConscript('gl_context/SCsub');
 SConscript('openssl/SCsub');

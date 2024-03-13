@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  godot_server.cpp                                                     */
+/*  audio_driver_dummy.h                                                 */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,40 +26,54 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "main/main.h"
-#include "os_psp.h"
+#ifndef AUDIO_DRIVER_VITA_H
+#define AUDIO_DRIVER_VITA_H
 
-#include <psptypes.h>
-#include <pspiofilemgr.h>
-#include <pspmodulemgr.h>
-#include <psppower.h>
-#include <pspsysmem.h>
-#include <pspthreadman.h>
-#include <psputils.h>
-#include <psputility.h>
+#include "servers/audio/audio_server_sw.h"
 
+#include "core/os/thread.h"
+#include "core/os/mutex.h"
 
+#include <psp2/audioout.h>
 
-PSP_MODULE_INFO("FUSION", PSP_MODULE_USER, 1, 1);
-PSP_MAIN_THREAD_ATTR(PSP_THREAD_ATTR_USER | THREAD_ATTR_VFPU);
-PSP_HEAP_SIZE_KB(-1);
+class AudioDriverVita : public AudioDriverSW {
 
-int main(int argc, char* argv[]) {
-    scePowerSetClockFrequency(333, 333, 166);
+	Thread* thread;
+	Mutex* mutex;
 
-	OS_PSP os;
+	int32_t* samples_in;
+	int16_t* samples_out;
 	
-	char* args[] = {"-path", "."};
+	static void thread_func(void* p_udata);
+	int buffer_size;
+	int port;
 
-	Error err = Main::setup("psp", 2, args, true);
-	if (err!=OK)
-		return 255;
-		
-	if (Main::start()) {
-		printf("game running\n");
-		os.run(); // it is actually the OS that decides how to run
-	}
-	Main::cleanup();
-	
-	return 0;
-}
+	unsigned int mix_rate;
+	OutputFormat output_format;
+
+	int channels;
+
+	bool active;
+	bool thread_exited;
+	mutable bool exit_thread;
+	bool pcm_open;
+
+public:
+
+	const char* get_name() const {
+		return "vita";
+	};
+
+	virtual Error init();
+	virtual void start();
+	virtual int get_mix_rate() const;
+	virtual OutputFormat get_output_format() const;
+	virtual void lock();
+	virtual void unlock();
+	virtual void finish();
+
+	AudioDriverVita();
+	~AudioDriverVita();
+};
+
+#endif

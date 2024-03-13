@@ -223,7 +223,7 @@ void OS_VITA::initialize(const VideoMode& p_desired,int p_video_driver,int p_aud
 
 	input = memnew( InputDefault );
 
-	port = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_BGM, 1024, 25, SCE_AUDIO_OUT_MODE_STEREO);
+	
 }
 void OS_VITA::finalize() {
 
@@ -425,7 +425,7 @@ void OS_VITA::process_audio() {
 	
 	// sceAudioOutput2OutputBlocking(0x8000, samples_out);
 	// sceAudioOutput
-	sceAudioOutOutput(port, samples_out);
+	// sceAudioOutOutput(port, samples_out);
 }
 
 void OS_VITA::run() {
@@ -438,13 +438,13 @@ void OS_VITA::run() {
 	main_loop->init();
 		
 	while (!force_quit) {
-		process_audio();
+		// process_audio();
 		process_keys();
 		
 		if (Main::iteration()==true)
 			break;
 		
-		eglSwapBuffers(Display,Surface);
+		
 	};
 	
 	main_loop->finish();
@@ -452,6 +452,7 @@ void OS_VITA::run() {
 
 void OS_VITA::swap_buffers() {
 	// glutSwapBuffers();
+	eglSwapBuffers(Display,Surface);
 }
 
 OS_VITA::OS_VITA() {
@@ -460,6 +461,5 @@ OS_VITA::OS_VITA() {
 	//adriver here
 	grab=false;
 	_verbose_stdout=true;
-	sceAudioOutOutput(port, NULL);
-	sceAudioOutReleasePort(port);
+
 };

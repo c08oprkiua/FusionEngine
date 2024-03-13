@@ -7611,8 +7611,6 @@ void RasterizerGLES2::_debug_samplers() {
 		}
 	}
 
-
-
 }
 void RasterizerGLES2::_debug_shadows() {
 
