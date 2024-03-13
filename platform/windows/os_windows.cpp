@@ -26,7 +26,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "drivers/gles2/rasterizer_gles2.h"
+//#include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles1/rasterizer_gles1.h"
 #include "os_windows.h"
 #include "drivers/nedmalloc/memory_pool_static_nedmalloc.h"
@@ -130,11 +130,11 @@ void RedirectIOToConsole() {
 
 int OS_Windows::get_video_driver_count() const {
 
-	return 2;
+	return 1;
 }
 const char * OS_Windows::get_video_driver_name(int p_driver) const {
 
-	return p_driver==0?"GLES2":"GLES1";
+	return "GLES1";
 }
 
 OS::VideoMode OS_Windows::get_default_video_mode() const {
@@ -1063,10 +1063,10 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 
 	};
 	
-#if defined(OPENGL_ENABLED) || defined(GLES2_ENABLED) || defined(LEGACYGL_ENABLED)
+#if defined(OPENGL_ENABLED) || defined(GLES1_ENABLED) || defined(GLES2_ENABLED) || defined(LEGACYGL_ENABLED)
 	gl_context = memnew( ContextGL_Win(hWnd,false) );
 	gl_context->initialize();
-	rasterizer = memnew( RasterizerGLES2 );
+	rasterizer = memnew( RasterizerGLES1 );
 #else
  #ifdef DX9_ENABLED
 	rasterizer = memnew( RasterizerDX9(hWnd) );
