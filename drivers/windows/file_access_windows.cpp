@@ -32,7 +32,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <tchar.h>
 #include "print_string.h"
 
 #ifdef _MSC_VER
@@ -58,19 +57,19 @@ Error FileAccessWindows::_open(const String& p_filename, int p_mode_flags) {
 		close();
 
 
-	const TCHAR* mode_string;
+	const char* mode_string;
 
 	if (p_mode_flags==READ)
-		mode_string=_T("rb");
+		mode_string="rb";
 	else if (p_mode_flags==WRITE)
-		mode_string=_T("wb");
+		mode_string="wb";
 	else if (p_mode_flags==READ_WRITE)
-		mode_string=_T("wb+");
+		mode_string="wb+";
 	else
 		return ERR_INVALID_PARAMETER;
 
-	struct _stat st;
-	if (_tstat(file_c.t_str(), &st) == 0) {
+	struct stat st;
+	if (stat(file_c.ascii().get_data(), &st) == 0) {
 
 		if (!S_ISREG(st.st_mode))
 			return ERR_FILE_CANT_OPEN;
@@ -80,11 +79,11 @@ Error FileAccessWindows::_open(const String& p_filename, int p_mode_flags) {
 	if (is_backup_save_enabled() && p_mode_flags&WRITE && !(p_mode_flags&READ)) {
 		save_path=filename;
 		filename=filename+".tmp";
+		file_c=filename.replace("/", "\\");
 		//print_line("saving instead to "+path);
 	}
 
-	f=_tfopen(file_c.t_str(), mode_string);
-
+	f=fopen(file_c.ascii().get_data(), mode_string);
 
 	if (f==NULL) {
 		last_error=ERR_FILE_CANT_OPEN;
@@ -108,9 +107,9 @@ void FileAccessWindows::close() {
 
 		//unlink(save_path.utf8().get_data());
 		//print_line("renaming..");
-		_tunlink(save_path.t_str()); //unlink if exists
+		_unlink(save_path.ascii().get_data()); //unlink if exists
 		String rt = save_path+".tmp";
-		int rename_error = _trename(rt.t_str(),save_path.t_str());
+		int rename_error = ::rename(rt.ascii().get_data(),save_path.ascii().get_data());
 		save_path="";
 		ERR_FAIL_COND( rename_error != 0);
 	}
@@ -200,7 +199,7 @@ bool FileAccessWindows::file_exists(const String& p_name) {
 	FILE *g;
 	String filename=fix_path(p_name);
 	String cfname = filename.replace("/", "\\");
-	g=_tfopen(cfname.t_str(),_T("rb"));
+	g=fopen(cfname.ascii().get_data(),"rb");
 
 	if (g==NULL) {
 
@@ -218,9 +217,9 @@ uint64_t FileAccessWindows::_get_modified_time(const String& p_file) {
 	if (file.ends_with("/") && file!="/")
 		file=file.substr(0,file.length()-1);
 
-	struct _stat st;
+	struct stat st;
 	String tfile = file.replace("/", "\\");
-	int rv = _tstat(tfile.t_str(), &st);
+	int rv = stat(tfile.ascii().get_data(), &st);
 
 	if (rv == 0) {
 

@@ -123,10 +123,18 @@ char* mb_to_utf8(const char* mbs) {
 	wbuf[wlen]=0;
 
 	int ulen = WideCharToMultiByte(CP_UTF8,0,wbuf,-1,NULL,0,NULL,NULL);
-	char * ubuf = new char[ulen + 1];
-	WideCharToMultiByte(CP_UTF8,0,wbuf,-1,ubuf,ulen,NULL,NULL);
-	ubuf[ulen] = 0;
-	return ubuf;
+    if (ulen > 0) {
+        char * ubuf = new char[ulen + 1];
+        WideCharToMultiByte(CP_UTF8,0,wbuf,-1,ubuf,ulen,NULL,NULL);
+        ubuf[ulen] = 0;
+        return ubuf;
+    } else {
+        ulen = strlen(mbs);
+        char *ubuf = new char[ulen + 1];
+        strcpy(ubuf, mbs);
+        return ubuf;
+    }
+
 }
 
 int main(int argc, char** argv) {

@@ -184,14 +184,15 @@ public:
 	static String utf8(const char* p_utf8,int p_len=-1);
 
 #ifdef WINDOWS_ENABLED
-#ifndef _UNICODE
-	mutable CharString ascii_;
-	mutable bool has_ascii_;
-#endif
+//#ifndef _UNICODE
+//	mutable CharString ascii_;
+//	mutable bool has_ascii_;
+//#endif
 	_FORCE_INLINE_ const TCHAR *t_str() const {
 #ifdef _UNICODE
 		return c_str();
 #else
+#error "not implemented yet"
 		CharString stage = ascii();
 		if (!has_ascii_ || strcmp(ascii_.get_data(), stage.get_data()) != 0) {
 			ascii_ = stage;

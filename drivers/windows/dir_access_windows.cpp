@@ -71,10 +71,7 @@ bool DirAccessWindows::list_dir_begin() {
 	
 	list_dir_end();
 	String f = current_dir.replace("/", "\\")+"\\*";
-	_tprintf(_T("-> %s\n"), f.t_str());
-	p->h = FindFirstFileEx(f.t_str(), FindExInfoStandard, &p->f, FindExSearchNameMatch, NULL, 0);
-
-	_tprintf(_T("p->h for %s? %d\n"), f.t_str(), (p->h==INVALID_HANDLE_VALUE));
+	p->h = FindFirstFile(f.t_str(), &p->f);
 
 	return (p->h==INVALID_HANDLE_VALUE);
 }
@@ -149,13 +146,8 @@ Error DirAccessWindows::change_dir(String p_dir) {
 	String prev_dir=real_current_dir_name;
 
 	String tcurdir = current_dir.replace("/", "\\");
-	_tprintf(_T("Change to TCURDIR: %s\n"), tcurdir.t_str());
 	SetCurrentDirectory(tcurdir.t_str());
-	_tprintf(_T("Change to TDIR: %s\n"), tdir.t_str());
 	bool worked=(SetCurrentDirectory(tdir.t_str())!=0);
-	if (!worked) {
-		_tprintf(_T("Failed to change the directory to %s: 0x%08x\n"), tdir.t_str(), GetLastError());
-	}
 
 	String base = _get_root_path();
 	if (base!="") {
@@ -174,7 +166,6 @@ Error DirAccessWindows::change_dir(String p_dir) {
 		GetCurrentDirectory(2048,real_current_dir_name);
 		current_dir=String(real_current_dir_name); // TODO, utf8 parser
 		current_dir=current_dir.replace("\\", "/");
-		_tprintf(_T("Succeeded in changing the directory to %s: 0x%08x\n"), current_dir.t_str(), GetLastError());
 
 	}
 
@@ -258,7 +249,7 @@ bool DirAccessWindows::file_exists(String p_file) {
 
 	DWORD fileAttr;
 
-	fileAttr = GetFileAttributesEx(p_file.t_str(), GetFileExInfoStandard, &fileInfo);
+	fileAttr = GetFileAttributes(p_file.t_str());
 	if (0 == fileAttr)
 		return false;
 
@@ -279,7 +270,7 @@ bool DirAccessWindows::dir_exists(String p_dir) {
 #ifndef WINRT_ENABLED
 	DWORD fileAttr;
 
-	fileAttr = GetFileAttributesEx(p_dir.t_str(), GetFileExInfoStandard, &fileInfo);
+	fileAttr = GetFileAttributes(p_dir.t_str());
 	if (0 == fileAttr)
 		return false;
 
@@ -300,7 +291,7 @@ Error DirAccessWindows::rename(String p_path,String p_new_path) {
 		};
 	};
 
-	return ::_trename(p_path.t_str(),p_new_path.t_str())==0?OK:FAILED;
+	return ::rename(p_path.ascii().get_data(),p_new_path.ascii().get_data())==0?OK:FAILED;
 }
 
 Error DirAccessWindows::remove(String p_path)  {
@@ -308,14 +299,14 @@ Error DirAccessWindows::remove(String p_path)  {
 	p_path=fix_path(p_path).replace("/", "\\");
 	
 	WIN32_FILE_ATTRIBUTE_DATA    fileInfo;
-	DWORD fileAttr = GetFileAttributesEx(p_path.t_str(), GetFileExInfoStandard, &fileInfo);
+	DWORD fileAttr = GetFileAttributes(p_path.t_str());
 	if (fileAttr == INVALID_FILE_ATTRIBUTES)
 		return FAILED;
 
 	if (fileAttr & FILE_ATTRIBUTE_DIRECTORY)
-		return ::_trmdir(p_path.t_str())==0?OK:FAILED;
+		return ::rmdir(p_path.ascii().get_data())==0?OK:FAILED;
 	else
-		return ::_tunlink(p_path.t_str())==0?OK:FAILED;
+		return ::unlink(p_path.ascii().get_data())==0?OK:FAILED;
 }
 /*
 

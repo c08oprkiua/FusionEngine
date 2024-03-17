@@ -34,6 +34,7 @@
 #include "os/memory_pool_dynamic_static.h"
 #include "drivers/windows/thread_windows.h"
 #include "drivers/windows/semaphore_windows.h"
+#include "core/os/thread_dummy.h"
 #include "drivers/windows/mutex_windows.h"
 #include "main/main.h"
 #include "drivers/windows/file_access_windows.h"
@@ -54,10 +55,6 @@
 #include "globals.h"
 #include "io/marshalls.h"
 
-#if defined(_UNICODE) && defined(WIN98_ENABLED)
-#error "Cannot enable W9X and _UNICODE at the same time!"
-#endif
-
 #include "tchar.h"
 #ifndef _tpopen
 #ifdef _UNICODE
@@ -75,6 +72,7 @@ static const WORD MAX_CONSOLE_LINES = 1500;
 
 extern HINSTANCE godot_hinstance;
 
+#if 0
 void RedirectIOToConsole() {
 
 	int hConHandle;
@@ -141,6 +139,7 @@ void RedirectIOToConsole() {
 
 	// point to console as well
 }
+#endif
 
 int OS_Windows::get_video_driver_count() const {
 
@@ -148,7 +147,7 @@ int OS_Windows::get_video_driver_count() const {
 }
 const char * OS_Windows::get_video_driver_name(int p_driver) const {
 
-	return p_driver==0?"GLES1":"Glide";
+	return "GLES1";
 }
 
 OS::VideoMode OS_Windows::get_default_video_mode() const {
@@ -178,7 +177,8 @@ void OS_Windows::initialize_core() {
 	//RedirectIOToConsole();
 
 	ThreadWindows::make_default();	
-	SemaphoreWindows::make_default();	
+	//SemaphoreWindows::make_default();	
+	SemaphoreDummy::make_default();	
 	MutexWindows::make_default();	
 
 	FileAccess::make_default<FileAccessWindows>(FileAccess::ACCESS_RESOURCES);
@@ -343,7 +343,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd,UINT uMsg, WPARAM	wParam,	LPARAM	lParam) {
 				tme.dwFlags=TME_LEAVE;
 				tme.hwndTrack=hWnd;
 				tme.dwHoverTime=HOVER_DEFAULT;
-				TrackMouseEvent(&tme);
+				_TrackMouseEvent(&tme);
 
 			}
 
@@ -1087,11 +1087,6 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 		rasterizer = memnew( RasterizerDX9(hWnd) );
 	}
 #endif
-	else if (strcmp(get_video_driver_name(p_video_driver), "Glide") == 0) {
-		//rasterizer = memnew( RasterizerGlide(hWnd) );
-		MessageBox(NULL,_T("Glide is not available on this system!"),_T("ERROR"),MB_OK|MB_ICONEXCLAMATION);
-		abort();
-	}
 	//else if (strcmp(get_video_driver_name(p_video_driver), "GLES2") == 0) {
 	//	gl_context = memnew( ContextGL_Win(hWnd,false) );
 	//	gl_context->initialize();
@@ -1165,7 +1160,7 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 	tme.dwFlags=TME_LEAVE;
 	tme.hwndTrack=hWnd;
 	tme.dwHoverTime=HOVER_DEFAULT;
-	TrackMouseEvent(&tme);
+	_TrackMouseEvent(&tme);
 
 	//RegisterTouchWindow(hWnd, 0); // Windows 7
 
@@ -1175,8 +1170,6 @@ void OS_Windows::initialize(const VideoMode& p_desired,int p_video_driver,int p_
 }
 
 void OS_Windows::set_clipboard(const String& p_text) {
-
-#ifndef WIN98_ENABLED
 
 	if (!OpenClipboard(hWnd)) {
 		ERR_EXPLAIN("Unable to open clipboard.");
@@ -1212,16 +1205,9 @@ void OS_Windows::set_clipboard(const String& p_text) {
 
 	CloseClipboard();
 
-#endif
 };
 
 String OS_Windows::get_clipboard() const {
-
-#ifdef WIN98_ENABLED
-
-	return {};
-
-#else
 
 	String ret;
 	if (!OpenClipboard(hWnd)) {
@@ -1229,30 +1215,15 @@ String OS_Windows::get_clipboard() const {
 		ERR_FAIL_V("");
 	};
 
-	if (IsClipboardFormatAvailable(CF_UNICODETEXT)) {
+	// Handled by UNICOWS
+	HGLOBAL mem = GetClipboardData(CF_UNICODETEXT);
+	if (mem != NULL) {
 
-		HGLOBAL mem = GetClipboardData(CF_UNICODETEXT);
-		if (mem != NULL) {
+		LPWSTR ptr = (LPWSTR)GlobalLock(mem);
+		if (ptr != NULL) {
 
-			LPWSTR ptr = (LPWSTR)GlobalLock(mem);
-			if (ptr != NULL) {
-
-				ret = String((CharType*)ptr);
-				GlobalUnlock(mem);
-			};
-		};
-
-	} else if (IsClipboardFormatAvailable(CF_TEXT)) {
-
-		HGLOBAL mem = GetClipboardData(CF_UNICODETEXT);
-		if (mem != NULL) {
-
-			LPTSTR ptr = (LPTSTR)GlobalLock(mem);
-			if (ptr != NULL) {
-
-				ret.parse_utf8((const char*)ptr);
-				GlobalUnlock(mem);
-			};
+			ret = String((CharType*)ptr);
+			GlobalUnlock(mem);
 		};
 	};
 
@@ -1260,7 +1231,6 @@ String OS_Windows::get_clipboard() const {
 
 	return ret;
 
-#endif
 };
 
 
@@ -1341,7 +1311,7 @@ void OS_Windows::vprint(const char* p_format, va_list p_list, bool p_stderr) {
 		return;
 	buf[len]=0;
 
-#ifdef _UNICODE
+#ifdef UNICODE
 
 	int wlen = MultiByteToWideChar(CP_UTF8,0,buf,len,NULL,0);
 	if (wlen<0)
@@ -1854,10 +1824,9 @@ Error OS_Windows::shell_open(String p_uri) {
 
 String OS_Windows::get_locale() const {
 
-#ifndef WIN98_ENABLED
 	const _WinLocale *wl = &_win_locales[0];
 
-	LANGID langid = GetUserDefaultUILanguage();
+	LANGID langid = GetUserDefaultLangID();
 	String neutral;
 	int lang = langid&((1<<9)-1);
 	int sublang = langid&~((1<<9)-1);
@@ -1876,7 +1845,6 @@ String OS_Windows::get_locale() const {
 
 	if (neutral!="")
 		return neutral;
-#endif
 
 	return "en";
 }
@@ -1928,47 +1896,70 @@ MainLoop *OS_Windows::get_main_loop() const {
 	return main_loop;
 }
 
+#ifndef UNICODE
+#define _TFUNC(S) S // "A"
+#else
+#define _TFUNC(S) S "W"
+#endif
+
+typedef HRESULT(* FPSHGetFolderPath)(HWND, int, HANDLE, DWORD, LPTSTR);
 String OS_Windows::get_system_dir(SystemDir p_dir) const {
 
-#ifdef WIN98_ENABLED
-	return String();
-#else
-	int id;
+	FPSHGetFolderPath _SHGetFolderPathT = (FPSHGetFolderPath)GetProcAddress(GetModuleHandle(_T("shell32")), _TFUNC("SHGetFolderPath"));
+	if (_SHGetFolderPathT) {
+		int id;
 
+		switch(p_dir) {
+			case SYSTEM_DIR_DESKTOP: {
+				id=CSIDL_DESKTOPDIRECTORY;
+			} break;
+			case SYSTEM_DIR_DCIM: {
+				id=CSIDL_MYPICTURES;
+			} break;
+			case SYSTEM_DIR_DOCUMENTS: {
+				id=0x000C;
+			} break;
+			case SYSTEM_DIR_DOWNLOADS: {
+				id=0x000C ;
+			} break;
+			case SYSTEM_DIR_MOVIES: {
+				id=CSIDL_MYVIDEO;
+			} break;
+			case SYSTEM_DIR_MUSIC: {
+				id=CSIDL_MYMUSIC;
+			} break;
+			case SYSTEM_DIR_PICTURES: {
+				id=CSIDL_MYPICTURES;
+			} break;
+			case SYSTEM_DIR_RINGTONES: {
+				id=CSIDL_MYMUSIC;
+			} break;
+		}
 
+		WCHAR szPath[MAX_PATH];
+		HRESULT res = _SHGetFolderPathT(NULL,id,NULL,0,szPath);
+		ERR_FAIL_COND_V(res!=S_OK,String());
+		return String(szPath);
+	} else {
+		int id;
 
-	switch(p_dir) {
-		case SYSTEM_DIR_DESKTOP: {
-			id=CSIDL_DESKTOPDIRECTORY;
-		} break;
-		case SYSTEM_DIR_DCIM: {
-			id=CSIDL_MYPICTURES;
-		} break;
-		case SYSTEM_DIR_DOCUMENTS: {
-			id=0x000C;
-		} break;
-		case SYSTEM_DIR_DOWNLOADS: {
-			id=0x000C ;
-		} break;
-		case SYSTEM_DIR_MOVIES: {
-			id=CSIDL_MYVIDEO;
-		} break;
-		case SYSTEM_DIR_MUSIC: {
-			id=CSIDL_MYMUSIC;
-		} break;
-		case SYSTEM_DIR_PICTURES: {
-			id=CSIDL_MYPICTURES;
-		} break;
-		case SYSTEM_DIR_RINGTONES: {
-			id=CSIDL_MYMUSIC;
-		} break;
+		switch(p_dir) {
+			case SYSTEM_DIR_DESKTOP: {
+				id=CSIDL_DESKTOPDIRECTORY;
+			} break;
+			default: {
+				id=CSIDL_PERSONAL;
+			} break;
+		}
+
+		TCHAR szPath[MAX_PATH];
+		LPITEMIDLIST pidl;
+		HRESULT res = SHGetSpecialFolderLocation(NULL,id,&pidl);
+		ERR_FAIL_COND_V(res!=S_OK,String());
+		SHGetPathFromIDList(pidl,szPath);
+		CoTaskMemFree(pidl);
+		return String(szPath);
 	}
-
-	WCHAR szPath[MAX_PATH];
-	HRESULT res = SHGetFolderPathW(NULL,id,NULL,0,szPath);
-	ERR_FAIL_COND_V(res!=S_OK,String());
-	return String(szPath);
-#endif
 
 }
 String OS_Windows::get_data_dir() const {
