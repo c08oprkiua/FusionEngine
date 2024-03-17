@@ -116,6 +116,10 @@ void Environment::_bind_methods() {
 	ADD_PROPERTYI( PropertyInfo(Variant::REAL,"background/scale",PROPERTY_HINT_RANGE,"0.001,16,0.001"),_SCS("set_background_param"),_SCS("get_background_param"), BG_PARAM_SCALE);
 	ADD_PROPERTYI( PropertyInfo(Variant::REAL,"background/glow",PROPERTY_HINT_RANGE,"0.00,8,0.01"),_SCS("set_background_param"),_SCS("get_background_param"), BG_PARAM_GLOW);
 
+	ADD_PROPERTYI( PropertyInfo(Variant::BOOL,"es1blur/enabled"),_SCS("set_enable_fx"),_SCS("is_fx_enabled"), FX_ES1_BLUR);
+	ADD_PROPERTYI( PropertyInfo(Variant::REAL,"es1blur/alpha",PROPERTY_HINT_RANGE,"0.02,1,0.01"),_SCS("fx_set_param"),_SCS("fx_get_param"), FX_PARAM_ES1_BLUR_ALPHA); //changing this will result in weird effects
+	ADD_PROPERTYI( PropertyInfo(Variant::INT,"es1blur/times",PROPERTY_HINT_RANGE,"1,100,20"),_SCS("fx_set_param"),_SCS("fx_get_param"), FX_PARAM_ES1_BLUR_TIMES);
+	
 	ADD_PROPERTYI( PropertyInfo(Variant::BOOL,"glow/enabled"),_SCS("set_enable_fx"),_SCS("is_fx_enabled"), FX_GLOW);
 	ADD_PROPERTYI( PropertyInfo(Variant::INT,"glow/blur_passes",PROPERTY_HINT_RANGE,"1,4,1"),_SCS("fx_set_param"),_SCS("fx_get_param"), FX_PARAM_GLOW_BLUR_PASSES);
 	ADD_PROPERTYI( PropertyInfo(Variant::REAL,"glow/blur_scale",PROPERTY_HINT_RANGE,"0.01,4,0.01"),_SCS("fx_set_param"),_SCS("fx_get_param"), FX_PARAM_GLOW_BLUR_SCALE);

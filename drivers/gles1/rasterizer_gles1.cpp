@@ -2999,7 +2999,7 @@ void RasterizerGLES1::set_viewport(const VS::ViewportRect& p_viewport) {
 
 	viewport=p_viewport;
 	//print_line("viewport: "+itos(p_viewport.x)+","+itos(p_viewport.y)+","+itos(p_viewport.width)+","+itos(p_viewport.height));
-
+	is_editor = VS::get_singleton()->get_editor();
 	glViewport( viewport.x, window_size.height-(viewport.height+viewport.y), viewport.width,viewport.height );
 }
 
@@ -4441,7 +4441,65 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 
 };
 
+void RasterizerGLES1::_process_blur(int times, float inc) {
 
+	float spost = 0.0f;
+	float alphainc = 0.9f / times;
+	float alpha = 0.2f;
+	int num;
+
+	glDisable(GL_TEXTURE_GEN_S);
+	glDisable(GL_TEXTURE_GEN_T);
+	
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+	glEnable(GL_BLEND);
+	
+
+	glBindTexture(GL_TEXTURE_2D, BlurTexture);
+
+	glViewport( viewport.x, window_size.height-(viewport.height+viewport.y), viewport.width,viewport.height );
+	
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, viewport.width, viewport.height, 0, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	alphainc = alpha / times;
+	
+	glBegin(GL_QUADS);
+	for (num = 0;num < times;num++)
+	{
+		glColor4f(1.0f, 1.0f, 1.0f, alpha);
+		glTexCoord2f(0+spost,1-spost);
+		glVertex2f(0,0);
+
+		glTexCoord2f(0+spost,0+spost);
+		glVertex2f(0, viewport.height);
+
+		glTexCoord2f(1-spost,0+spost);
+		glVertex2f(viewport.width, viewport.height);
+
+		glTexCoord2f(1-spost,1-spost);
+		glVertex2f(viewport.width,0);
+
+
+		spost += inc;
+		alpha = alpha - alphainc;
+	}
+	glEnd();
+	glBindTexture(GL_TEXTURE_2D,0);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+}
+	
 
 void RasterizerGLES1::end_scene() {
 
@@ -4463,7 +4521,7 @@ void RasterizerGLES1::end_scene() {
 			case VS::ENV_BG_DEFAULT_COLOR:
 			case VS::ENV_BG_COLOR: {
 				//only in the runner
-				if(VS::get_singleton()->get_editor() != true) {
+				if(is_editor != true) {
 					Color bgcolor;
 					if (current_env->bg_mode==VS::ENV_BG_COLOR)
 						bgcolor = current_env->bg_param[VS::ENV_BG_PARAM_COLOR];
@@ -4557,9 +4615,19 @@ void RasterizerGLES1::end_scene() {
 	lighting=true;
 	glEnable(GL_LIGHTING);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
+	
+	if(current_env->fx_enabled[VS::ENV_FX_ES1_BLUR] && !is_editor) {
+		glViewport(0,0,256,256);
+		
+		_render_list_forward(&opaque_render_list);
+		
+		glBindTexture(GL_TEXTURE_2D, BlurTexture);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 0, 0, 256, 256, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport( viewport.x, window_size.height-(viewport.height+viewport.y), viewport.width,viewport.height );
+	}
+	
 	_render_list_forward(&opaque_render_list);
-
 
 	alpha_render_list.sort_z();
 	glEnable(GL_BLEND);
@@ -4597,8 +4665,12 @@ void RasterizerGLES1::end_scene() {
 	}*/
 
 //	material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,false);
-
-	_debug_shadows();
+	if(current_env->fx_enabled[VS::ENV_FX_ES1_BLUR] && !is_editor)
+		_process_blur(current_env->fx_param[VS::ENV_FX_PARAM_ES1_BLUR_TIMES], current_env->fx_param[VS::ENV_FX_PARAM_ES1_BLUR_ALPHA]);
+	
+	
+	
+	// _debug_shadows();
 }
 void RasterizerGLES1::end_shadow_map() {
 #if 0
@@ -6057,7 +6129,7 @@ void RasterizerGLES1::init() {
 #endif
 
 
-
+	
 
 	scene_pass=1;
 	if (ContextGL::get_singleton())
@@ -6122,7 +6194,17 @@ void RasterizerGLES1::init() {
 	s3tc_supported=false;
 	_rinfo.texture_mem=0;
 
+	unsigned int* data;
 
+	data = (GLuint *)calloc( 1, ((256 * 256)* 4 * sizeof(GLuint)) );
+
+	glGenTextures(1, &BlurTexture);
+	glBindTexture(GL_TEXTURE_2D, BlurTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, 256, 256, 0,
+		GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	// free(data); TODO
 }
 
 void RasterizerGLES1::finish() {
