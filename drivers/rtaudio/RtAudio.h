@@ -10,7 +10,7 @@
 
 #elif defined(WINDOWS_ENABLED)
 
-#if 1 || defined(WINRT_ENABLED)
+#if defined(WINRT_ENABLED)
 
 #define __RTAUDIO_DUMMY__
 

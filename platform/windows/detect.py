@@ -155,12 +155,12 @@ def configure(env):
 
 		if (env["target"]=="release"):
 			
-			env.Append(CCFLAGS=['-O3','-ffast-math','-fomit-frame-pointer','-msse2'])
+			env.Append(CCFLAGS=['-O2','-ffast-math','-fomit-frame-pointer'])
 			env.Append(LINKFLAGS=['-Wl,--subsystem,windows'])
 
 		elif (env["target"]=="release_debug"):
 
-			env.Append(CCFLAGS=['-O2','-DDEBUG_ENABLED'])
+			env.Append(CCFLAGS=['-O2','-ffast-math','-DDEBUG_ENABLED'])
 
 		elif (env["target"]=="debug"):
 					
@@ -181,13 +181,13 @@ def configure(env):
 		env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-mwindows', '-D__MSVCRT_VERSION__=0x400', '-DWINDOWS_USE_MUTEX=1'])
 		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-DMINGW_ENABLED'])
 		env.Append(CCFLAGS=['-DGLES1_ENABLED', '-DOPENGL_ENABLED', '-DGLES_OVER_GL', '-DGLEW_ENABLED', '-DMINGW_ENABLED', '-DNO_SAFE_CAST', '-fno-rtti'])
-		env.Append(LIBS=['unicows', 'mingw32', 'opengl32', 'ole32', 'winmm', 'gdi32', 'iphlpapi', 'wsock32', 'kernel32', 'comctl32'])
+		env.Append(LIBS=['unicows', 'mingw32', 'opengl32', 'dsound', 'ole32', 'winmm', 'gdi32', 'iphlpapi', 'wsock32', 'kernel32', 'comctl32'])
 
 		env.Append(LINKFLAGS=['-Wl,--stack,'+str(16*1024*1024), '-static-libgcc'])
 
-		env.Append(CCFLAGS=['-march=pentium'])
-		env.Append(CPPFLAGS=['-march=pentium'])
-		env.Append(LINKFLAGS=['-march=pentium'])
+		env.Append(CCFLAGS=['-march=pentium','-mtune=generic'])
+		env.Append(CPPFLAGS=['-march=pentium','-mtune=generic'])
+		env.Append(LINKFLAGS=['-march=pentium','-mtune=generic'])
 	elif env['compiler'] == 'watcom':
 		if (os.name=="nt"):
 			env['ENV']['TMP'] = os.environ['TMP']
