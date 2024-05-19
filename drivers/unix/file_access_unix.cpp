@@ -35,7 +35,7 @@
 #include "print_string.h"
 #include "core/os/os.h"
 
-#if !defined(PSP) && !defined(__psp2__)
+#if !defined(PSP) && !defined(__psp2__) && !defined(DREAMCAST)
 #include <sys/statvfs.h>
 #endif
 

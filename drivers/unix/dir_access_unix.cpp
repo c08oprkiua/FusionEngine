@@ -30,7 +30,7 @@
 
 #if defined(UNIX_ENABLED) || defined(LIBC_FILEIO_ENABLED) || defined(PSP) || defined(__psp2__)
 
-#if !defined(PSP) && !defined(__psp2__)
+#if !defined(PSP) && !defined(__psp2__) && !defined(DREAMCAST)
 #include <sys/statvfs.h>
 #endif
 
@@ -47,7 +47,9 @@ DirAccess *DirAccessUnix::create_fs() {
 bool DirAccessUnix::list_dir_begin() {
 	
 	list_dir_end(); //close any previous dir opening!
-	
+#ifdef DREAMCAST
+	return true;
+#else
 
 //	char real_current_dir_name[2048]; //is this enough?!
 	//getcwd(real_current_dir_name,2048);
@@ -58,6 +60,7 @@ bool DirAccessUnix::list_dir_begin() {
 		return true; //error!
 
 	return false;
+#endif
 }
 
 bool DirAccessUnix::file_exists(String p_file) {
@@ -122,7 +125,9 @@ uint64_t DirAccessUnix::get_modified_time(String p_file) {
 
 
 String DirAccessUnix::get_next() { 
-
+#ifdef DREAMCAST
+	return "";
+#else
 	if (!dir_stream)
 		return "";
 	dirent *entry;
@@ -165,7 +170,7 @@ String DirAccessUnix::get_next() {
 
 
 	return fname;
-
+#endif
 }
 
 bool DirAccessUnix::current_is_dir() const {
@@ -175,10 +180,11 @@ bool DirAccessUnix::current_is_dir() const {
 
 
 void DirAccessUnix::list_dir_end() {
-
+#ifndef DREAMCAST
 	if (dir_stream)
 		closedir(dir_stream);
 	dir_stream=0;
+#endif
 	_cisdir=false;
 }
 
@@ -294,7 +300,7 @@ Error DirAccessUnix::remove(String p_path)  {
 
 size_t DirAccessUnix::get_space_left() {
 
-#if !defined(PSP) && !defined(__psp2__)
+#if !defined(PSP) && !defined(__psp2__) && !defined(DREAMCAST)
 	struct statvfs vfs;
 	if (statvfs(current_dir.utf8().get_data(), &vfs) != 0) {
 
@@ -311,8 +317,9 @@ size_t DirAccessUnix::get_space_left() {
 
 
 DirAccessUnix::DirAccessUnix() {
-
+#ifndef DREAMCAST
 	dir_stream=0;
+#endif
 	current_dir=".";
 	_cisdir=false;
 

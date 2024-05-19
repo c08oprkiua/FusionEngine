@@ -34,7 +34,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifndef DREAMCAST
 #include <dirent.h>
+#endif
 
 #include "os/dir_access.h"
 
@@ -43,8 +45,9 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 class DirAccessUnix : public DirAccess {
-	
+#ifndef DREAMCAST
 	DIR *dir_stream;
+#endif
 	
 	static DirAccess *create_fs();
 	

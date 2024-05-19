@@ -37,6 +37,9 @@ platform/android/libs/play_licensing/gen/*
 platform/wiiu/*
 *.rpx
 *fscache
+*.iso
+*.cdi
+*.3dsx
 # General c++ generated files
 *.lib
 *.o

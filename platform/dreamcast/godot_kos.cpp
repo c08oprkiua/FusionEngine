@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  tcp_server_posix.h                                                   */
+/*  godot_server.cpp                                                     */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,32 +26,23 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef TCP_SERVER_POSIX_H
-#define TCP_SERVER_POSIX_H
+#include "main/main.h"
+#include "os_kos.h"
+#include <gl.h>
 
-#if defined(UNIX_ENABLED) || defined(PSP)
-#include "core/io/tcp_server.h"
-
-class TCPServerPosix : public TCP_Server {
-
-	int listen_sockfd;
-
-	static TCP_Server* _create();
-
-public:
-
-	virtual Error listen(uint16_t p_port,const List<String> *p_accepted_hosts=NULL);
-	virtual bool is_connection_available() const;
-	virtual Ref<StreamPeerTCP> take_connection();
-
-	virtual void stop();
-
-	static void make_default();
-
-	TCPServerPosix();
-	~TCPServerPosix();
-};
-
-
-#endif // TCP_SERVER_POSIX_H
-#endif
+int main(int argc, char* argv[]) {
+	glKosInit();
+	OS_KOS os;
+	
+	char* args[] = {"-path", "/cd/"};
+	
+	Error err  = Main::setup("kos",2, args);
+	if (err!=OK)
+		return 255;
+		
+	if (Main::start())
+		os.run(); // it is actually the OS that decides how to run
+	Main::cleanup();
+	
+	return os.get_exit_code();
+}

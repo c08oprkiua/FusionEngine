@@ -3345,8 +3345,8 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 		//color array overrides this
 		sceGuColorMaterial(GU_DIFFUSE | GU_AMBIENT | GU_SPECULAR);
 
-		//sceGuAmbient(diffuse_rgba);
-		//sceGuAmbientColor(diffuse_rgba);
+		sceGuAmbient(0x00222222);
+		sceGuAmbientColor(diffuse_rgba);
 
 		last_color=diffuse_color;
 		sceGuMaterial(GU_AMBIENT,diffuse_rgba);
@@ -4156,6 +4156,7 @@ void RasterizerPSP::end_scene() {
 
 	sceGumMatrixMode(GU_PROJECTION);
 	sceGumLoadMatrix((const ScePspFMatrix4 *)&camera_projection.matrix[0][0]);
+	// sceGumPerspective(70 + 1.0f, 480*272, 6, 4096);
 
 	sceGumMatrixMode(GU_VIEW);
 	_gl_load_transform(camera_transform_inverse);
@@ -5447,7 +5448,8 @@ void RasterizerPSP::init() {
 
 	sceGuInit();
 	sceGuStart(GU_DIRECT, list);
-	sceGuDrawBuffer(GU_PSM_5650,fbp0,BUF_WIDTH);
+	// sceGuDrawBuffer(GU_PSM_5650,fbp0,BUF_WIDTH);
+	sceGuDrawBuffer(GU_PSM_8888,fbp0,BUF_WIDTH);
 	sceGuDispBuffer(SCR_WIDTH,SCR_HEIGHT,fbp1,BUF_WIDTH);
 	sceGuDepthBuffer(zbp,BUF_WIDTH);
 	sceGuOffset(2048 - (SCR_WIDTH/2),2048 - (SCR_HEIGHT/2));
@@ -5659,7 +5661,9 @@ RasterizerPSP::RasterizerPSP(bool p_keep_copies,bool p_use_reload_hooks) {
 	frame = 0;
 
 	memnew(MemoryPoolEDRAM);
+#ifndef PSP_NET
 	memnew(MemoryPoolPSPVolatile);
+#endif
 };
 
 RasterizerPSP::~RasterizerPSP() {

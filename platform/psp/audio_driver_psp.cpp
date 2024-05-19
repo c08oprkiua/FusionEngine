@@ -48,7 +48,7 @@ Error AudioDriverPSP::init() {
 	output_format = OUTPUT_STEREO;
 	channels = 2;
 
-	int latency = GLOBAL_DEF("audio/output_latency",25);
+	int latency = GLOBAL_DEF("audio/output_latency",50);
  	buffer_size = nearest_power_of_2( latency * mix_rate / 1000 );
 
 	samples_in = memnew_arr(int32_t, buffer_size*channels);
@@ -57,23 +57,23 @@ Error AudioDriverPSP::init() {
 	sceAudioOutput2Reserve(buffer_size);
 
 	mutex = Mutex::create();
-	// thread = Thread::create(AudioDriverPSP::thread_func, this);
+	thread = Thread::create(AudioDriverPSP::thread_func, this);/*
 	SceUID thid;
 	thid = sceKernelCreateThread("audio_thread", (SceKernelThreadEntry)AudioDriverPSP::thread_func, 0x18, 0x10000, PSP_THREAD_ATTR_USER, NULL);
 	void* self = this;
 	sceKernelStartThread(thid, sizeof(self), &self);
-	// sceKernelStartThread(thid, sizeof(this), this);
+	// sceKernelStartThread(thid, sizeof(this), this);*/
 
 	return OK;
 };
 
-void AudioDriverPSP::thread_func(SceSize args, void *p_udata) {
+void AudioDriverPSP::thread_func(void *p_udata) {
 	int buffer_index = 0;
  	AudioDriverPSP *ad = (AudioDriverPSP *)p_udata;
 
 	int sample_count = ad->buffer_size;
-	uint64_t usdelay = (ad->buffer_size / float(ad->mix_rate)) * 1000000;
-// printf("slee \n");
+	uint64_t usdelay = (ad->buffer_size / float(ad->mix_rate)) / 1000;
+	// printf("slee %d\n", usdelay);
  	while (!ad->exit_thread) {
         // printf("slee1 \n");
 
@@ -83,16 +83,16 @@ void AudioDriverPSP::thread_func(SceSize args, void *p_udata) {
 		if (ad->active) {
 			// ad->lock();
 
-			// ad->audio_server_process(ad->buffer_size, ad->samples_in);
-
+			ad->audio_server_process(ad->buffer_size, ad->samples_in);
+			// sceKernelDelayThread(100);
 			// ad->unlock();
-			/*
+			
 
 			for(int i = 0; i < sample_count*2; ++i) {
 				ad->samples_out[i] = ad->samples_in[i] >> 16;
-			}*/
+			}
 			
-			printf("%d\n", ad->samples_out[0]);
+			// printf("%d\n", ad->samples_out[0]);
 		} 
 		else
 		{
@@ -101,12 +101,12 @@ void AudioDriverPSP::thread_func(SceSize args, void *p_udata) {
 				ad->samples_out[i] = 0;
 			}
 			
-			printf("e\n");
+			// printf("e\n");
 		}
 		
-		sceAudioOutput2OutputBlocking(0x8000*3, ad->samples_out);
+		sceAudioOutput2OutputBlocking(0x8000, ad->samples_out);
         
-        sceKernelDelayThread(1000);
+        // sceKernelDelayThread(10000);
 	}
 
 

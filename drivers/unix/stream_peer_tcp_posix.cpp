@@ -26,11 +26,16 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifdef UNIX_ENABLED
+#if defined(UNIX_ENABLED) || defined(PSP)
 
 #include "stream_peer_tcp_posix.h"
 
+#ifndef PSP
 #include <poll.h>
+#else
+#include <sys/select.h>
+#define MSG_NOSIGNAL    0
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -73,7 +78,28 @@ void StreamPeerTCPPosix::make_default() {
 
 	StreamPeerTCP::_create = StreamPeerTCPPosix::_create;
 };
+#ifdef PSP
+Error StreamPeerTCPPosix::_block(int p_sockfd, bool p_read, bool p_write) const {
 
+	fd_set readfds, writefds;
+	FD_ZERO(&readfds);
+	FD_ZERO(&writefds);
+
+	FD_SET(p_sockfd, &readfds);
+	FD_SET(p_sockfd, &writefds);
+
+	int maxfd = p_sockfd + 1;
+
+	if (!p_read)
+		FD_CLR(p_sockfd, &readfds);
+	if (!p_write)
+		FD_CLR(p_sockfd, &writefds);
+
+	int ret = select(maxfd, &readfds, &writefds, NULL, NULL);
+	return ret < 0 ? FAILED : OK;
+};
+
+#else
 Error StreamPeerTCPPosix::_block(int p_sockfd, bool p_read, bool p_write) const {
 
 	struct pollfd pfd;
@@ -88,7 +114,7 @@ Error StreamPeerTCPPosix::_block(int p_sockfd, bool p_read, bool p_write) const 
 	int ret = poll(&pfd, 1, -1);
 	return ret < 0 ? FAILED : OK;
 };
-
+#endif
 Error StreamPeerTCPPosix::_poll_connection(bool p_block) const {
 
 	ERR_FAIL_COND_V(status != STATUS_CONNECTING || sockfd == -1, FAILED);
@@ -143,14 +169,14 @@ Error StreamPeerTCPPosix::connect(const IP_Address& p_host, uint16_t p_port) {
 		//perror("socket");
 		return FAILED;
 	};
-
+#ifndef PSP
 #ifndef NO_FCNTL
 	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #else
 	int bval = 1;
 	ioctl(sockfd, FIONBIO, &bval);
 #endif
-
+#endif
 	struct sockaddr_in their_addr;
 	set_addr_in(their_addr, p_host, p_port);
 

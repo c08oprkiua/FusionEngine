@@ -28,7 +28,7 @@
 /*************************************************************************/
 #include "ip_unix.h"
 
-#if defined(UNIX_ENABLED) || defined(WINDOWS_ENABLED) && !defined(WINRT_ENABLED) && !defined(WIN98_ENABLED)
+#if defined(UNIX_ENABLED) || defined(WINDOWS_ENABLED) && !defined(WINRT_ENABLED) && !defined(WIN98_ENABLED) || defined(PSP)
 
 
 #ifdef WINDOWS_ENABLED
@@ -47,11 +47,13 @@
  #endif
 #else
  #include <netdb.h>
+#ifndef PSP
  #ifdef ANDROID_ENABLED
   #include "platform/android/ifaddrs_android.h"
  #else
   #include <ifaddrs.h>
  #endif
+#endif
  #include <arpa/inet.h>
  #include <sys/socket.h>
 
@@ -71,6 +73,13 @@ IP_Address IP_Unix::_resolve_hostname(const String& p_hostname) {
 	return ip;
 
 }
+
+#if defined(PSP)
+void IP_Unix::get_local_addresses(List<IP_Address> *r_addresses) const {
+
+
+};
+#else
 
 #if defined(WINDOWS_ENABLED)
 
@@ -168,6 +177,7 @@ void IP_Unix::get_local_addresses(List<IP_Address> *r_addresses) const {
 	if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
 
 }
+#endif
 #endif
 
 void IP_Unix::make_default() {

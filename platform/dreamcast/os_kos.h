@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  os_server.h                                                          */
+/*  OS_KOServer.h                                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -26,16 +26,15 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef OS_PSP_H
-#define OS_PSP_H
+#ifndef OS_KOSERVER_H
+#define OS_KOSERVER_H
 
 
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"
 #include "servers/visual_server.h"
 #include "servers/visual/rasterizer.h"
-// #include "servers/audio/audio_driver_dummy.h"
-#include "audio_driver_psp.h"
+#include "servers/audio/audio_driver_dummy.h"
 #include "servers/physics_server.h"
 #include "servers/audio/audio_server_sw.h"
 #include "servers/audio/sample_manager_sw.h"
@@ -43,11 +42,14 @@
 #include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
-#include <pspctrl.h>
 
+//bitch
 #undef CursorShape
+/**
+	@author Juan Linietsky <reduzio@gmail.com>
+*/
 
-class OS_PSP : public OS {
+class OS_KOS : public OS {
 
 	Rasterizer *rasterizer;
 	VisualServer *visual_server;
@@ -55,9 +57,8 @@ class OS_PSP : public OS {
 	List<String> args;
 	MainLoop *main_loop;	
 
-	AudioDriverPSP driver_dummy;
+	AudioDriverDummy driver_dummy;
 	bool grab;
-	uint64_t ticks_start;
 	
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
@@ -69,15 +70,12 @@ class OS_PSP : public OS {
 	SampleManagerMallocSW *sample_manager;
 	SpatialSoundServerSW *spatial_sound_server;
 	SpatialSound2DServerSW *spatial_sound_2d_server;
-	SceCtrlData pad;
-	int last;
-	int32_t* samples_in;
-	int16_t* samples_out;
 
 	bool force_quit;
 
 	InputDefault *input;
-
+	
+	uint64_t ticks_start;
 
 
 protected:
@@ -90,33 +88,40 @@ protected:
 	virtual void finalize();
 
 	virtual void set_main_loop( MainLoop * p_main_loop );    
-	
-	virtual void process_keys();
-	virtual void process_audio();
 
 public:
-	virtual void initialize_core();
-	virtual void finalize_core();
-	virtual String get_name();
 
+	virtual String get_name();
+	virtual void finalize_core();
+	virtual void initialize_core();
+	
+	virtual void vprint(const char* p_format, va_list p_list, bool p_stderr=false);
+	
+	virtual void alert(const String& p_alert,const String& p_title="ALERT!") {};
+	
+	virtual String get_stdin_string(bool p_block = true) { return ""; };
+	
+	virtual Error execute(const String& p_path, const List<String>& p_arguments,bool p_blocking,ProcessID *r_child_id=NULL,String* r_pipe=NULL,int *r_exitcode=NULL) { return FAILED; };
+	
+	virtual Error kill(const ProcessID& p_pid) { return FAILED; };
+	
+	virtual bool has_environment(const String& p_var) const { return false; };
+	
+	virtual String get_environment(const String& p_var) const { return "";};
+	
+	virtual Date get_date() const;
+	
+	virtual Time get_time() const;
+	
+	virtual void delay_usec(uint32_t p_usec) const;
+	
+	virtual uint64_t get_ticks_usec() const;
+	
 	virtual void set_cursor_shape(CursorShape p_shape);
 	
-	virtual int get_audio_driver_count() const { return 1; };
-	virtual const char * get_audio_driver_name(int p_driver) const { return "pspaudio"; };
-	virtual void vprint(const char* p_format, va_list p_list, bool p_stderr=false) {
-		vfprintf(p_stderr ? stderr : stdout, p_format, p_list);
-	};
-	virtual void alert(const String& p_alert,const String& p_title="ALERT!") {};
-	virtual String get_stdin_string(bool p_block = true) { return ""; };
-	virtual Error execute(const String& p_path, const List<String>& p_arguments,bool p_blocking,ProcessID *r_child_id=NULL,String* r_pipe=NULL,int *r_exitcode=NULL) { return FAILED; };
-	virtual Error kill(const ProcessID& p_pid) { return FAILED; };
-	virtual bool has_environment(const String& p_var) const { return false; };
-	virtual String get_environment(const String& p_var) const { return ""; };
-	virtual Date get_date() const;
-	virtual Time get_time() const;
-	// virtual TimeZoneInfo get_time_zone_info() const;
-	virtual void delay_usec(uint32_t p_usec) const;
-	virtual uint64_t get_ticks_usec() const;
+	virtual int get_audio_driver_count() const {return 1;};
+	
+	virtual const char * get_audio_driver_name(int p_driver) const {return "dream";};
 
 	virtual void set_mouse_show(bool p_show);
 	virtual void set_mouse_grab(bool p_grab);
@@ -135,10 +140,10 @@ public:
 
 	virtual void move_window_to_foreground();
 	virtual void swap_buffers();
-
+	
 	void run();
 
-	OS_PSP();
+	OS_KOS();
 };
 
 #endif
