@@ -3352,7 +3352,7 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 
 		last_color=diffuse_color;
 		sceGuMaterial(GU_AMBIENT, diffuse_rgba);
-		// sceGuSendCommandi(88, (diffuse_rgba >> 24) & 0xFF);
+		sceGuSendCommandi(88, (diffuse_rgba >> 24) & 0xFF);
 
 		sceGuMaterial(GU_DIFFUSE,diffuse_rgba);
 		//specular
