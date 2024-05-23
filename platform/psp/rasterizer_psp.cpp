@@ -4113,13 +4113,13 @@ void RasterizerPSP::end_scene() {
 #else
 	// glClearDepthf(1.0);
 #endif
-
 	// glClear(GL_DEPTH_BUFFER_BIT);
 
-	if (scene_fx && scene_fx->fog_active) {
+	if (current_env->fx_enabled[VS::ENV_FX_FOG]) {
 
 		sceGuEnable(GU_FOG);
-		sceGuFog(scene_fx->fog_near, scene_fx->fog_far, MK_RGBA_C(scene_fx->fog_color_far));
+		Color col_end = current_env->fx_param[VS::ENV_FX_PARAM_FOG_END_COLOR];
+		sceGuFog(current_env->fx_param[VS::ENV_FX_PARAM_FOG_BEGIN], camera_z_far, MK_RGBA_C(col_end));
 		/*
 		glEnable(GL_FOG);
 		glFogf(GL_FOG_MODE,GL_LINEAR);
@@ -4132,8 +4132,6 @@ void RasterizerPSP::end_scene() {
 		material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,true);
 		*/
 	}
-
-
 
 	for(int i=0;i<directional_light_count;i++) {
 

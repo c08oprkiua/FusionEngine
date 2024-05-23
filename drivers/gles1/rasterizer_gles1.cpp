@@ -4297,18 +4297,18 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 			SampledLight *sl = sampled_light_owner.get(e->instance->sampled_light);
 			if (sl) {
 
-				baked_light=NULL; //can't mix
+				// baked_light=NULL; //can't mix
 				// material_shader.set_conditional(MaterialShaderGLES2::ENABLE_AMBIENT_DP_SAMPLER,true);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D,sl->texture); //bind the texture
 			}
 		}
 		if (baked_light) {
-
 			if (baked_light->mode==VS::BAKED_LIGHT_OCTREE && baked_light->octree_texture.is_valid() && e->instance->baked_light_octree_xform) {
 				// material_shader.set_conditional(MaterialShaderGLES2::ENABLE_AMBIENT_OCTREE,true);
 				bind_baked_light_octree=true;
 				if (prev_baked_light!=baked_light) {
+					
 					Texture *tex=texture_owner.get(baked_light->octree_texture);
 					if (tex) {
 
@@ -4612,25 +4612,35 @@ void RasterizerGLES1::end_scene() {
 
 	// glClear(GL_DEPTH_BUFFER_BIT);
 
-	if (scene_fx && scene_fx->fog_active) {
+	if(current_env->fx_enabled[VS::ENV_FX_FOG] && !is_editor) {
 
-		/*
+		Color col_begin = current_env->fx_param[VS::ENV_FX_PARAM_FOG_BEGIN_COLOR];
+		Color col_end = current_env->fx_param[VS::ENV_FX_PARAM_FOG_END_COLOR];
+
+		GLfloat begin[4]={
+			col_begin.r,
+			col_begin.g,
+			col_begin.b,
+			1.0
+		};
+		GLfloat end[4]={
+			col_end.r,
+			col_end.g,
+			col_end.b,
+			1.0
+		};
 		glEnable(GL_FOG);
 		glFogf(GL_FOG_MODE,GL_LINEAR);
-		glFogf(GL_FOG_DENSITY,scene_fx->fog_attenuation);
-		glFogf(GL_FOG_START,scene_fx->fog_near);
-		glFogf(GL_FOG_END,scene_fx->fog_far);
-		glFogfv(GL_FOG_COLOR,scene_fx->fog_color_far.components);
-		glLightfv(GL_LIGHT5,GL_DIFFUSE,scene_fx->fog_color_near.components);
-
-		material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,true);
-		*/
+		glFogf(GL_FOG_DENSITY, current_env->fx_param[VS::ENV_FX_PARAM_FOG_ATTENUATION]);
+		glFogf(GL_FOG_START,current_env->fx_param[VS::ENV_FX_PARAM_FOG_BEGIN]);
+		glFogf(GL_FOG_END, camera_z_far);
+		glFogfv(GL_FOG_COLOR, end);
+		glLightfv(GL_LIGHT5,GL_DIFFUSE, begin);
+		// material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,true);
 	}
 
 
-
 	for(int i=0;i<directional_light_count;i++) {
-
 		glEnable(GL_LIGHT0+i);
 		_setup_light(directional_lights[i],i);
 	}

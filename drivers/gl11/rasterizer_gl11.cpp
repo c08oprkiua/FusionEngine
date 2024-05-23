@@ -4526,19 +4526,32 @@ void RasterizerGLES1::end_scene() {
 
 	// glClear(GL_DEPTH_BUFFER_BIT);
 
-	if (scene_fx && scene_fx->fog_active) {
+	if(current_env->fx_enabled[VS::ENV_FX_FOG] && !is_editor) {
 
-		/*
+		Color col_begin = current_env->fx_param[VS::ENV_FX_PARAM_FOG_BEGIN_COLOR];
+		Color col_end = current_env->fx_param[VS::ENV_FX_PARAM_FOG_END_COLOR];
+
+		GLfloat begin[4]={
+			col_begin.r,
+			col_begin.g,
+			col_begin.b,
+			1.0
+		};
+		GLfloat end[4]={
+			col_end.r,
+			col_end.g,
+			col_end.b,
+			1.0
+		};
 		glEnable(GL_FOG);
 		glFogf(GL_FOG_MODE,GL_LINEAR);
-		glFogf(GL_FOG_DENSITY,scene_fx->fog_attenuation);
-		glFogf(GL_FOG_START,scene_fx->fog_near);
-		glFogf(GL_FOG_END,scene_fx->fog_far);
-		glFogfv(GL_FOG_COLOR,scene_fx->fog_color_far.components);
-		glLightfv(GL_LIGHT5,GL_DIFFUSE,scene_fx->fog_color_near.components);
+		glFogf(GL_FOG_DENSITY, current_env->fx_param[VS::ENV_FX_PARAM_FOG_ATTENUATION]);
+		glFogf(GL_FOG_START,current_env->fx_param[VS::ENV_FX_PARAM_FOG_BEGIN]);
+		glFogf(GL_FOG_END, camera_z_far);
+		glFogfv(GL_FOG_COLOR, end);
+		glLightfv(GL_LIGHT5,GL_DIFFUSE, begin);
 
-		material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,true);
-		*/
+		// material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,true);
 	}
 
 
