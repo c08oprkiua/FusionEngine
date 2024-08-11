@@ -26,9 +26,22 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+#ifdef GLES2_ENABLED
+#define PSP2_GLES2
+#endif
+
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual/rasterizer_dummy.h"
+#ifdef PSP2_GLES2
+
+extern "C" {
+	// extern void glInitAngle(void* a, void* b, void* c);
+}
+
+#include "drivers/gles2/rasterizer_gles2.h"
+#else
 #include "rasterizer_vita.h"
+#endif
 #include "os_vita.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,7 +77,7 @@ const char * OS_VITA::get_video_driver_name(int p_driver) const {
 }
 OS::VideoMode OS_VITA::get_default_video_mode() const {
 
-	return OS::VideoMode(960,540,true);
+	return OS::VideoMode(960,544,true);
 }
 static EGLDisplay Display;
 static EGLConfig Config;
@@ -113,6 +126,10 @@ void OS_VITA::initialize_core() {
 	snprintf(hint.szGLES1, 256, "%s/%s", "app0:module", "libGLESv1_CM.suprx");
     snprintf(hint.szWindowSystem, 256, "%s/%s", "app0:module", "libpvrPSP2_WSEGL.suprx");
     hint.ui32SwTexOpCleanupDelay = 16000;
+	// hint.ui32UNCTexHeapSize = 60 * 1024 * 1024;
+    // hint.ui32CDRAMTexHeapSize = 96 * 1024 * 1024;
+	// hint.bDisableHWTQBufferBlit = 1;
+	// hint.bDisableAsyncTextureOp = 1;
   	PVRSRVCreateVirtualAppHint(&hint);
 	
 	printf("created\n");
@@ -125,10 +142,16 @@ void OS_VITA::initialize_core() {
         EGL_ALPHA_SIZE, 8,
         EGL_DEPTH_SIZE, 8,
         EGL_STENCIL_SIZE, 8,
+#ifdef PSP2_GLES2
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+#endif
         EGL_NONE
     };
 	EGLint ContextAttributeList[] = 
 	{
+#ifdef PSP2_GLES2
+		EGL_CONTEXT_CLIENT_VERSION, 2,
+#endif
 		EGL_NONE
 	};
 	EGLBoolean Res;
@@ -173,6 +196,9 @@ void OS_VITA::initialize_core() {
 
 	eglMakeCurrent(Display, Surface, Surface, Context);
 	printf("done egl\n");
+#ifdef PSP2_GLES2
+	// glInitAngle(0, 0, 0);
+#endif
 }
 
 void OS_VITA::finalize_core() {
@@ -191,9 +217,13 @@ void OS_VITA::initialize(const VideoMode& p_desired,int p_video_driver,int p_aud
 	
 	samples_in = memnew_arr(int32_t, 2048);
 	samples_out = memnew_arr(int16_t, 2048);
-	
+#ifndef PSP2_GLES2
 	rasterizer = memnew( RasterizerGLES1 );
-
+#else
+	RasterizerGLES2 *rasterizer_gles2 = memnew( RasterizerGLES2(false,false,false,false) );
+	rasterizer_gles2->set_use_framebuffers(false);
+	rasterizer = rasterizer_gles2;
+#endif
 	visual_server = memnew( VisualServerRaster(rasterizer) );
 
 	AudioDriverManagerSW::get_driver(p_audio_driver)->set_singleton();

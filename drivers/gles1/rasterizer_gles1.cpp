@@ -3627,11 +3627,12 @@ void RasterizerGLES1::_setup_lights(const uint16_t * p_lights,int p_light_count)
 
 
 			glEnable(GL_LIGHT0 + i);
+			// printf("enable %d\n", i);
 			_setup_light(light_instances[p_lights[i]], i);
 
 		} else {
 			glDisable(GL_LIGHT0 + i);
-
+			// printf("diable %d\n", i);
 		}
 	}
 
@@ -4378,8 +4379,10 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 			_setup_geometry(geometry, material,e->skeleton,e->instance->morph_values.ptr());
 		};
 
-		if (i==0 || light_key!=prev_light_key)
-			_setup_lights(e->lights,e->light_count);
+		// if (i==0 || light_key!=prev_light_key) {
+			// printf("setup\n");
+			_setup_lights(e->lights,e->light_count); //dunno how inefficent is but it fixes lights
+		// }
 
 		_set_cull(e->mirror,p_reverse_cull);
 

@@ -4344,8 +4344,8 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 			_setup_geometry(geometry, material,e->skeleton,e->instance->morph_values.ptr());
 		};
 
-		if (i==0 || light_key!=prev_light_key)
-			_setup_lights(e->lights,e->light_count);
+		// if (i==0 || light_key!=prev_light_key)
+		_setup_lights(e->lights,e->light_count);
 
 		_set_cull(e->mirror,p_reverse_cull);
 

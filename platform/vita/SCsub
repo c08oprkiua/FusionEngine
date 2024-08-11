@@ -9,6 +9,7 @@ common_vita=[\
 	"rasterizer_vita.cpp",\
 	"audio_driver_vita.cpp",\
 	#"immvertex.c",\
+	#
 ]
 
 prog = env.Program('#bin/fe_vita',['godot_vita.cpp']+common_vita)

@@ -62,7 +62,7 @@ class RasterizerGLES1 : public Rasterizer {
 		MAX_SCENE_LIGHTS=2048,
 		LIGHT_SPOT_BIT=0x80,
 		DEFAULT_SKINNED_BUFFER_SIZE = 1024 * 1024, // 10k vertices
-		MAX_HW_LIGHTS = 1,
+		MAX_HW_LIGHTS = 4,
 	};
 	#ifdef PSP
 	void glActiveTexture(int a1) { };
@@ -598,7 +598,7 @@ class RasterizerGLES1 : public Rasterizer {
 
 		enum {
 			MAX_ELEMENTS=4096,
-			MAX_LIGHTS=4
+			MAX_LIGHTS=8192
 		};
 
 		struct Element {
