@@ -213,7 +213,7 @@ void OS_VITA::initialize(const VideoMode& p_desired,int p_video_driver,int p_aud
 	current_videomode=p_desired;
 	main_loop=NULL;
 	
-	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG_WIDE);
+	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	
 	samples_in = memnew_arr(int32_t, 2048);
 	samples_out = memnew_arr(int16_t, 2048);
@@ -303,7 +303,7 @@ SceCtrlButtons buttons[] = {
 	SCE_CTRL_L3, SCE_CTRL_R3, SCE_CTRL_SELECT, SCE_CTRL_START,
 	SCE_CTRL_UP, SCE_CTRL_DOWN, SCE_CTRL_LEFT, SCE_CTRL_RIGHT
 };
-
+#define MAX_JOY_AXIS 32768
 void OS_VITA::process_keys() {
 	sceCtrlReadBufferPositive(0, &pad, 1);
 
@@ -328,16 +328,33 @@ void OS_VITA::process_keys() {
 			input->parse_input_event(event);
 		}
 	}
-
+	/*
 	uint8_t lx = ((pad.lx) / 255.0f) * 2.0 - 1.0;
 	uint8_t ly = ((pad.ly) / 255.0f) * 2.0 - 1.0;
 	uint8_t rx = ((pad.rx) / 255.0f) * 2.0 - 1.0;
 	uint8_t ry = ((pad.ry) / 255.0f) * 2.0 - 1.0;
-
+	
 	input->set_joy_axis(0, 0, lx);
 	input->set_joy_axis(0, 1, ly);
 	input->set_joy_axis(0, 2, rx);
 	input->set_joy_axis(0, 3, ry);
+	*/
+	uint8_t values[4] = {pad.lx, pad.ly, pad.rx, pad.ry};
+	for(int i = 0; i < 4; i++) {
+		InputEvent ievent;
+		
+		ievent.type = InputEvent::JOYSTICK_MOTION;
+		ievent.ID = ++last;
+		ievent.joy_motion.axis = i;
+		if(i == 2)
+			ievent.joy_motion.axis = 3;
+		if(i == 3)
+			ievent.joy_motion.axis = 4;
+		
+		ievent.joy_motion.axis_value = (float)(((values[i] - 127.5) / 127.5));
+
+		input->parse_input_event( ievent );
+	}
 }
 
 void OS_VITA::set_mouse_grab(bool p_grab) {
