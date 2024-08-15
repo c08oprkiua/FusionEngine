@@ -1168,7 +1168,7 @@ void RasterizerGLES1::fixed_material_set_flag(RID p_material, VS::FixedMaterialF
 
 	Material *m=material_owner.get( p_material );
 	ERR_FAIL_COND(!m);
-	ERR_FAIL_INDEX(p_flag, 3);
+	ERR_FAIL_INDEX(p_flag, VS::FIXED_MATERIAL_FLAG_MAX);
 	m->fixed_flags[p_flag]=p_enabled;
 }
 
@@ -3344,18 +3344,40 @@ void RasterizerGLES1::_setup_fixed_material(const Geometry *p_geometry,const Mat
 
 	}
 
-
-	if (p_material->textures[VS::FIXED_MATERIAL_PARAM_DIFFUSE].is_valid()) {
-
-		Texture *texture = texture_owner.get( p_material->textures[VS::FIXED_MATERIAL_PARAM_DIFFUSE] );
+	if(p_material->fixed_flags[VS::FIXED_MATERIAL_FLAG_USE_ENVMAP] && p_material->textures[VS::FIXED_MATERIAL_PARAM_ENVMAP].is_valid()) {
+		
+		Texture *texture = texture_owner.get( p_material->textures[VS::FIXED_MATERIAL_PARAM_ENVMAP] );
 		ERR_FAIL_COND(!texture);
 		glEnable(GL_TEXTURE_2D);
+
+		glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+		glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+		glEnable(GL_TEXTURE_GEN_S);
+		glEnable(GL_TEXTURE_GEN_T);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture( GL_TEXTURE_2D,texture->tex_id );
-	} else {
 
-		glDisable(GL_TEXTURE_2D);
+
+		// glDisable(GL_TEXTURE_GEN_S);
+		// glDisable(GL_TEXTURE_GEN_T);
+	} else {
+		 glDisable(GL_TEXTURE_GEN_S);
+		 glDisable(GL_TEXTURE_GEN_T);
+		 glDisable(GL_TEXTURE_2D);
+		if (p_material->textures[VS::FIXED_MATERIAL_PARAM_DIFFUSE].is_valid()) {
+
+			Texture *texture = texture_owner.get( p_material->textures[VS::FIXED_MATERIAL_PARAM_DIFFUSE] );
+			ERR_FAIL_COND(!texture);
+			glEnable(GL_TEXTURE_2D);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture( GL_TEXTURE_2D,texture->tex_id );
+		} else {
+
+			glDisable(GL_TEXTURE_2D);
+		}
 	}
+	
+
 
 }
 
@@ -4595,9 +4617,9 @@ void RasterizerGLES1::end_scene() {
 			case VS::ENV_BG_CUBEMAP:
 			case VS::ENV_BG_TEXTURE_RGBE:
 			case VS::ENV_BG_CUBEMAP_RGBE: {
-				//a bit broken for now
-
 				glClear(GL_DEPTH_BUFFER_BIT);
+				
+			// 
 			} break;
 
 		}
