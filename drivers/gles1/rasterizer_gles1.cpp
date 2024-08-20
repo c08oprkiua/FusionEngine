@@ -3164,7 +3164,7 @@ void RasterizerGLES1::_add_geometry( const Geometry* p_geometry, const InstanceD
 	RenderList::Element *e = render_list->add_element();
 
 	e->geometry=p_geometry;
-//	e->geometry_cmp=p_geometry_cmp;
+	e->geometry_cmp=p_geometry_cmp;
 	e->material=m;
 	e->instance=p_instance;
 	//e->depth=camera_plane.distance_to(p_world->origin);
@@ -3292,7 +3292,6 @@ void RasterizerGLES1::_setup_fixed_material(const Geometry *p_geometry,const Mat
 
 	if (!shadow) {
 
-		///ambient @TODO offer global ambient group option
 
 		//GLenum side = use_shaders?GL_FRONT:GL_FRONT_AND_BACK;
 		GLenum side = GL_FRONT_AND_BACK;
@@ -3306,11 +3305,55 @@ void RasterizerGLES1::_setup_fixed_material(const Geometry *p_geometry,const Mat
 			  diffuse_color.b,
 			   diffuse_color.a
 		};
-
-		//color array overrides this
 		glColor4f( diffuse_rgba[0],diffuse_rgba[1],diffuse_rgba[2],diffuse_rgba[3]);
 		last_color=diffuse_color;
-		glMaterialfv(side,GL_AMBIENT,diffuse_rgba);
+		// Color diffuse_color=p_material->parameters[VS::FIXED_MATERIAL_PARAM_DIFFUSE];
+		// printf("%d\n", (int)current_env->group[0]);
+		if(current_env) {
+			switch((int)current_env->group[0]) {
+				case VS::ENV_GROUP_SAME: {
+					glMaterialfv(side,GL_AMBIENT, diffuse_rgba);
+					break;
+				}
+				case VS::ENV_GROUP_NONE: {
+					break;
+				}
+				case VS::ENV_GROUP_HALF: {
+					float ambient_rgba[4]={
+						diffuse_color.r / 2,
+						diffuse_color.g / 2,
+						diffuse_color.b / 2,
+						1.0 
+					};
+					glMaterialfv(side,GL_AMBIENT, ambient_rgba);
+					break;
+				}
+				case VS::ENV_GROUP_COLOR: {
+					Color c = current_env->group[VS::ENV_GROUP_COLOR];
+					float ambient_rgba2[4] = {
+						c.r,
+						c.g,
+						c.b,
+						c.a
+					};
+					glMaterialfv(side,GL_AMBIENT, ambient_rgba2);
+					break;
+				}
+				case 0: {
+					glMaterialfv(side,GL_AMBIENT, diffuse_rgba);
+					break;
+				}
+				default: {
+					break;
+				}
+			}
+		} else {
+			glMaterialfv(side,GL_AMBIENT, diffuse_rgba);
+		}
+		// GLfloat ambient[] = {0.2f, 0.2f, 0.2f, 1.0f};
+		//color array overrides this
+
+		// glMaterialfv(side,GL_AMBIENT,ambient);
 		glMaterialfv(side,GL_DIFFUSE,diffuse_rgba);
 		// | GU_SPECULARspecular
 
@@ -4297,11 +4340,11 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 	const Material *prev_material=NULL;
 	uint64_t prev_light_key=0;
 	const Skeleton *prev_skeleton=NULL;
-	const Geometry *prev_geometry=NULL;
+	const Geometry *prev_geometry_cmp=NULL;
 	const BakedLightData *prev_baked_light=NULL;
 	RID prev_baked_light_texture;
 
-	Geometry::Type prev_geometry_type=Geometry::GEOMETRY_INVALID;
+	// Geometry::Type prev_geometry_type=Geometry::GEOMETRY_INVALID;
 
 	for (int i=0;i<p_render_list->element_count;i++) {
 
@@ -4309,7 +4352,7 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 		const Material *material = e->material;
 		uint64_t light_key = e->light_key;
 		const Skeleton *skeleton = e->skeleton;
-		const Geometry *geometry = e->geometry;
+		const Geometry *geometry_cmp = e->geometry_cmp;
 		const BakedLightData *baked_light = e->instance->baked_light;
 		
 		bool bind_baked_light_octree=false;
@@ -4383,7 +4426,7 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 			}
 		}
 		
-		if (material!=prev_material || geometry->type!=prev_geometry_type) {
+		if (material!=prev_material || geometry_cmp!=prev_geometry_cmp) {
 			_setup_material(e->geometry,material);
 			_rinfo.mat_change_count++;
 			//_setup_material_overrides(e->material,NULL,material_overrides);
@@ -4396,9 +4439,9 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 		}
 
 
-		if (geometry!=prev_geometry || geometry->type!=prev_geometry_type  || prev_skeleton!=skeleton) {
+		if (geometry_cmp!=prev_geometry_cmp  || prev_skeleton!=skeleton) {
 
-			_setup_geometry(geometry, material,e->skeleton,e->instance->morph_values.ptr());
+			_setup_geometry(e->geometry, material,e->skeleton,e->instance->morph_values.ptr());
 		};
 
 		// if (i==0 || light_key!=prev_light_key) {
@@ -4450,16 +4493,17 @@ void RasterizerGLES1::_render_list_forward(RenderList *p_render_list,bool p_reve
 		//if ( changed_shader && material->shader_cache && !material->shader_cache->params.empty())
 		//	_setup_shader_params(material);
 
-		_render(geometry, material, skeleton,e->owner);
+		_render(e->geometry, material, skeleton,e->owner);
 
 
 
 		prev_material=material;
 		prev_skeleton=skeleton;
-		prev_geometry=geometry;
+		// prev_geometry=geometry;
+		prev_geometry_cmp=geometry_cmp;
 		prev_light_key=e->light_key;
 		prev_baked_light=baked_light;
-		prev_geometry_type=geometry->type;
+		// prev_geometry_type=geometry->type;
 	}
 
 
@@ -5716,6 +5760,23 @@ Variant RasterizerGLES1::environment_get_background_param(RID p_env,VS::Environm
 	const Environment * env = environment_owner.get(p_env);
 	ERR_FAIL_COND_V(!env,Variant());
 	return env->bg_param[p_param];
+
+}
+
+void RasterizerGLES1::environment_set_group(RID p_env,VS::Group p_param, const Variant& p_value){
+
+	ERR_FAIL_INDEX(p_param,VS::ENV_GROUP_MAX);
+	Environment * env = environment_owner.get(p_env);
+	ERR_FAIL_COND(!env);
+	env->group[p_param]=p_value;
+
+}
+Variant RasterizerGLES1::environment_get_group(RID p_env,VS::Group p_param) const{
+
+	ERR_FAIL_INDEX_V(p_param,VS::ENV_GROUP_MAX,Variant());
+	const Environment * env = environment_owner.get(p_env);
+	ERR_FAIL_COND_V(!env,Variant());
+	return env->group[p_param];
 
 }
 

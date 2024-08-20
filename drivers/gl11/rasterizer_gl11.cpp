@@ -3276,7 +3276,47 @@ void RasterizerGLES1::_setup_fixed_material(const Geometry *p_geometry,const Mat
 		//color array overrides this
 		glColor4f( diffuse_rgba[0],diffuse_rgba[1],diffuse_rgba[2],diffuse_rgba[3]);
 		last_color=diffuse_color;
-		glMaterialfv(side,GL_AMBIENT,diffuse_rgba);
+		if(current_env) {
+			switch((int)current_env->group[0]) {
+				case VS::ENV_GROUP_SAME: {
+					glMaterialfv(side,GL_AMBIENT, diffuse_rgba);
+					break;
+				}
+				case VS::ENV_GROUP_NONE: {
+					break;
+				}
+				case VS::ENV_GROUP_HALF: {
+					float ambient_rgba[4]={
+						diffuse_color.r / 2,
+						diffuse_color.g / 2,
+						diffuse_color.b / 2,
+						1.0 
+					};
+					glMaterialfv(side,GL_AMBIENT, ambient_rgba);
+					break;
+				}
+				case VS::ENV_GROUP_COLOR: {
+					Color c = current_env->group[VS::ENV_GROUP_COLOR];
+					float ambient_rgba2[4] = {
+						c.r,
+						c.g,
+						c.b,
+						c.a
+					};
+					glMaterialfv(side,GL_AMBIENT, ambient_rgba2);
+					break;
+				}
+				case 0: {
+					glMaterialfv(side,GL_AMBIENT, diffuse_rgba);
+					break;
+				}
+				default: {
+					break;
+				}
+			}
+		} else {
+			glMaterialfv(side,GL_AMBIENT, diffuse_rgba);
+		}
 		glMaterialfv(side,GL_DIFFUSE,diffuse_rgba);
 		//specular
 
@@ -5608,6 +5648,23 @@ Variant RasterizerGLES1::environment_get_background_param(RID p_env,VS::Environm
 	const Environment * env = environment_owner.get(p_env);
 	ERR_FAIL_COND_V(!env,Variant());
 	return env->bg_param[p_param];
+
+}
+
+void RasterizerGLES1::environment_set_group(RID p_env,VS::Group p_param, const Variant& p_value){
+
+	ERR_FAIL_INDEX(p_param,VS::ENV_GROUP_MAX);
+	Environment * env = environment_owner.get(p_env);
+	ERR_FAIL_COND(!env);
+	env->group[p_param]=p_value;
+
+}
+Variant RasterizerGLES1::environment_get_group(RID p_env,VS::Group p_param) const{
+
+	ERR_FAIL_INDEX_V(p_param,VS::ENV_GROUP_MAX,Variant());
+	const Environment * env = environment_owner.get(p_env);
+	ERR_FAIL_COND_V(!env,Variant());
+	return env->group[p_param];
 
 }
 

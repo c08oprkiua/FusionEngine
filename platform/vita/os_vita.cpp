@@ -126,10 +126,10 @@ void OS_VITA::initialize_core() {
 	snprintf(hint.szGLES1, 256, "%s/%s", "app0:module", "libGLESv1_CM.suprx");
     snprintf(hint.szWindowSystem, 256, "%s/%s", "app0:module", "libpvrPSP2_WSEGL.suprx");
     hint.ui32SwTexOpCleanupDelay = 16000;
-	// hint.ui32UNCTexHeapSize = 60 * 1024 * 1024;
-    // hint.ui32CDRAMTexHeapSize = 96 * 1024 * 1024;
-	// hint.bDisableHWTQBufferBlit = 1;
-	// hint.bDisableAsyncTextureOp = 1;
+	// hint.bEnableStaticMTECopy = 0;
+    // hint.bEnableStaticPDSVertex = 0;
+	// hint.bDisableUSEASMOPT = 1;
+	hint.bDisableStaticPDSPixelSAProgram = 1;
   	PVRSRVCreateVirtualAppHint(&hint);
 	
 	printf("created\n");

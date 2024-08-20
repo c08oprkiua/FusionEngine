@@ -3347,7 +3347,7 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 
 		// sceGuAmbient(0x00222222);
 		// sceGuAmbient(0xff000000);
-		sceGuSpecular(12.0f);
+		// sceGuSpecular(12.0f);
 		// sceGuAmbientColor(diffuse_rgba);
 
 		last_color=diffuse_color;
@@ -3373,7 +3373,7 @@ void RasterizerPSP::_setup_fixed_material(const Geometry *p_geometry,const Mater
 			1.0 //p_material->parameters[VS::FIXED_MATERIAL_PARAM_DETAIL_MIX]
 		));
 
-		// sceGuSpecular(p_material->parameters[VS::FIXED_MATERIAL_PARAM_SPECULAR_EXP]);
+		sceGuSpecular(p_material->parameters[VS::FIXED_MATERIAL_PARAM_SPECULAR_EXP]);
 
 		sceGuShadeModel(GU_SMOOTH);
 
@@ -3978,7 +3978,7 @@ void RasterizerPSP::_render_list_forward(RenderList *p_render_list,bool p_revers
 			_setup_geometry(geometry, material,e->skeleton,e->instance->morph_values.ptr());
 		};
 
-		if (i==0 || light_key!=prev_light_key)
+		// if (i==0 || light_key!=prev_light_key)
 			_setup_lights(e->lights,e->light_count);
 
 		_set_cull(e->mirror,p_reverse_cull);
@@ -4999,7 +4999,22 @@ Variant RasterizerPSP::environment_get_background_param(RID p_env,VS::Environmen
 	return env->bg_param[p_param];
 
 }
+void RasterizerDC::environment_set_group(RID p_env,VS::Group p_param, const Variant& p_value){
 
+	ERR_FAIL_INDEX(p_param,VS::ENV_GROUP_MAX);
+	Environment * env = environment_owner.get(p_env);
+	ERR_FAIL_COND(!env);
+	env->group[p_param]=p_value;
+
+}
+Variant RasterizerDC::environment_get_group(RID p_env,VS::Group p_param) const{
+
+	ERR_FAIL_INDEX_V(p_param,VS::ENV_GROUP_MAX,Variant());
+	const Environment * env = environment_owner.get(p_env);
+	ERR_FAIL_COND_V(!env,Variant());
+	return env->group[p_param];
+
+}
 void RasterizerPSP::environment_set_enable_fx(RID p_env,VS::EnvironmentFx p_effect,bool p_enabled){
 
 	ERR_FAIL_INDEX(p_effect,VS::ENV_FX_MAX);

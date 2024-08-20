@@ -735,6 +735,19 @@ public:
 
 	virtual void environment_set_background(RID p_env,EnvironmentBG p_bg)=0;
 	virtual EnvironmentBG environment_get_background(RID p_env) const=0;
+	
+	
+	enum Group {
+		ENV_GROUP_TYPE,
+		ENV_GROUP_SAME,
+		ENV_GROUP_NONE,
+		ENV_GROUP_HALF,
+		ENV_GROUP_COLOR,
+		ENV_GROUP_MAX
+	};
+
+	virtual void environment_set_group(RID p_env,Group p_group, const Variant& p_param)=0;
+	virtual Variant environment_get_group(RID p_env, Group p_group) const=0;
 
 	enum EnvironmentBGParam {
 
