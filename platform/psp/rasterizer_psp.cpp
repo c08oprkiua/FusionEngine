@@ -4039,6 +4039,7 @@ void RasterizerPSP::end_scene() {
 
 	sceGuEnable(GU_BLEND);
 	sceGuDepthMask(GU_FALSE);
+	// sceGuDepthRange(0,20000);
 	sceGuEnable(GU_DEPTH_TEST);
 	sceGuDepthFunc(GU_LEQUAL);
 	sceGuDisable(GU_SCISSOR_TEST);
@@ -4999,7 +5000,7 @@ Variant RasterizerPSP::environment_get_background_param(RID p_env,VS::Environmen
 	return env->bg_param[p_param];
 
 }
-void RasterizerDC::environment_set_group(RID p_env,VS::Group p_param, const Variant& p_value){
+void RasterizerPSP::environment_set_group(RID p_env,VS::Group p_param, const Variant& p_value){
 
 	ERR_FAIL_INDEX(p_param,VS::ENV_GROUP_MAX);
 	Environment * env = environment_owner.get(p_env);
@@ -5007,7 +5008,7 @@ void RasterizerDC::environment_set_group(RID p_env,VS::Group p_param, const Vari
 	env->group[p_param]=p_value;
 
 }
-Variant RasterizerDC::environment_get_group(RID p_env,VS::Group p_param) const{
+Variant RasterizerPSP::environment_get_group(RID p_env,VS::Group p_param) const{
 
 	ERR_FAIL_INDEX_V(p_param,VS::ENV_GROUP_MAX,Variant());
 	const Environment * env = environment_owner.get(p_env);
@@ -5473,7 +5474,7 @@ void RasterizerPSP::init() {
 	sceGuDepthBuffer(zbp,BUF_WIDTH);
 	sceGuOffset(2048 - (SCR_WIDTH/2),2048 - (SCR_HEIGHT/2));
 	sceGuViewport(2048,2048,SCR_WIDTH,SCR_HEIGHT);
-	sceGuDepthRange(0x0000,0xFFFF);
+	sceGuDepthRange(0,0xffff);
 	sceGuScissor(0,0,SCR_WIDTH,SCR_HEIGHT);
 	sceGuEnable(GU_SCISSOR_TEST);
 	sceGuFrontFace(GU_CW);
