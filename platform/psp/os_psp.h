@@ -79,6 +79,8 @@ class OS_PSP : public OS {
 	InputDefault *input;
 
 
+	static void psp_callback_thread(void *);
+
 
 protected:
 

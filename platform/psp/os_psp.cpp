@@ -236,9 +236,6 @@ void OS_PSP::process_keys() {
 
 	input->set_joy_axis(0, 0, lx);
 	input->set_joy_axis(0, 1, ly);
-	
-	if(pad.Buttons & PSP_CTRL_HOME)
-		sceKernelExitGame();
 }
 
 void OS_PSP::set_mouse_grab(bool p_grab) {
@@ -358,6 +355,22 @@ void OS_PSP::process_audio() {
 	// sceAudioOutput
 }
 
+void OS_PSP::psp_callback_thread(void *thiz) {
+	sceKernelRegisterExitCallback(
+			sceKernelCreateCallback("Confirm Exit Callback", [](int, int, void *up) {
+				OS_PSP *thiz = reinterpret_cast<OS_PSP *>(up);
+				if (thiz->force_quit) {
+					sceKernelExitGame();
+				} else {
+					thiz->force_quit = true;
+				}
+				return 0;
+			}, thiz));
+	for (;;) {
+		sceKernelSleepThreadCB();
+	}
+}
+
 void OS_PSP::run() {
 
 	force_quit = false;
@@ -366,7 +379,9 @@ void OS_PSP::run() {
 		return;
 		
 	main_loop->init();
-		
+
+	Thread::create(psp_callback_thread, this);
+
 	while (!force_quit) {
 		// process_audio();
 		process_keys();
