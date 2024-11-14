@@ -5553,7 +5553,7 @@ void RasterizerPSP::init() {
 
 void RasterizerPSP::finish() {
 	sceGuTerm();
-	memdelete(skinned_buffer);
+	//memdelete(skinned_buffer);
 }
 
 int RasterizerPSP::get_render_info(VS::RenderInfo p_info) {
