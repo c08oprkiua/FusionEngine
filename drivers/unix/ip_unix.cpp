@@ -28,7 +28,7 @@
 /*************************************************************************/
 #include "ip_unix.h"
 
-#if defined(UNIX_ENABLED) || defined(WINDOWS_ENABLED) && !defined(WINRT_ENABLED) && !defined(WIN98_ENABLED) || defined(PSP)
+#if defined(UNIX_ENABLED) || defined(WINDOWS_ENABLED) && !defined(WINRT_ENABLED) || defined(PSP)
 
 
 #ifdef WINDOWS_ENABLED

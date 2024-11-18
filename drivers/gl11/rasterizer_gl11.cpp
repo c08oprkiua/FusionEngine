@@ -4236,7 +4236,7 @@ void RasterizerGLES1::end_scene() {
 
 	// glClear(GL_DEPTH_BUFFER_BIT);
 
-	if(current_env->fx_enabled[VS::ENV_FX_FOG] && !is_editor) {
+	if(current_env && current_env->fx_enabled[VS::ENV_FX_FOG] && !is_editor) {
 
 		Color col_begin = current_env->fx_param[VS::ENV_FX_PARAM_FOG_BEGIN_COLOR];
 		Color col_end = current_env->fx_param[VS::ENV_FX_PARAM_FOG_END_COLOR];
@@ -4305,7 +4305,7 @@ void RasterizerGLES1::end_scene() {
 	glEnable(GL_LIGHTING);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
-	if(current_env->fx_enabled[VS::ENV_FX_ES1_BLUR] && !is_editor) {
+	if(current_env && current_env->fx_enabled[VS::ENV_FX_ES1_BLUR] && !is_editor) {
 		glViewport(0,0,256,256);
 		
 		_render_list_forward(&opaque_render_list);
@@ -4354,7 +4354,7 @@ void RasterizerGLES1::end_scene() {
 	}*/
 
 //	material_shader.set_conditional( MaterialShaderGLES1::USE_FOG,false);
-	if(current_env->fx_enabled[VS::ENV_FX_ES1_BLUR] && !is_editor)
+	if(current_env && current_env->fx_enabled[VS::ENV_FX_ES1_BLUR] && !is_editor)
 		_process_blur(current_env->fx_param[VS::ENV_FX_PARAM_ES1_BLUR_TIMES], current_env->fx_param[VS::ENV_FX_PARAM_ES1_BLUR_ALPHA]);
 	
 	
