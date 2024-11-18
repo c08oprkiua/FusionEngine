@@ -163,6 +163,9 @@ def configure(env):
 
 			env.Append(CCFLAGS=['-O2', '-g','-ffast-math','-DDEBUG_ENABLED'])
 
+			if env["tools"]!="no":
+				env.Append(CCFLAGS=['-fno-omit-frame-pointer', '-fno-tree-vectorize'])
+
 		elif (env["target"]=="debug"):
 					
 			env.Append(CCFLAGS=['-g', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
