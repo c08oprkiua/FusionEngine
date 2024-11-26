@@ -35,11 +35,11 @@ class Timer : public Node {
 
 	OBJ_TYPE( Timer, Node );
 
+	double time_left;
 	float wait_time;
 	bool one_shot;
 	bool autostart;
 
-	double time_left;
 protected:
 
 	void _notification(int p_what);

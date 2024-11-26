@@ -4,7 +4,7 @@
 #include "scene/3d/visual_instance.h"
 #include "scene/2d/animated_sprite.h"
 
-
+//768 -> 744
 class SpriteBase3D : public GeometryInstance {
 
 	OBJ_TYPE(SpriteBase3D,GeometryInstance);
@@ -25,35 +25,33 @@ public:
 
 private:
 
+	Vector3::Axis axis;
+	AlphaCutMode alpha_cut;
 
 	bool color_dirty;
+	bool centered;
+	bool hflip;
+	bool vflip;
+	bool pending_update;
+	bool flags[FLAG_MAX];
+
+	float opacity;
+	float pixel_size;
+
 	Color color_accum;
+	Color modulate;
 
 	SpriteBase3D *parent_sprite;
 	List<SpriteBase3D*> children;
 	List<SpriteBase3D*>::Element *pI;
 
-	bool centered;
 	Point2 offset;
 
-	bool hflip;
-	bool vflip;
-
-
-	Color modulate;
-	float opacity;
-
-	Vector3::Axis axis;
-	float pixel_size;
 	AABB aabb;
 
 	RID immediate;
 
-	bool flags[FLAG_MAX];
-	AlphaCutMode alpha_cut;
-	bool pending_update;
 	void _im_update();
-
 
 	void _propagate_color_changed();
 

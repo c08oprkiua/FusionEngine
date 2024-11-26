@@ -4,6 +4,7 @@
 #include "resource.h"
 #include "scene/resources/texture.h"
 
+//296 -> 288
 class BakedLight : public Resource {
 
 	OBJ_TYPE( BakedLight, Resource);
@@ -34,6 +35,7 @@ private:
 
 	RID baked_light;
 	Mode mode;
+	Format format;
 	struct LightMap {
 		Size2i gen_size;
 		Ref<Texture> texture;
@@ -57,7 +59,6 @@ private:
 	float saturation;
 	int bounces;
 	bool transfer_only_uv2;
-	Format format;
 	bool flags[BAKE_MAX];
 
 

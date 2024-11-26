@@ -32,11 +32,11 @@
 #include "scene/3d/spatial.h"
 #include "scene/resources/shape.h"
 
+//592 -> 584
 class CollisionObject : public Spatial {
 
 	OBJ_TYPE( CollisionObject, Spatial );
 
-	bool area;
 	RID rid;
 
 	struct ShapeData {
@@ -52,6 +52,7 @@ class CollisionObject : public Spatial {
 
 	bool capture_input_on_drag;
 	bool ray_pickable;
+	bool area;
 	Vector<ShapeData> shapes;
 
 	void _update_pickable();

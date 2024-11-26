@@ -110,7 +110,6 @@ VARIANT_ENUM_CAST( Material::DepthDrawMode );
 
 VARIANT_ENUM_CAST( Material::BlendMode );
 
-
 class FixedMaterial : public Material {
 
 	OBJ_TYPE( FixedMaterial, Material );

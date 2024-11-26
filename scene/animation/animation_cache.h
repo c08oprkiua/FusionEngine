@@ -36,6 +36,7 @@ class AnimationCache : public Object {
 
 	OBJ_TYPE(AnimationCache,Object);
 
+	//64 -> 56
 	struct Path {
 
 		RES resource;
@@ -45,8 +46,9 @@ class AnimationCache : public Object {
 		Spatial *spatial;
 
 		int bone_idx;
-		StringName property;
 		bool valid;
+		StringName property;
+
 		Path() { object=NULL; skeleton=NULL; node=NULL; bone_idx=-1; valid=false; spatial=NULL; }
 	};
 

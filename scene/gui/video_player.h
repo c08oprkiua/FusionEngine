@@ -32,6 +32,7 @@
 #include "scene/resources/video_stream.h"
 #include "scene/gui/control.h"
 
+//776 -> 768
 class VideoPlayer : public Control {
 
 	OBJ_TYPE(VideoPlayer,Control);
@@ -42,9 +43,9 @@ class VideoPlayer : public Control {
 	Ref<ImageTexture> texture;
 	Image last_frame;
 
+	float volume;
 	bool paused;
 	bool autoplay;
-	float volume;
 	bool expand;
 	bool loops;
 

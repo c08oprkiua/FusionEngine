@@ -37,7 +37,7 @@
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
-
+//944 -> 936
 class Particles : public GeometryInstance {
 public:
 
@@ -65,17 +65,22 @@ private:
 	RID particles;
 	
 	int amount;
-	bool emitting;
-	float emit_timeout;
+	int color_phase_count;
+
 	AABB visibility_aabb;
 	Vector3 gravity_normal;
 	Vector3 emission_half_extents;
-	bool using_points;
+
+	float emit_timeout;
 	float var[VAR_MAX];	
 	float var_random[VAR_MAX];	
+
 	bool height_from_velocity;
-	Vector3 emission_base_velocity;
+	bool emitting;
 	bool local_coordinates;
+	bool using_points;
+
+	Vector3 emission_base_velocity;
 	
 	struct ColorPhase {
 	
@@ -86,7 +91,6 @@ private:
 	virtual bool _can_gizmo_scale() const;
 	virtual RES _get_gizmo_geometry() const;
 
-	int color_phase_count;
 	
 	ColorPhase color_phase[4];
 	

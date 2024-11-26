@@ -60,7 +60,7 @@ public:
 };
 
 
-
+//512 -> 504
 class AnimatedSprite : public Node2D {
 
 	OBJ_TYPE(AnimatedSprite,Node2D);
@@ -68,9 +68,9 @@ class AnimatedSprite : public Node2D {
 	Ref<SpriteFrames> frames;
 	int frame;
 
-	bool centered;
 	Point2 offset;
 
+	bool centered;
 	bool hflip;
 	bool vflip;
 

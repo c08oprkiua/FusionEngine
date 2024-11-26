@@ -32,6 +32,7 @@
 #include "scene/3d/collision_object.h"
 #include "vset.h"
 
+//688 -> 680
 class Area : public CollisionObject {
 
 	OBJ_TYPE( Area, CollisionObject );
@@ -48,9 +49,9 @@ private:
 	SpaceOverride space_override;
 	Vector3 gravity_vec;
 	real_t gravity;
-	bool gravity_is_point;
 	real_t density;
 	int priority;
+	bool gravity_is_point;
 	bool monitoring;
 	bool locked;
 	bool monitorable;

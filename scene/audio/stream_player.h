@@ -32,6 +32,7 @@
 #include "scene/resources/audio_stream.h"
 #include "scene/main/node.h"
 
+//312 -> 304
 class StreamPlayer : public Node {
 
 	OBJ_TYPE(StreamPlayer,Node);
@@ -41,9 +42,10 @@ class StreamPlayer : public Node {
 	bool paused;
 	bool autoplay;
 	bool loops;
+	bool _play;
 	float volume;
 
-	bool _play;
+
 	void _set_play(bool p_play);
 	bool _get_play() const;
 protected:

@@ -64,7 +64,7 @@ public:
 	VisibilityNotifier2D();
 };
 
-
+//552 -> 544
 class VisibilityEnabler2D : public VisibilityNotifier2D {
 
 	OBJ_TYPE(VisibilityEnabler2D,VisibilityNotifier2D);
@@ -81,13 +81,13 @@ protected:
 	virtual void _screen_enter();
 	virtual void _screen_exit();
 
-	bool visible;
 
 	void _find_nodes(Node* p_node);
 
 	Map<Node*,Variant> nodes;
 	void _node_removed(Node* p_node);
 	bool enabler[ENABLER_MAX];
+	bool visible;
 
 	void _change_node_state(Node* p_node,bool p_enabled);
 

@@ -67,9 +67,8 @@ class Spatial : public Node {
 
 	mutable SelfList<Node> xform_change;
 
+	//240 -> 224
 	struct Data {
-	
-
 
 		mutable Transform global_transform;
 		mutable Transform local_transform;
@@ -77,31 +76,27 @@ class Spatial : public Node {
 		mutable Vector3 scale;
 
 		mutable int dirty;
+		int children_lock;
 
 		Viewport *viewport;
-
 
 		bool toplevel_active;
 		bool toplevel;
 		bool inside_world;
-	
-		int children_lock;
+		bool ignore_notification;
+		bool visible;
+#ifdef TOOLS_ENABLED
+		bool gizmo_disabled;
+		bool gizmo_dirty;
+		Ref<SpatialGizmo> gizmo;
+		Transform import_transform;
+#endif
 		Spatial *parent;
 		List<Spatial*> children;
 		List<Spatial*>::Element *C;
-		
-		bool ignore_notification;
-
-		bool visible;
-
-#ifdef TOOLS_ENABLED
-		Ref<SpatialGizmo> gizmo;
-		bool gizmo_disabled;
-		bool gizmo_dirty;
-		Transform import_transform;
-#endif
 
 	} data;
+
 #ifdef TOOLS_ENABLED
 
 	void _update_gizmo();

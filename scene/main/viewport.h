@@ -67,6 +67,7 @@ public:
 
 };
 
+//672 -> 656
 class Viewport : public Node {
 
 	OBJ_TYPE( Viewport, Node );
@@ -91,11 +92,8 @@ friend class RenderTargetTexture;
 	RID canvas_item;
 	RID current_canvas;
 
-	bool audio_listener;
-	RID listener;
-
-	bool audio_listener_2d;
 	RID listener_2d;
+	RID listener;
 
 	Matrix32 canvas_transform;
 	Matrix32 global_canvas_transform;
@@ -104,13 +102,15 @@ friend class RenderTargetTexture;
 	Rect2 rect;
 	Rect2 to_screen_rect;
 
-
-	bool size_override;
-	bool size_override_stretch;
 	Size2 size_override_size;
 	Size2 size_override_margin;
 
 	Rect2 last_vp_rect;
+
+	bool audio_listener;
+	bool audio_listener_2d;
+	bool size_override;
+	bool size_override_stretch;
 
 	bool transparent_bg;
 	bool render_target_vflip;
@@ -118,6 +118,9 @@ friend class RenderTargetTexture;
 	bool render_target_gen_mipmaps;
 
 	bool physics_object_picking;
+	bool render_target;
+
+
 	List<InputEvent> physics_picking_events;
 	ObjectID physics_object_capture;
 	ObjectID physics_object_over;
@@ -149,7 +152,6 @@ friend class RenderTargetTexture;
 	void _update_stretch_transform();
 	void _update_global_transform();
 
-	bool render_target;
 	RenderTargetUpdateMode render_target_update_mode;
 	RID render_target_texture_rid;
 	Ref<RenderTargetTexture> render_target_texture;

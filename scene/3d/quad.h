@@ -32,19 +32,19 @@
 
 #include "scene/3d/visual_instance.h"
 #include "rid.h"
-
+//704 -> 696
 class Quad : public GeometryInstance {
 
 	OBJ_TYPE(Quad,GeometryInstance);
 
 	Vector3::Axis axis;
 	bool centered;
+	bool configured;
+	bool pending_update;
 	Vector2 offset;
 	Vector2 size;
 
 	AABB aabb;
-	bool configured;
-	bool pending_update;
 	RID mesh;
 
 	void _update();

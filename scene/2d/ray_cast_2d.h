@@ -31,6 +31,7 @@
 
 #include "scene/2d/node_2d.h"
 
+//536 -> 528
 class RayCast2D : public Node2D {
 
 	OBJ_TYPE(RayCast2D,Node2D);
@@ -40,13 +41,12 @@ class RayCast2D : public Node2D {
 	bool collided;
 	ObjectID against;
 	int against_shape;
+	uint32_t layer_mask;
 	Vector2 collision_point;
 	Vector2 collision_normal;
-	Set<RID> exclude;
-	uint32_t layer_mask;
-
-
 	Vector2 cast_to;
+	Set<RID> exclude;
+
 protected:
 
 	void _notification(int p_what);

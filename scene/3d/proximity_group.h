@@ -31,6 +31,7 @@
 
 #include "spatial.h"
 
+//616 -> 608
 class ProximityGroup : public Spatial {
 
 	OBJ_TYPE( ProximityGroup, Spatial );
@@ -49,13 +50,12 @@ public:
 	void _notification(int p_what);
 
 	DispatchMode dispatch_mode;
+	float cell_size;
+	uint32_t group_version;
+	Vector3 grid_radius;
 
 	Map<StringName, uint32_t> groups;
 	String group_name;
-
-	float cell_size;
-	Vector3 grid_radius;
-	uint32_t group_version;
 
 	void add_groups(int* p_cell, String p_base, int p_depth);
 	void _new_group(StringName p_name);

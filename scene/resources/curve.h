@@ -81,7 +81,6 @@ public:
 
 #endif
 
-
 class Curve2D : public Resource {
 
 	OBJ_TYPE(Curve2D,Resource);

@@ -59,7 +59,7 @@ public:
 private:
 friend class Tree;
 	
-	
+
 	struct Cell {
 		
 		TreeCellMode mode;
@@ -240,7 +240,7 @@ public:
 
 VARIANT_ENUM_CAST( TreeItem::TreeCellMode );
 
-
+//1144 -> 1136
 class Tree : public Control {
 	
 	OBJ_TYPE( Tree, Control );
@@ -268,6 +268,9 @@ friend class TreeItem;
 	int selected_col;
 	int popup_edited_item_col;
 	bool hide_root;
+	bool show_column_titles;
+	bool updating_value_editor;
+	bool cursor_can_exit_tree;
 	SelectMode select_mode;
 
 	int blocked;
@@ -280,10 +283,8 @@ friend class TreeItem;
 		ColumnInfo() { min_width=1; expand=true; }
 	};
 
-	bool show_column_titles;
 	LineEdit *text_editor;
 	HSlider *value_editor;
-	bool updating_value_editor;
 	uint32_t focus_in_id;
 	PopupMenu *popup_menu;
 
@@ -377,7 +378,6 @@ friend class TreeItem;
 	//Rect2 get_item_rect(TreeItem *p_item);
 	uint64_t last_keypress;
 	String incr_search;
-	bool cursor_can_exit_tree;
 	void _do_incr_search(const String& p_add);
 
 	TreeItem* _search_item_text(TreeItem *p_at, const String& p_find,int *r_col,bool p_selectable,bool p_backwards=false);

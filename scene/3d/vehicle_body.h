@@ -5,6 +5,7 @@
 
 class VehicleBody;
 
+//840 -> 832
 class VehicleWheel : public Spatial {
 
 	OBJ_TYPE(VehicleWheel,Spatial);
@@ -16,6 +17,7 @@ friend class VehicleBody;
 	Transform local_xform;
 	bool engine_traction;
 	bool steers;
+	bool m_bIsFrontWheel;
 
 
 	Vector3	m_chassisConnectionPointCS; //const
@@ -31,7 +33,7 @@ friend class VehicleBody;
 	real_t m_wheelsDampingRelaxation;
 	real_t m_frictionSlip;
 	real_t m_maxSuspensionForce;
-	bool m_bIsFrontWheel;
+
 
 	VehicleBody *body;
 

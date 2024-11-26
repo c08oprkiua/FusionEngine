@@ -91,7 +91,7 @@ public:
 	~StaticBody2D();
 
 };
-
+//592 -> 576
 class RigidBody2D : public PhysicsBody2D {
 
 	OBJ_TYPE(RigidBody2D,PhysicsBody2D);
@@ -112,25 +112,22 @@ public:
 
 private:
 
-	bool can_sleep;
 	Physics2DDirectBodyState *state;
 	Mode mode;
+	CCDMode ccd_mode;
 
 	real_t bounce;
 	real_t mass;
 	real_t friction;
+	real_t angular_velocity;
 
 	Vector2 linear_velocity;
-	real_t angular_velocity;
+
+	bool can_sleep;
 	bool sleeping;
-
-
-	int max_contacts_reported;
-
 	bool custom_integrator;
 
-	CCDMode ccd_mode;
-
+	int max_contacts_reported;
 
 	struct ShapePair {
 

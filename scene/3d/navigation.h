@@ -63,12 +63,12 @@ class Navigation : public Spatial {
 		NavMesh *owner;
 	};
 
-
+	//32 -> 24
 	struct Connection {
 
 		Polygon *A;
-		int A_edge;
 		Polygon *B;
+		int A_edge;
 		int B_edge;
 		Connection() { A=NULL; B=NULL; A_edge=-1; B_edge=-1;}
 	};

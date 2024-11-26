@@ -79,22 +79,25 @@ private:
 		int pos;
 		int depth;
 		int blocked; // safeguard that throws an error when attempting to modify the tree in a harmful way while being traversed.
+		PauseMode pause_mode;
 		StringName name;
 		SceneTree *tree;
-		bool inside_tree;
+
 #ifdef TOOLS_ENABLED
 		NodePath import_path; //path used when imported, used by scene editors to keep tracking
 #endif
 
 		Viewport *viewport;
 
-				
+
 		HashMap< StringName, GroupData,StringNameHasher>  grouped;
 		List<Node*>::Element *OW; // owned element
 		List<Node*> owned;
 		
-		PauseMode pause_mode;
+
 		Node *pause_owner;
+
+		bool inside_tree;
 		// variables used to properly sort the node when processing, ignored otherwise
 		bool fixed_process;
 		bool idle_process;

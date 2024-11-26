@@ -78,7 +78,7 @@ public:
 };
 
 
-
+//808 -> 800
 class Particles2D : public Node2D {
 
 	OBJ_TYPE(Particles2D, Node2D);
@@ -124,8 +124,6 @@ private:
 		Particle() { active=false; seed=123465789; rot=0; frame=0;}
 	};
 
-	Vector<Particle> particles;
-	int color_phase_count;
 	struct ColorPhase {
 		Color color;
 		float pos;
@@ -137,28 +135,31 @@ private:
 		ParticleAttractor2D *attractor;
 	};
 
+	Vector<Particle> particles;
 	Vector<AttractorCache> attractor_cache;
 
 	float explosiveness;
 	float preprocess;
 	float lifetime;
-	bool emitting;
-	bool local_space;
 	float emit_timeout;
 	float time_to_live;
 	float time_scale;
+	float time;
+
+	bool emitting;
+	bool local_space;
 	bool flip_h;
 	bool flip_v;
+
 	int h_frames;
 	int v_frames;
+	int active_count;
+	int color_phase_count;
+
 	Point2 emissor_offset;
 	Vector2 initial_velocity;
 	Vector2 extents;
 	DVector<Vector2> emission_points;	
-
-	float time;
-	int active_count;
-
 	Ref<Texture> texture;
 
 

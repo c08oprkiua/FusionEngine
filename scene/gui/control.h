@@ -44,6 +44,7 @@ class Viewport;
 class Label;
 class Panel;
 
+//712 -> 688
 class Control : public CanvasItem {
 	
 	OBJ_TYPE( Control, CanvasItem );
@@ -110,24 +111,22 @@ private:
 		FocusMode focus_mode;		
 
 		bool pending_resize;
+		bool pending_min_size_update;
+		bool ignore_mouse;
+		bool stop_mouse;
 
 		int h_size_flags;
 		int v_size_flags;
 		float expand;
-		bool pending_min_size_update;
-		Point2 custom_minimum_size;
 
-		bool ignore_mouse;
-		bool stop_mouse;
+		Point2 custom_minimum_size;
+		CursorShape default_cursor;
 
 		Control *parent;
 		Control *window;
-		bool modal;
-		bool modal_exclusive;
 		Ref<Theme> theme;
 		Control *theme_owner;		
 		String tooltip;
-		CursorShape default_cursor;
 
 		List<Control*>::Element *MI; //modal item
 		List<Control*>::Element *SI;
@@ -137,6 +136,8 @@ private:
 		Viewport *viewport;
 
 		ObjectID modal_prev_focus_owner;
+		bool modal;
+		bool modal_exclusive;
 
 		NodePath focus_neighbour[4];
 
@@ -150,9 +151,13 @@ private:
 	struct Window {
 		// info used when this is a window 	
 
-		bool key_event_accepted;
-		Control *mouse_focus;
 		int mouse_focus_button;
+		unsigned int cancelled_input_ID;
+		bool key_event_accepted;
+		bool drag_attempted;
+		bool subwindow_order_dirty;
+		bool disable_input;
+		Control *mouse_focus;
 		Control *key_focus;
 		Control *mouse_over;
 		Control *tooltip;
@@ -161,16 +166,12 @@ private:
 		Point2 tooltip_pos;
 		Point2 last_mouse_pos;
 		Point2 drag_accum;
-		bool drag_attempted;
 		Variant drag_data;
 		Control *drag_preview;
 		Timer *tooltip_timer;
 		List<Control*> modal_stack;
-		unsigned int cancelled_input_ID;
 		Matrix32 focus_inv_xform;
-		bool subwindow_order_dirty;
 		List<Control*> subwindows;
-		bool disable_input;
 
 		Window();
 	};

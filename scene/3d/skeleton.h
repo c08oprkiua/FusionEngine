@@ -35,15 +35,19 @@
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
+//592 -> 584
 class Skeleton : public Spatial {
 
 	OBJ_TYPE( Skeleton, Spatial );
 
+	//272 -> 264
 	struct Bone {
 
 		String name;
 
 		bool enabled;
+		bool custom_pose_enable;
+
 		int parent;
 
 		Transform rest;
@@ -52,7 +56,6 @@ class Skeleton : public Spatial {
 		Transform pose;
 		Transform pose_global;
 
-		bool custom_pose_enable;
 		Transform custom_pose;
 		
 		List<uint32_t> nodes_bound;
@@ -61,13 +64,13 @@ class Skeleton : public Spatial {
 	};
 
 	bool rest_global_inverse_dirty;
+	bool dirty;
 
 	Vector<Bone> bones;
 	
 	RID skeleton;
 	
 	void _make_dirty();
-	bool dirty;
 	
 //bind helpers
 	Array _get_bound_child_nodes_to_bone(int p_bone) const {

@@ -32,7 +32,7 @@
 #include "scene/resources/mesh.h"
 #include "mikktspace.h"
 
-
+//272 -> 264
 class SurfaceTool : public Reference {
 
 	OBJ_TYPE(SurfaceTool, Reference );
@@ -63,8 +63,9 @@ private:
 
 	bool begun;
 	bool first;
+
 	Mesh::PrimitiveType primitive;
-	int format;
+
 	Ref<Material> material;
 	//arrays
 	List< Vertex > vertex_array;
@@ -76,6 +77,7 @@ private:
 	Vector3 last_normal;
 	Vector2 last_uv;
 	Vector2 last_uv2;
+	int format;//not memory
 	Vector<int> last_bones;
 	Vector<float> last_weights;
 	Plane last_tangent;

@@ -39,6 +39,7 @@
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
+//936 -> 928
 class FileDialog : public ConfirmationDialog {
 	
 	OBJ_TYPE( FileDialog, ConfirmationDialog );
@@ -74,9 +75,9 @@ private:
 
 	Button *makedir;
 	Access access;
+	Mode mode;
 	//Button *action;
 	VBoxContainer *vbox;
-	Mode mode;
 	LineEdit *dir;
 	OptionButton *drives;
 	Tree *tree;

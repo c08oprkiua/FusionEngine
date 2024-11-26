@@ -95,7 +95,7 @@ public:
 	~StaticBody();
 
 };
-
+//688 -> 680
 class RigidBody : public PhysicsBody {
 
 	OBJ_TYPE(RigidBody,PhysicsBody);
@@ -117,26 +117,22 @@ public:
 
 private:
 
-	bool can_sleep;
 	PhysicsDirectBodyState *state;
 	Mode mode;
+	AxisLock axis_lock;
 
 	real_t bounce;
 	real_t mass;
 	real_t friction;
 
+	int max_contacts_reported;
+
 	Vector3 linear_velocity;
 	Vector3  angular_velocity;
 	bool sleeping;
 	bool ccd;
-
-	AxisLock axis_lock;
-
-
-	int max_contacts_reported;
-
+	bool can_sleep;
 	bool custom_integrator;
-
 
 	struct ShapePair {
 

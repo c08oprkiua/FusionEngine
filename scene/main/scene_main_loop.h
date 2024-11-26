@@ -46,6 +46,7 @@ class SceneTree;
 class Node;
 class Viewport;
 
+//352 -> 328
 class SceneTree : public MainLoop {
 
 	_THREAD_SAFE_CLASS_
@@ -83,24 +84,28 @@ private:
 	uint64_t tree_version;
 	float fixed_process_time;
 	float idle_process_time;
-	bool accept_quit;
+	int root_lock;
 	uint32_t last_id;
+	int node_count;
+	//safety for when a node is deleted while a group is being called
+	int call_lock;
 
 	bool editor_hint;
 	bool pause;
-	int root_lock;
-
-	Map<StringName,Group> group_map;
+	bool accept_quit;
 	bool _quit;
 	bool initialized;
 	bool input_handled;
+	bool ugc_locked;
+
+
+	Map<StringName,Group> group_map;
+
 	Size2 last_screen_size;
 	StringName tree_changed_name;
 	StringName node_removed_name;
 
-
 	int64_t current_frame;
-	int node_count;
 
 #ifdef TOOLS_ENABLED
 	Node *edited_scene_root;
@@ -113,8 +118,6 @@ private:
 		bool operator<(const UGCall& p_with) const { return group==p_with.group?call<p_with.call:group<p_with.group; }
 	};
 
-	//safety for when a node is deleted while a group is being called
-	int call_lock;
 	Set<Node*> call_skip; //skip erased nodes
 
 
@@ -127,7 +130,6 @@ private:
 	List<ObjectID> delete_queue;
 
 	Map<UGCall,Vector<Variant> > unique_group_calls;
-	bool ugc_locked;
 	void _flush_ugc();
 	void _flush_transform_notifications();
 

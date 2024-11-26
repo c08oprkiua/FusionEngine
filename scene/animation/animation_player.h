@@ -38,7 +38,7 @@
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
-
+//16864 -> 16840
 class AnimationPlayer : public Node {
 	OBJ_TYPE( AnimationPlayer, Node );
 	OBJ_CATEGORY("Animation Nodes");
@@ -66,15 +66,17 @@ private:
 		SP_NODE2D_SCALE,
 	};
 
+	//128 -> 120
 	struct TrackNodeCache {
 
 		uint32_t id;
+		int bone_idx;
 		RES resource;
 		Node *node;
 		Spatial* spatial;
 		Node2D* node_2d;
 		Skeleton *skeleton;
-		int bone_idx;
+
 		// accumulated transforms
 
 		Vector3 loc_accum;
@@ -118,15 +120,14 @@ private:
 	Map<TrackNodeCacheKey,TrackNodeCache> node_cache_map;
 
 	TrackNodeCache* cache_update[NODE_CACHE_UPDATE_MAX];
-	int cache_update_size;
 	TrackNodeCache::PropertyAnim* cache_update_prop[NODE_CACHE_UPDATE_MAX];
+	int cache_update_size;
 	int cache_update_prop_size;
 	Map<Ref<Animation>,int> used_anims;
 
 	uint64_t accum_pass;
-        float speed_scale;
-        float default_blend_time;
-
+	float speed_scale;
+	float default_blend_time;
 
 	struct AnimationData {
 		String name;
@@ -188,11 +189,12 @@ private:
 	List<StringName> queued;
 
 	bool end_notify;
-
-	String autoplay;
-	AnimationProcessMode animation_process_mode;
 	bool processing;
 	bool active;
+    bool playing;
+
+	AnimationProcessMode animation_process_mode;
+	String autoplay;
 
 	NodePath root;
 		
@@ -226,8 +228,6 @@ private:
 
 
 	void _set_process(bool p_process,bool p_force=false);
-
-    bool playing;
 
 protected:
 	bool _set(const StringName& p_name, const Variant& p_value);

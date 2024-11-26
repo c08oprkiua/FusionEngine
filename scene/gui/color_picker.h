@@ -38,6 +38,7 @@
 #include "scene/gui/box_container.h"
 #include "scene/gui/option_button.h"
 
+//928 -> 920
 class ColorPicker : public HBoxContainer {
 
 	OBJ_TYPE(ColorPicker,HBoxContainer);
@@ -51,6 +52,8 @@ public:
 private:
 
 	Mode mode;
+	bool edit_alpha;
+	bool updating;
 
 	OptionButton *mode_box;
 
@@ -60,11 +63,10 @@ private:
 	Label *labels[4];
 	Label *html_num;
 	LineEdit *html;
-	bool edit_alpha;
+
 	Size2i ms;
 
 	Color color;
-	bool updating;
 
 	void _html_entered(const String& p_html);
 	void _value_changed(double);

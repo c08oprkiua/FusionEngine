@@ -32,21 +32,20 @@
 #include "scene/2d/node_2d.h"
 #include "scene/resources/texture.h"
 
-
+//536 -> 528
 class Sprite : public Node2D {
 
 	OBJ_TYPE( Sprite, Node2D );
 
 	Ref<Texture> texture;
 
-	bool centered;
+	Rect2 region_rect;
 	Point2 offset;
 
 	bool hflip;
 	bool vflip;
 	bool region;
-	Rect2 region_rect;
-
+	bool centered;
 	int frame;
 
 	int vframes;

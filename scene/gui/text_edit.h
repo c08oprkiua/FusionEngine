@@ -33,7 +33,7 @@
 #include "scene/gui/scroll_bar.h"
 #include "scene/main/timer.h"
 
-
+//1288 -> 1256
 class TextEdit : public Control  {
 
 	OBJ_TYPE( TextEdit, Control );
@@ -176,17 +176,16 @@ class TextEdit : public Control  {
 	Vector<ColorRegion> color_regions;
 
 	Set<String> completion_prefixes;
-	bool completion_enabled;
+
 	Vector<String> completion_strings;
 	Vector<String> completion_options;
-	bool completion_active;
 	String completion_current;
 	String completion_base;
 	int completion_index;
 	Rect2i completion_rect;
 	int completion_line_ofs;
 
-	bool setting_text;
+
 
 	// data
 	Text text;
@@ -195,9 +194,13 @@ class TextEdit : public Control  {
 	uint32_t saved_version;
 
 	int max_chars;
+	int tab_size;
+
+	bool completion_enabled;
+	bool completion_active;
+	bool setting_text;
 	bool readonly;
 	bool syntax_coloring;
-	int tab_size;
 
 	bool setting_row;
 	bool wrap;
@@ -209,6 +212,7 @@ class TextEdit : public Control  {
 	
 	bool auto_brace_completion_enabled;
 	bool cut_copy_line;
+	bool next_operation_is_complex;
 
 	uint64_t last_dblclk;
 
@@ -222,8 +226,6 @@ class TextEdit : public Control  {
 	StringName tooltip_func;
 	Variant tooltip_ud;
 	
-	bool next_operation_is_complex;
-
 	int get_visible_rows() const;
 
 	int get_char_count();

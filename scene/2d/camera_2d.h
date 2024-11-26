@@ -32,7 +32,7 @@
 #include "scene/2d/node_2d.h"
 #include "scene/main/viewport.h"
 
-
+//608 -> 600
 class Camera2D : public Node2D {
 
 	OBJ_TYPE( Camera2D, Node2D );
@@ -40,7 +40,6 @@ class Camera2D : public Node2D {
 protected:
 	Point2 camera_pos;
 	Point2 smoothed_camera_pos;
-	bool first;
 
 	Viewport *viewport;
 
@@ -49,20 +48,21 @@ protected:
 	RID canvas;
 	Vector2 offset;
 	Vector2 zoom;
-	bool centered;
-	bool rotating;
-	bool current;
+
 	float smoothing;
 	int limit[4];
 	float drag_margin[4];
 
-	bool h_drag_enabled;
-	bool v_drag_enabled;
 	float h_ofs;
 	float v_ofs;
 
-
 	Point2 camera_screen_center;
+	bool first;
+	bool centered;
+	bool rotating;
+	bool current;
+	bool h_drag_enabled;
+	bool v_drag_enabled;
 	void _update_scroll();
 
 	void _make_current(Object *p_which);

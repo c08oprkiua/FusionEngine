@@ -32,6 +32,7 @@
 #include "scene/2d/sound_player_2d.h"
 #include "scene/resources/sample_library.h"
 
+//544 -> 536
 class SamplePlayer2D : public SoundPlayer2D {
 
 	OBJ_TYPE(SamplePlayer2D,SoundPlayer2D);
@@ -50,8 +51,8 @@ private:
 
 	Ref<SampleLibrary> library;
 	int polyphony;
-	String played_back;
 	float random_pitch_scale;
+	String played_back;
 
 protected:
 

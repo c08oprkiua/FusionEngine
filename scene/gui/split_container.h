@@ -31,20 +31,20 @@
 
 #include "scene/gui/container.h"
 
-
+//744 -> 736
 class SplitContainer : public Container {
 
 	OBJ_TYPE(SplitContainer,Container);
 
-	bool vertical;
 	int expand_ofs;
 	int middle_sep;
-	bool dragging;
 	int drag_from;
 	int drag_ofs;
 	bool collapsed;
 	bool dragger_visible;
 	bool mouse_inside;
+	bool dragging;
+	bool vertical;
 
 
 	Control *_getch(int p_idx) const;

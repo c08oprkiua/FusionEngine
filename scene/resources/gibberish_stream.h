@@ -32,6 +32,7 @@
 
 #include "scene/resources/audio_stream.h"
 #include "scene/resources/sample_library.h"
+//320 -> 312
 class AudioStreamGibberish : public AudioStream {
 
 	OBJ_TYPE( AudioStreamGibberish, AudioStream );
@@ -49,7 +50,6 @@ class AudioStreamGibberish : public AudioStream {
 	float pitch_random_scale;
 	Vector<Ref<Sample> > _samples;
 	Vector<int> _rand_pool;
-	int rand_idx;
 	_FORCE_INLINE_ int randomize();
 
 	struct Playback {
@@ -60,6 +60,7 @@ class AudioStreamGibberish : public AudioStream {
 	};
 
 	Playback playback[2];
+	int rand_idx;
 	int active_voices;
 
 	Ref<SampleLibrary> phonemes;

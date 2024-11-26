@@ -3,6 +3,7 @@
 
 #include "scene/2d/node_2d.h"
 
+//568 -> 560
 class Polygon2D : public Node2D {
 
 	OBJ_TYPE(Polygon2D,Node2D);
@@ -13,10 +14,11 @@ class Polygon2D : public Node2D {
 	Ref<Texture> texture;
 	Vector2 tex_scale;
 	Vector2 tex_ofs;
-	bool tex_tile;
 	float tex_rot;
-	bool invert;
 	float invert_border;
+	bool tex_tile;
+	bool invert;
+
 
 	Vector2 offset;
 	mutable bool rect_cache_dirty;

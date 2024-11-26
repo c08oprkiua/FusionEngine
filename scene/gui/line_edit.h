@@ -36,7 +36,7 @@
 class LineEdit : public Control {
 	
 	OBJ_TYPE( LineEdit, Control );
-	
+
 	bool editable;
 	bool pass;
 	

@@ -35,7 +35,7 @@
 #include "scene/3d/skeleton.h"
 #include "scene/main/misc.h"
 
-
+//384 -> 376
 class AnimationTreePlayer : public Node {
 
 	OBJ_TYPE( AnimationTreePlayer, Node );
@@ -74,11 +74,13 @@ private:
 		DISCONNECTED=-1,
 	};
 
+	//24 -> 16
 	struct TrackKey {
 
 		uint32_t id;
-		StringName property;
 		int bone_idx;
+		StringName property;
+
 
 		inline bool operator<(const TrackKey& p_right) const {
 
@@ -92,13 +94,13 @@ private:
 		}
 	};
 
-
+	//88 -> 80
 	struct Track {
 		uint32_t id;
+		int bone_idx;
 		Node *node;
 		Spatial* spatial;
 		Skeleton *skeleton;
-		int bone_idx;
 		StringName property;
 
 		Vector3 loc;
@@ -159,19 +161,18 @@ private:
 		AnimationNode() { type=NODE_ANIMATION;  next=NULL; last_version=0; skip=false; }
 	};
 
-
+	//88 -> 80
 	struct OneShotNode  : public NodeBase {
 
 		bool active;
 		bool start;
+		bool autorestart;
+		bool mix;
 		float fade_in;
 		float fade_out;
 
-		bool autorestart;
 		float autorestart_delay;
 		float autorestart_random_delay;
-		bool mix;
-
 
 		float time;
 		float remaining;
@@ -258,12 +259,12 @@ private:
 	AnimationNode *active_list;
 	bool active;
 	bool dirty_caches;
+	bool reset_request;
 	Map<StringName,NodeBase*> node_map;
 
 	// return time left to finish animation
 	float _process_node(const StringName& p_node,AnimationNode **r_prev_anim, float p_weight,float p_step, bool p_seek=false,const HashMap<NodePath,bool> *p_filter=NULL, float p_reverse_weight=0);
 	void _process_animation();
-	bool reset_request;
 
 	ConnectError _cycle_test(const StringName &p_at_node);
 
