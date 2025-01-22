@@ -1169,7 +1169,17 @@ def build_cg_shader(sname):
 
 	fd.write("\t};\n");
 
-		
+def write_disabled_classes(class_list):
+    f = open("core/disabled_object_types.gen.h", "w")
+    f.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
+    f.write("#ifndef DISABLED_CLASSES_GEN_H\n")
+    f.write("#define DISABLED_CLASSES_GEN_H\n\n")
+    for c in class_list:
+        cs = c.strip()
+        if cs != "":
+            f.write("#define ObjectTypeDB_Disable_" + cs + " 1\n")
+    f.write("\n#endif\n")
+
 
 import glob
 def detect_modules():

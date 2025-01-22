@@ -128,7 +128,8 @@ void register_core_driver_types() {
 	ImageLoader::add_image_format_loader( image_loader_jpg );
 #endif
 
-	ObjectTypeDB::register_type<RegEx>();
+	REGISTER_OBJECT(RegEx);
+
 }
 
 void unregister_core_driver_types() {
@@ -160,13 +161,13 @@ void register_driver_types() {
 #ifdef TREMOR_ENABLED
 	vorbis_stream_loader=memnew( ResourceFormatLoaderAudioStreamOGG );
 	ResourceLoader::add_resource_format_loader(vorbis_stream_loader );
-	ObjectTypeDB::register_type<AudioStreamOGG>();
+	REGISTER_OBJECT(AudioStreamOGG);
 #endif
 
 #ifdef VORBIS_ENABLED
 	vorbis_stream_loader=memnew( ResourceFormatLoaderAudioStreamOGGVorbis );
 	ResourceLoader::add_resource_format_loader(vorbis_stream_loader );
-	ObjectTypeDB::register_type<AudioStreamOGGVorbis>();
+	REGISTER_OBJECT(AudioStreamOGGVorbis);
 #endif
 
 
@@ -188,14 +189,14 @@ void register_driver_types() {
 #ifdef SPEEX_ENABLED
 	speex_stream_loader=memnew( ResourceFormatLoaderAudioStreamSpeex );
 	ResourceLoader::add_resource_format_loader(speex_stream_loader);
-	ObjectTypeDB::register_type<AudioStreamSpeex>();
+	REGISTER_OBJECT(AudioStreamSpeex);
 #endif
 
 #ifdef MUSEPACK_ENABLED
 
 	mpc_stream_loader=memnew( ResourceFormatLoaderAudioStreamMPC );
 	ResourceLoader::add_resource_format_loader(mpc_stream_loader);
-	ObjectTypeDB::register_type<AudioStreamMPC>();
+	REGISTER_OBJECT(AudioStreamMPC);
 
 #endif
 
@@ -207,10 +208,10 @@ void register_driver_types() {
 #ifdef THEORA_ENABLED
 	//theora_stream_loader = memnew( ResourceFormatLoaderVideoStreamTheora );
 	//ResourceLoader::add_resource_format_loader(theora_stream_loader);
-	//ObjectTypeDB::register_type<VideoStreamTheora>();
+	//REGISTER_OBJECT(VideoStreamTheora);
 	theoraplayer_stream_loader = memnew( ResourceFormatLoaderVideoStreamTheoraplayer );
 	ResourceLoader::add_resource_format_loader(theoraplayer_stream_loader);
-	ObjectTypeDB::register_type<VideoStreamTheoraplayer>();
+	REGISTER_OBJECT(VideoStreamTheoraplayer);
 #endif
 
 

@@ -811,7 +811,7 @@ Error Main::setup2() {
 
 #ifdef TOOLS_ENABLED
 	EditorNode::register_editor_types();
-	ObjectTypeDB::register_type<PCKPacker>(); // todo: move somewhere else
+	REGISTER_OBJECT(PCKPacker); // todo: move somewhere else
 #endif
 
 	MAIN_PRINT("Main: Load Scripts, Modules, Drivers");
