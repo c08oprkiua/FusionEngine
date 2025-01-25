@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  OS_PSP.cpp                                                        */
+/*  OS_WII.cpp                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -27,9 +27,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "servers/visual/visual_server_raster.h"
-#include "rasterizer_psp.h"
 #include "drivers/gles1/rasterizer_gles1.h"
-#include "os_psp.h"
+//#include "rasterizer_gx.h"
+#include "drivers/unix/tcp_server_posix.h"
+#include "drivers/unix/stream_peer_tcp_posix.h"
+#include "drivers/unix/ip_unix.h"
+#include "os_wii.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "print_string.h"
@@ -39,37 +42,42 @@
 #include "drivers/unix/file_access_unix.h"
 #include "os/memory_pool_dynamic_static.h"
 #include "core/os/thread_dummy.h"
-#include "drivers/unix/thread_posix.h"
-#include "main/main.h"
-#include <sys/time.h>
-#include <unistd.h>
-#include <pspaudio.h>
-#include <pspkernel.h>
-#include "drivers/unix/tcp_server_posix.h"
-#include "drivers/unix/stream_peer_tcp_posix.h"
-#include "drivers/unix/ip_unix.h"
+#include "network2.h"
 
-// #include <GL/glut.h>
-int OS_PSP::get_video_driver_count() const {
+#include "main/main.h"
+
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/errno.h>
+
+int OS_WII::get_video_driver_count() const {
 
 	return 1;
 }
-const char * OS_PSP::get_video_driver_name(int p_driver) const {
+const char * OS_WII::get_video_driver_name(int p_driver) const {
 
-	return "sceGu";
+	return "OpenGX";
 }
-OS::VideoMode OS_PSP::get_default_video_mode() const {
 
+OS::VideoMode OS_WII::get_default_video_mode() const {
 
-	return OS::VideoMode(480,272,true);
-
+	return OS::VideoMode(640,480,false);
 }
 
 static MemoryPoolStaticMalloc *mempool_static=NULL;
 static MemoryPoolDynamicStatic *mempool_dynamic=NULL;
-	
-	
-void OS_PSP::initialize_core() {
+
+void OS_WII::initialize_core() {
+	SYS_STDIO_Report(true);
+
+	net_deinit();
+	int rv;
+	while ((rv = net_init()) == -EAGAIN) ;
+	if (rv < 0) {
+		printf("Error while initializing the network: %s\n", strerror(-rv));
+	} else {
+		printf("Net result: %d\n", rv);
+	}
 
 	ThreadDummy::make_default();
 	SemaphoreDummy::make_default();
@@ -90,29 +98,58 @@ void OS_PSP::initialize_core() {
 	ticks_start = 0;
 	ticks_start = get_ticks_usec();
 
-#ifdef PSP_NET
+	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
+	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
+	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_FILESYSTEM);
+	//FileAccessBufferedFA<FileAccessUnix>::make_default();
+	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
+	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
+	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
+
 	TCPServerPosix::make_default();
 	StreamPeerTCPPosix::make_default();
 	IP_Unix::make_default();
-#endif
+	
+	SDL_Init(SDL_INIT_VIDEO);
+	videoInfo = SDL_GetVideoInfo();
+	
+	videoFlags  = SDL_OPENGL;          /* Enable OpenGL in SDL */
+	videoFlags |= SDL_GL_DOUBLEBUFFER; /* Enable double buffering */
+	videoFlags |= SDL_HWPALETTE;       /* Store the palette in hardware */
+	videoFlags |= SDL_RESIZABLE;       /* Enable window resizing */
+	videoFlags |= SDL_FULLSCREEN;
+
+	if ( videoInfo->hw_available )
+		videoFlags |= SDL_HWSURFACE;
+	else
+		videoFlags |= SDL_SWSURFACE;
+
+	if ( videoInfo->blit_hw )
+		videoFlags |= SDL_HWACCEL;
+
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+
+	surface = SDL_SetVideoMode(640, 480, 32, videoFlags);
+
+	//gladLoadGLLoader(getprocaddr);
+	//printf("glEnableClientState => %p\n", glad_glEnableClientState);
 }
 
-void OS_PSP::finalize_core() {
+void OS_WII::finalize_core() {
 	if (mempool_dynamic)
 		memdelete( mempool_dynamic );
 	delete mempool_static;
 }
 
-void OS_PSP::initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver) {
+
+void OS_WII::initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver) {
 
 	args=OS::get_singleton()->get_cmdline_args();
 	current_videomode=p_desired;
 	main_loop=NULL;
 
-	sceCtrlSetSamplingCycle(0);
-	sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 	
-	rasterizer = memnew( RasterizerPSP );
+	rasterizer = memnew( RasterizerGLES1 );
 
 	visual_server = memnew( VisualServerRaster(rasterizer) );
 
@@ -143,8 +180,11 @@ void OS_PSP::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 	input = memnew( InputDefault );
 
+	// _ensure_data_dir();
+
+		
 }
-void OS_PSP::finalize() {
+void OS_WII::finalize() {
 
 	if(main_loop)
 		memdelete(main_loop);
@@ -178,107 +218,64 @@ void OS_PSP::finalize() {
 	args.clear();
 }
 
-void OS_PSP::set_mouse_show(bool p_show) {
+void OS_WII::set_mouse_show(bool p_show) {
 
 
 }
-
-PspCtrlButtons buttons[16] = {
-		PSP_CTRL_CROSS,
-		PSP_CTRL_CIRCLE,
-		PSP_CTRL_SQUARE,
-		PSP_CTRL_TRIANGLE,
-		(PspCtrlButtons)0,
-		(PspCtrlButtons)0,
-		PSP_CTRL_LTRIGGER,
-		PSP_CTRL_RTRIGGER,
-		(PspCtrlButtons)0,
-		(PspCtrlButtons)0,
-		PSP_CTRL_SELECT,
-		PSP_CTRL_START,
-		PSP_CTRL_UP,
-		PSP_CTRL_DOWN,
-		PSP_CTRL_LEFT,
-		PSP_CTRL_RIGHT
-};
-
-void OS_PSP::process_keys() {
-	sceCtrlReadBufferPositive(&pad, 1);
-
-	last++;
-
-	for(int i = 0; i < 16; i++) {
-		if (pad.Buttons & buttons[i]) {
-			InputEvent event;
-			event.type = InputEvent::JOYSTICK_BUTTON;
-			event.device = 0;
-			event.joy_button.button_index = i;
-			event.joy_button.pressed = true;
-			event.ID = last;
-			input->parse_input_event(event);
-		} else {
-			InputEvent event;
-			event.type = InputEvent::JOYSTICK_BUTTON;
-			event.device = 0;
-			event.joy_button.button_index = i;
-			event.joy_button.pressed = false;
-			event.ID = last;
-			input->parse_input_event(event);
-		}
-	}
-
-	uint8_t lx = (pad.Lx - 128);
-	uint8_t ly = (pad.Ly - 128);
-
-	input->set_joy_axis(0, 0, lx);
-	input->set_joy_axis(0, 1, ly);
-}
-
-void OS_PSP::set_mouse_grab(bool p_grab) {
+void OS_WII::set_mouse_grab(bool p_grab) {
 
 	grab=p_grab;
 }
-bool OS_PSP::is_mouse_grab_enabled() const {
+bool OS_WII::is_mouse_grab_enabled() const {
 
 	return grab;
 }
 
-int OS_PSP::get_mouse_button_state() const {
+int OS_WII::get_mouse_button_state() const {
 
 	return 0;
 }
 
-Point2 OS_PSP::get_mouse_pos() const {
+Point2 OS_WII::get_mouse_pos() const {
 
 	return Point2();
 }
 
-void OS_PSP::set_window_title(const String& p_title) {
+void OS_WII::set_window_title(const String& p_title) {
 
 
 }
 
-void OS_PSP::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
+void OS_WII::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
+
+
+}
+OS::VideoMode OS_WII::get_video_mode(int p_screen) const {
+
+	return current_videomode;
+}
+void OS_WII::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {
 
 
 }
 
-OS::Date OS_PSP::get_date() const {
+
+OS::Date OS_WII::get_date() const {
 	Date ret;
 	return ret;
 }
 
-OS::Time OS_PSP::get_time() const {
+OS::Time OS_WII::get_time() const {
 	Time ret;
 	return ret;
 }
 
 
-void OS_PSP::delay_usec(uint32_t p_usec) const{
+void OS_WII::delay_usec(uint32_t p_usec) const{
 	usleep(p_usec);
 }
 
-uint64_t OS_PSP::get_ticks_usec() const{
+uint64_t OS_WII::get_ticks_usec() const{
 	struct timeval tv_now;
 	gettimeofday(&tv_now, NULL);
 
@@ -288,74 +285,68 @@ uint64_t OS_PSP::get_ticks_usec() const{
 	return longtime;
 }
 
-OS::VideoMode OS_PSP::get_video_mode(int p_screen) const {
-
-	//return current_videomode;
-	return get_default_video_mode();
-}
-void OS_PSP::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {
-
-
-}
-
-
-MainLoop *OS_PSP::get_main_loop() const {
+MainLoop *OS_WII::get_main_loop() const {
 
 	return main_loop;
 }
 
-void OS_PSP::delete_main_loop() {
+void OS_WII::delete_main_loop() {
 
 	if (main_loop)
 		memdelete(main_loop);
 	main_loop=NULL;
 }
 
-void OS_PSP::set_main_loop( MainLoop * p_main_loop ) {
+void OS_WII::set_main_loop( MainLoop * p_main_loop ) {
 
 	main_loop=p_main_loop;
 	input->set_main_loop(p_main_loop);
 }
 
-bool OS_PSP::can_draw() const {
+bool OS_WII::can_draw() const {
 
-	return true;
+	return true; //can never draw
 };
 
 
-String OS_PSP::get_name() {
+String OS_WII::get_name() {
 
-	return "PSP";
+	return "Wii";
 }
 
 
 
-void OS_PSP::move_window_to_foreground() {
+void OS_WII::move_window_to_foreground() {
 
 }
 
-void OS_PSP::set_cursor_shape(CursorShape p_shape) {
+void OS_WII::set_cursor_shape(CursorShape p_shape) {
 
 
 }
 
-void OS_PSP::process_audio() {
-	// sceAudioOutput
+void OS_WII::swap_buffers() {
+	SDL_GL_SwapBuffers();
 }
 
-int OS_PSP::psp_callback_thread(unsigned sz, void *thiz) {
-	sceKernelRegisterExitCallback(
-			sceKernelCreateCallback("Confirm Exit Callback", [](int, int, void *up) {
-				reinterpret_cast<OS_PSP *>(up)->force_quit = true;
-				return 0;
-			}, *reinterpret_cast<void **>(thiz)));
-	sceKernelSleepThreadCB();
-	sceKernelExitThread(0);
+void OS_WII::process_input() {
+	
+	while ( SDL_PollEvent( &event ) )
+		{
+		switch( event.type )
+		{
 
-	return 0;
+		case SDL_QUIT:
+			/* handle quit requests */
+			force_quit = true;
+			break;
+		default:
+			break;
+		}
+	}
 }
 
-void OS_PSP::run() {
+void OS_WII::run() {
 
 	force_quit = false;
 	
@@ -363,33 +354,21 @@ void OS_PSP::run() {
 		return;
 		
 	main_loop->init();
-
-	auto thiz = this;
-	sceKernelStartThread(
-			sceKernelCreateThread("Exit Callback Thread", psp_callback_thread, 0x11, 0x200, 0, nullptr),
-			sizeof(this),
-			&thiz);
-
+		
 	while (!force_quit) {
-		// process_audio();
-		process_keys();
+		process_input();
 		
 		if (Main::iteration()==true)
 			break;
 	};
-
+	
 	main_loop->finish();
 }
 
-void OS_PSP::swap_buffers() {
-	// glutSwapBuffers();
-}
+OS_WII::OS_WII() {
 
-OS_PSP::OS_PSP() {
-
-	AudioDriverManagerSW::add_driver(&driver_psp);
+	AudioDriverManagerSW::add_driver(&driver_dummy);
 	//adriver here
 	grab=false;
-	_verbose_stdout=true;
 
 };
