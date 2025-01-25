@@ -39,8 +39,9 @@ class EditorProgress;
 class PackSource;
 class FileExportData;
 
-class EditorImportPlugin : public Reference {
-	OBJ_TYPE( EditorImportPlugin, Reference);
+
+class EditorImportPlugin : public RefCounted {
+	OBJ_TYPE( EditorImportPlugin, RefCounted);
 
 protected:
 	static void _bind_methods();
@@ -58,8 +59,9 @@ public:
 	EditorImportPlugin();
 };
 
-class EditorExportPlugin : public Reference {
-	OBJ_TYPE( EditorExportPlugin, Reference);
+
+class EditorExportPlugin : public RefCounted {
+	OBJ_TYPE( EditorExportPlugin, RefCounted);
 
 protected:
 	static void _bind_methods();
@@ -70,8 +72,8 @@ public:
 	EditorExportPlugin();
 };
 
-class EditorExportPlatform : public Reference {
-	OBJ_TYPE( EditorExportPlatform,Reference );
+class EditorExportPlatform : public RefCounted {
+	OBJ_TYPE( EditorExportPlatform,RefCounted );
 
 public:
 	typedef Error (*EditorExportSaveFunction)(void *p_userdata,const String& p_path, const Vector<uint8_t>& p_data,int p_file,int p_total);
