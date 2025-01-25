@@ -19,7 +19,16 @@ elif env["platform"] not in ("psp", "wii"):
 elif env["platform"] != "vita":
 	SConscript('gles1/SCsub');
 SConscript('gl_context/SCsub');
+
 SConscript('openssl/SCsub');
+
+if (env['pck'] == 'yes'):
+    env.add_source_files(env.core_sources,"pck/pack_pck.cpp")
+    SConscript('pck/SCsub');
+if (env['minizip'] == 'yes'):
+    SConscript('zip_pack/SCsub');
+if (env['small_pck'] == 'yes'):
+    SConscript('s_pck/SCsub');
 
 if (env["png"]=="yes"):
 	SConscript("png/SCsub");
