@@ -125,6 +125,7 @@ opts.Add("CFLAGS", "Custom flags for the C compiler");
 opts.Add("LINKFLAGS", "Custom flags for the linker");
 opts.Add('disable_3d', 'Disable 3D nodes for smaller executable (yes/no)', "no")
 opts.Add('disable_advanced_gui', 'Disable advance 3D gui nodes and behaviors (yes/no)', "no")
+opts.Add("disable_classes", "Disable given classes (comma separated)", "")
 
 # add platform specific options
 
@@ -295,6 +296,9 @@ if selected_platform in platform_list:
 
 	if (env['tools']=='yes'):
 		env.Append(CPPFLAGS=['-DTOOLS_ENABLED'])
+
+	methods.write_disabled_classes(env["disable_classes"].split(","))
+
 	if (env['disable_3d']=='yes'):
 		env.Append(CPPFLAGS=['-D_3D_DISABLED'])
 	if (env['gdscript']=='yes'):

@@ -145,6 +145,7 @@ ipch/
 .codelite/
 
 # Kate project files
+*.kate-swp
 
 # TFS 2012 Local Workspace
 $tf/
@@ -270,4 +271,3 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
-

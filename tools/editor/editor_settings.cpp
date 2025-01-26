@@ -175,7 +175,7 @@ void EditorSettings::create() {
 	config_path = OS::get_singleton()->get_system_dir(OS::SYSTEM_DIR_DOCUMENTS);
 	config_dir=String(_MKSTR(VERSION_SHORT_NAME)).capitalize();
 
-	ObjectTypeDB::register_type<EditorSettings>(); //otherwise it can't be unserialized
+	REGISTER_OBJECT(EditorSettings); //otherwise it can't be unserialized
 	String config_file_path;
 
 	if (config_path!=""){

@@ -3032,15 +3032,15 @@ bool EditorNode::is_scene_in_use(const String& p_path) {
 
 void EditorNode::register_editor_types() {
 
-	ObjectTypeDB::register_type<EditorPlugin>();
-	ObjectTypeDB::register_type<EditorImportPlugin>();
-	ObjectTypeDB::register_type<EditorScenePostImport>();
-	ObjectTypeDB::register_type<EditorScript>();
+	REGISTER_OBJECT(EditorPlugin);
+	REGISTER_OBJECT(EditorImportPlugin);
+	REGISTER_OBJECT(EditorScenePostImport);
+	REGISTER_OBJECT(EditorScript);
 
 
-	//ObjectTypeDB::register_type<EditorImporter>();
-//	ObjectTypeDB::register_type<EditorPostImport>();
-	ObjectTypeDB::register_type<PCKPacker>();
+	//REGISTER_OBJECT(EditorImporter);
+//	REGISTER_OBJECT(EditorPostImport);
+	REGISTER_OBJECT(PCKPacker);
 }
 
 void EditorNode::unregister_editor_types() {
