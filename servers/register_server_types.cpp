@@ -42,8 +42,8 @@ void register_server_types() {
 	Globals::get_singleton()->add_singleton( Globals::Singleton("VS",VisualServer::get_singleton()) );
 	Globals::get_singleton()->add_singleton( Globals::Singleton("AudioServer",AudioServer::get_singleton()) );
 	Globals::get_singleton()->add_singleton( Globals::Singleton("AS",AudioServer::get_singleton()) );
-	Globals::get_singleton()->add_singleton( Globals::Singleton("PhysicsServer",PhysicsServer::get_singleton()) );
-	Globals::get_singleton()->add_singleton( Globals::Singleton("PS",PhysicsServer::get_singleton()) );
+	Globals::get_singleton()->add_singleton( Globals::Singleton("PhysicsServer",PhysicsServer3D::get_singleton()) );
+	Globals::get_singleton()->add_singleton( Globals::Singleton("PS",PhysicsServer3D::get_singleton()) );
 	Globals::get_singleton()->add_singleton( Globals::Singleton("Physics2DServer",Physics2DServer::get_singleton()) );
 	Globals::get_singleton()->add_singleton( Globals::Singleton("PS2D",Physics2DServer::get_singleton()) );
 	Globals::get_singleton()->add_singleton( Globals::Singleton("SpatialSoundServer",SpatialSound2DServer::get_singleton()) );

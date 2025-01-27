@@ -28,12 +28,12 @@
 /*************************************************************************/
 #include "concave_polygon_shape.h"
 
-#include "servers/physics_server.h"
+#include "servers/physics_3d_server.h"
 
 bool ConcavePolygonShape3D::_set(const StringName& p_name, const Variant& p_value) {
 
 	if (p_name=="data")
-		PhysicsServer::get_singleton()->shape_set_data(get_shape(),p_value);
+		PhysicsServer3D::get_singleton()->shape_set_data(get_shape(),p_value);
 	else
 		return false;
 
@@ -44,7 +44,7 @@ bool ConcavePolygonShape3D::_set(const StringName& p_name, const Variant& p_valu
 bool ConcavePolygonShape3D::_get(const StringName& p_name,Variant &r_ret) const {
 
 	if (p_name=="data")
-		r_ret=PhysicsServer::get_singleton()->shape_get_data(get_shape());
+		r_ret=PhysicsServer3D::get_singleton()->shape_get_data(get_shape());
 	else
 		return false;
 	return true;
@@ -62,13 +62,13 @@ void ConcavePolygonShape3D::_update_shape() {
 
 void ConcavePolygonShape3D::set_faces(const DVector<Vector3>& p_faces) {
 
-	PhysicsServer::get_singleton()->shape_set_data(get_shape(),p_faces);
+	PhysicsServer3D::get_singleton()->shape_set_data(get_shape(),p_faces);
 	notify_change_to_owners();
 }
 
 DVector<Vector3> ConcavePolygonShape3D::get_faces() const {
 
-	return PhysicsServer::get_singleton()->shape_get_data(get_shape());
+	return PhysicsServer3D::get_singleton()->shape_get_data(get_shape());
 
 }
 
@@ -80,7 +80,7 @@ void ConcavePolygonShape3D::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("get_faces"),&ConcavePolygonShape3D::get_faces);
 }
 
-ConcavePolygonShape3D::ConcavePolygonShape3D() : Shape3D( PhysicsServer::get_singleton()->shape_create(PhysicsServer::SHAPE_CONCAVE_POLYGON)) {
+ConcavePolygonShape3D::ConcavePolygonShape3D() : Shape3D( PhysicsServer3D::get_singleton()->shape_create(PhysicsServer3D::SHAPE_CONCAVE_POLYGON)) {
 
 	//set_planes(Vector3(1,1,1));
 }

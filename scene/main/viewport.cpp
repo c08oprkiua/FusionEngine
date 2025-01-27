@@ -439,7 +439,7 @@ void Viewport::_notification(int p_what) {
 							Vector3 from = camera->project_ray_origin(pos);
 							Vector3 dir = camera->project_ray_normal(pos);
 
-							PhysicsDirectSpaceState *space = PhysicsServer::get_singleton()->space_get_direct_state(find_world()->get_space());
+							PhysicsDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
 							if (space) {
 
 								bool col = space->intersect_ray(from,from+dir*10000,result,Set<RID>(),0xFFFFFFFF,0xFFFFFFFF);
@@ -479,7 +479,7 @@ void Viewport::_notification(int p_what) {
 					Vector3 from = camera->project_ray_origin(physics_last_mousepos);
 					Vector3 dir = camera->project_ray_normal(physics_last_mousepos);
 
-					PhysicsDirectSpaceState *space = PhysicsServer::get_singleton()->space_get_direct_state(find_world()->get_space());
+					PhysicsDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
 					if (space) {
 
 						bool col = space->intersect_ray(from,from+dir*10000,result,Set<RID>(),0xFFFFFFFF,0xFFFFFFFF);

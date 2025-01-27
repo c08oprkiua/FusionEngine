@@ -942,7 +942,7 @@ void VehicleBody3D::_direct_state_changed(Object *p_state) {
 void VehicleBody3D::set_mass(real_t p_mass) {
 
 	mass=p_mass;
-	PhysicsServer::get_singleton()->body_set_param(get_rid(),PhysicsServer::BODY_PARAM_MASS,mass);
+	PhysicsServer3D::get_singleton()->body_set_param(get_rid(),PhysicsServer3D::BODY_PARAM_MASS,mass);
 }
 
 real_t VehicleBody3D::get_mass() const{
@@ -954,7 +954,7 @@ real_t VehicleBody3D::get_mass() const{
 void VehicleBody3D::set_friction(real_t p_friction) {
 
 	friction=p_friction;
-	PhysicsServer::get_singleton()->body_set_param(get_rid(),PhysicsServer::BODY_PARAM_FRICTION,friction);
+	PhysicsServer3D::get_singleton()->body_set_param(get_rid(),PhysicsServer3D::BODY_PARAM_FRICTION,friction);
 }
 
 real_t VehicleBody3D::get_friction() const{
@@ -1021,7 +1021,7 @@ void VehicleBody3D::_bind_methods(){
 
 
 
-VehicleBody3D::VehicleBody3D() : PhysicsBody3D(PhysicsServer::BODY_MODE_RIGID) {
+VehicleBody3D::VehicleBody3D() : PhysicsBody3D(PhysicsServer3D::BODY_MODE_RIGID) {
 
 
 	m_pitchControl=0;
@@ -1038,7 +1038,7 @@ VehicleBody3D::VehicleBody3D() : PhysicsBody3D(PhysicsServer::BODY_MODE_RIGID) {
 	ccd=false;
 
 	exclude.insert(get_rid());
-	PhysicsServer::get_singleton()->body_set_force_integration_callback(get_rid(),this,"_direct_state_changed");
+	PhysicsServer3D::get_singleton()->body_set_force_integration_callback(get_rid(),this,"_direct_state_changed");
 
 	set_mass(40);
 }

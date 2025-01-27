@@ -368,7 +368,7 @@ void OS_X11::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 	visual_server->init();
 	//
-	physics_server = memnew( PhysicsServerSW );
+	physics_server = memnew( PhysicsServer3DSW );
 	physics_server->init();
 	physics_2d_server = memnew( Physics2DServerSW );
 	physics_2d_server->init();

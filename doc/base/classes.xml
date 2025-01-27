@@ -21324,7 +21324,7 @@
 		</constant>
 	</constants>
 </class>
-<class name="PhysicsServerSW" inherits="PhysicsServer" category="Core">
+<class name="PhysicsServer3DSW" inherits="PhysicsServer" category="Core">
 	<brief_description>
 	</brief_description>
 	<description>

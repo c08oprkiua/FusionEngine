@@ -1256,8 +1256,8 @@ bool Main::iteration() {
 
 		uint64_t fixed_begin = OS::get_singleton()->get_ticks_usec();
 
-		PhysicsServer::get_singleton()->sync();
-		PhysicsServer::get_singleton()->flush_queries();
+		PhysicsServer3D::get_singleton()->sync();
+		PhysicsServer3D::get_singleton()->flush_queries();
 
 		Physics2DServer::get_singleton()->sync();
 		Physics2DServer::get_singleton()->flush_queries();
@@ -1269,7 +1269,7 @@ bool Main::iteration() {
 
 		message_queue->flush();
 
-		PhysicsServer::get_singleton()->step(frame_slice*time_scale);
+		PhysicsServer3D::get_singleton()->step(frame_slice*time_scale);
 		Physics2DServer::get_singleton()->step(frame_slice*time_scale);
 
 		time_accum-=frame_slice;

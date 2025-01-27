@@ -4067,7 +4067,7 @@ EditorNode::EditorNode() {
 	_edit_current();
 	current=NULL;
 
-	PhysicsServer::get_singleton()->set_active(false); // no physics by default if editor
+	PhysicsServer3D::get_singleton()->set_active(false); // no physics by default if editor
 	Physics2DServer::get_singleton()->set_active(false); // no physics by default if editor
 	ScriptServer::set_scripting_enabled(false); // no scripting by default if editor
 
