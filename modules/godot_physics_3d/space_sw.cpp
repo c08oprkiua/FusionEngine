@@ -37,7 +37,7 @@ _FORCE_INLINE_ static bool _match_object_type_query(CollisionObjectSW *p_object,
 	if ((p_object->get_layer_mask()&p_layer_mask)==0)
 		return false;
 
-	if (p_object->get_type()==CollisionObjectSW::TYPE_AREA && !(p_type_mask&PhysicsDirectSpaceState::TYPE_MASK_AREA))
+	if (p_object->get_type()==CollisionObjectSW::TYPE_AREA && !(p_type_mask&Physics3DDirectSpaceState::TYPE_MASK_AREA))
 		return false;
 
 	BodySW *body = static_cast<BodySW*>(p_object);
@@ -47,7 +47,7 @@ _FORCE_INLINE_ static bool _match_object_type_query(CollisionObjectSW *p_object,
 }
 
 
-bool PhysicsDirectSpaceStateSW::intersect_ray(const Vector3& p_from, const Vector3& p_to,RayResult &r_result,const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
+bool Physics3DDirectSpaceStateSW::intersect_ray(const Vector3& p_from, const Vector3& p_to,RayResult &r_result,const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
 
 
 	ERR_FAIL_COND_V(space->locked,false);
@@ -138,7 +138,7 @@ bool PhysicsDirectSpaceStateSW::intersect_ray(const Vector3& p_from, const Vecto
 }
 
 
-int PhysicsDirectSpaceStateSW::intersect_shape(const RID& p_shape, const Transform3D& p_xform,float p_margin,ShapeResult *r_results,int p_result_max,const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
+int Physics3DDirectSpaceStateSW::intersect_shape(const RID& p_shape, const Transform3D& p_xform,float p_margin,ShapeResult *r_results,int p_result_max,const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
 
 	if (p_result_max<=0)
 		return 0;
@@ -192,7 +192,7 @@ int PhysicsDirectSpaceStateSW::intersect_shape(const RID& p_shape, const Transfo
 }
 
 
-bool PhysicsDirectSpaceStateSW::cast_motion(const RID& p_shape, const Transform3D& p_xform,const Vector3& p_motion,float p_margin,float &p_closest_safe,float &p_closest_unsafe, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask,ShapeRestInfo *r_info) {
+bool Physics3DDirectSpaceStateSW::cast_motion(const RID& p_shape, const Transform3D& p_xform,const Vector3& p_motion,float p_margin,float &p_closest_safe,float &p_closest_unsafe, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask,ShapeRestInfo *r_info) {
 
 
 
@@ -321,7 +321,7 @@ bool PhysicsDirectSpaceStateSW::cast_motion(const RID& p_shape, const Transform3
 	return true;
 }
 
-bool PhysicsDirectSpaceStateSW::collide_shape(RID p_shape, const Transform3D& p_shape_xform,float p_margin,Vector3 *r_results,int p_result_max,int &r_result_count, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask){
+bool Physics3DDirectSpaceStateSW::collide_shape(RID p_shape, const Transform3D& p_shape_xform,float p_margin,Vector3 *r_results,int p_result_max,int &r_result_count, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask){
 
 	if (p_result_max<=0)
 		return 0;
@@ -407,7 +407,7 @@ static void _rest_cbk_result(const Vector3& p_point_A,const Vector3& p_point_B,v
 	rd->best_shape=rd->shape;
 
 }
-bool PhysicsDirectSpaceStateSW::rest_info(RID p_shape, const Transform3D& p_shape_xform,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
+bool Physics3DDirectSpaceStateSW::rest_info(RID p_shape, const Transform3D& p_shape_xform,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
 
 
 	ShapeSW *shape = static_cast<PhysicsServer3DSW*>(PhysicsServer3D::get_singleton())->shape_owner.get(p_shape);
@@ -468,7 +468,7 @@ bool PhysicsDirectSpaceStateSW::rest_info(RID p_shape, const Transform3D& p_shap
 }
 
 
-PhysicsDirectSpaceStateSW::PhysicsDirectSpaceStateSW() {
+Physics3DDirectSpaceStateSW::Physics3DDirectSpaceStateSW() {
 
 
 	space=NULL;
@@ -703,7 +703,7 @@ bool SpaceSW::is_locked() const {
 	return locked;
 }
 
-PhysicsDirectSpaceStateSW *SpaceSW::get_direct_state() {
+Physics3DDirectSpaceStateSW *SpaceSW::get_direct_state() {
 
 	return direct_access;
 }
@@ -731,7 +731,7 @@ SpaceSW::SpaceSW() {
 	broadphase->set_unpair_callback(_broadphase_unpair,this);
 	area=NULL;
 
-	direct_access = memnew( PhysicsDirectSpaceStateSW );
+	direct_access = memnew( Physics3DDirectSpaceStateSW );
 	direct_access->space=this;
 }
 

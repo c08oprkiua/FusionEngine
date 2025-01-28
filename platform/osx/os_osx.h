@@ -64,7 +64,7 @@ public:
 	unsigned int event_id;
 
 	PhysicsServer *physics_server;
-	Physics2DServer *physics_2d_server;
+	PhysicsServer2D *physics_2d_server;
 
 	IP_Unix *ip_unix;
 

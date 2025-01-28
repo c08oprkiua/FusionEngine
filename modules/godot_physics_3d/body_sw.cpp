@@ -595,7 +595,7 @@ void BodySW::call_queries() {
 
 	if (fi_callback) {
 
-		PhysicsDirectBodyStateSW *dbs = PhysicsDirectBodyStateSW::singleton;
+		Physics3DDirectBodyStateSW *dbs = Physics3DDirectBodyStateSW::singleton;
 		dbs->body=this;
 
 		Variant v=dbs;
@@ -698,9 +698,9 @@ BodySW::~BodySW() {
 		memdelete(fi_callback);
 }
 
-PhysicsDirectBodyStateSW *PhysicsDirectBodyStateSW::singleton=NULL;
+Physics3DDirectBodyStateSW *Physics3DDirectBodyStateSW::singleton=NULL;
 
-PhysicsDirectSpaceState* PhysicsDirectBodyStateSW::get_space_state() {
+Physics3DDirectSpaceState* Physics3DDirectBodyStateSW::get_space_state() {
 
 	return body->get_space()->get_direct_state();
 }

@@ -48,15 +48,15 @@ void CollisionObject2D::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 
 			if (area)
-				Physics2DServer::get_singleton()->area_set_transform(rid,get_global_transform());
+				PhysicsServer2D::get_singleton()->area_set_transform(rid,get_global_transform());
 			else
-				Physics2DServer::get_singleton()->body_set_state(rid,Physics2DServer::BODY_STATE_TRANSFORM,get_global_transform());
+				PhysicsServer2D::get_singleton()->body_set_state(rid,PhysicsServer2D::BODY_STATE_TRANSFORM,get_global_transform());
 
 			RID space = get_world_2d()->get_space();
 			if (area) {
-				Physics2DServer::get_singleton()->area_set_space(rid,space);
+				PhysicsServer2D::get_singleton()->area_set_space(rid,space);
 			} else
-				Physics2DServer::get_singleton()->body_set_space(rid,space);
+				PhysicsServer2D::get_singleton()->body_set_space(rid,space);
 
 		//get space
 		}
@@ -64,17 +64,17 @@ void CollisionObject2D::_notification(int p_what) {
 		case NOTIFICATION_TRANSFORM_CHANGED: {
 
 			if (area)
-				Physics2DServer::get_singleton()->area_set_transform(rid,get_global_transform());
+				PhysicsServer2D::get_singleton()->area_set_transform(rid,get_global_transform());
 			else
-				Physics2DServer::get_singleton()->body_set_state(rid,Physics2DServer::BODY_STATE_TRANSFORM,get_global_transform());
+				PhysicsServer2D::get_singleton()->body_set_state(rid,PhysicsServer2D::BODY_STATE_TRANSFORM,get_global_transform());
 
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
 
 			if (area) {
-				Physics2DServer::get_singleton()->area_set_space(rid,RID());
+				PhysicsServer2D::get_singleton()->area_set_space(rid,RID());
 			} else
-				Physics2DServer::get_singleton()->body_set_space(rid,RID());
+				PhysicsServer2D::get_singleton()->body_set_space(rid,RID());
 
 		} break;
 	}
@@ -86,20 +86,20 @@ void CollisionObject2D::_update_shapes() {
 		return;
 
 	if (area)
-		Physics2DServer::get_singleton()->area_clear_shapes(rid);
+		PhysicsServer2D::get_singleton()->area_clear_shapes(rid);
 	else
-		Physics2DServer::get_singleton()->body_clear_shapes(rid);
+		PhysicsServer2D::get_singleton()->body_clear_shapes(rid);
 
 	for(int i=0;i<shapes.size();i++) {
 
 		if (shapes[i].shape.is_null())
 			continue;
 		if (area)
-			Physics2DServer::get_singleton()->area_add_shape(rid,shapes[i].shape->get_rid(),shapes[i].xform);
+			PhysicsServer2D::get_singleton()->area_add_shape(rid,shapes[i].shape->get_rid(),shapes[i].xform);
 		else {
-			Physics2DServer::get_singleton()->body_add_shape(rid,shapes[i].shape->get_rid(),shapes[i].xform);
+			PhysicsServer2D::get_singleton()->body_add_shape(rid,shapes[i].shape->get_rid(),shapes[i].xform);
 			if (shapes[i].trigger)
-				Physics2DServer::get_singleton()->body_set_shape_as_trigger(rid,i,shapes[i].trigger);
+				PhysicsServer2D::get_singleton()->body_set_shape_as_trigger(rid,i,shapes[i].trigger);
 		}
 	}
 }
@@ -239,7 +239,7 @@ void CollisionObject2D::set_shape_as_trigger(int p_shape_idx, bool p_trigger) {
 	shapes[p_shape_idx].trigger=p_trigger;
 	if (!area && rid.is_valid()) {
 
-		Physics2DServer::get_singleton()->body_set_shape_as_trigger(rid,p_shape_idx,p_trigger);
+		PhysicsServer2D::get_singleton()->body_set_shape_as_trigger(rid,p_shape_idx,p_trigger);
 
 	}
 }
@@ -263,9 +263,9 @@ CollisionObject2D::CollisionObject2D(RID p_rid, bool p_area) {
 	rid=p_rid;
 	area=p_area;
 	if (p_area) {
-		Physics2DServer::get_singleton()->area_attach_object_instance_ID(rid,get_instance_ID());
+		PhysicsServer2D::get_singleton()->area_attach_object_instance_ID(rid,get_instance_ID());
 	} else {
-		Physics2DServer::get_singleton()->body_attach_object_instance_ID(rid,get_instance_ID());
+		PhysicsServer2D::get_singleton()->body_attach_object_instance_ID(rid,get_instance_ID());
 	}
 
 
@@ -282,5 +282,5 @@ CollisionObject2D::CollisionObject2D() {
 
 CollisionObject2D::~CollisionObject2D() {
 
-	Physics2DServer::get_singleton()->free(rid);
+	PhysicsServer2D::get_singleton()->free(rid);
 }

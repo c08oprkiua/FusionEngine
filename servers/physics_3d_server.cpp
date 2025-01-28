@@ -31,7 +31,7 @@
 PhysicsServer3D * PhysicsServer3D::singleton=NULL;
 
 
-void PhysicsDirectBodyState::integrate_forces() {
+void Physics3DDirectBodyState::integrate_forces() {
 
 	real_t step = get_step();
 	Vector3 lv = get_linear_velocity();
@@ -55,7 +55,7 @@ void PhysicsDirectBodyState::integrate_forces() {
 
 }
 
-Object* PhysicsDirectBodyState::get_contact_collider_object(int p_contact_idx) const {
+Object* Physics3DDirectBodyState::get_contact_collider_object(int p_contact_idx) const {
 
 	ObjectID objid = get_contact_collider_id(p_contact_idx);
 	Object *obj = ObjectDB::get_instance( objid );
@@ -63,110 +63,115 @@ Object* PhysicsDirectBodyState::get_contact_collider_object(int p_contact_idx) c
 }
 
 PhysicsServer3D * PhysicsServer3D::get_singleton() {
-
 	return singleton;
 }
 
-void PhysicsDirectBodyState::_bind_methods() {
+void PhysicsServer3D::set_singleton(PhysicsServer3D *server){
+	if (!singleton){
+		singleton = server;
+	}
+}
 
-	ObjectTypeDB::bind_method(_MD("get_total_gravity"),&PhysicsDirectBodyState::get_total_gravity);
-	ObjectTypeDB::bind_method(_MD("get_total_density"),&PhysicsDirectBodyState::get_total_density);
+void Physics3DDirectBodyState::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("get_inverse_mass"),&PhysicsDirectBodyState::get_inverse_mass);
-	ObjectTypeDB::bind_method(_MD("get_inverse_inertia"),&PhysicsDirectBodyState::get_inverse_inertia);
+	ObjectTypeDB::bind_method(_MD("get_total_gravity"),&Physics3DDirectBodyState::get_total_gravity);
+	ObjectTypeDB::bind_method(_MD("get_total_density"),&Physics3DDirectBodyState::get_total_density);
 
-	ObjectTypeDB::bind_method(_MD("set_linear_velocity","velocity"),&PhysicsDirectBodyState::set_linear_velocity);
-	ObjectTypeDB::bind_method(_MD("get_linear_velocity"),&PhysicsDirectBodyState::get_linear_velocity);
+	ObjectTypeDB::bind_method(_MD("get_inverse_mass"),&Physics3DDirectBodyState::get_inverse_mass);
+	ObjectTypeDB::bind_method(_MD("get_inverse_inertia"),&Physics3DDirectBodyState::get_inverse_inertia);
 
-	ObjectTypeDB::bind_method(_MD("set_angular_velocity","velocity"),&PhysicsDirectBodyState::set_angular_velocity);
-	ObjectTypeDB::bind_method(_MD("get_angular_velocity"),&PhysicsDirectBodyState::get_angular_velocity);
+	ObjectTypeDB::bind_method(_MD("set_linear_velocity","velocity"),&Physics3DDirectBodyState::set_linear_velocity);
+	ObjectTypeDB::bind_method(_MD("get_linear_velocity"),&Physics3DDirectBodyState::get_linear_velocity);
 
-	ObjectTypeDB::bind_method(_MD("set_transform","transform"),&PhysicsDirectBodyState::set_transform);
-	ObjectTypeDB::bind_method(_MD("get_transform"),&PhysicsDirectBodyState::get_transform);
+	ObjectTypeDB::bind_method(_MD("set_angular_velocity","velocity"),&Physics3DDirectBodyState::set_angular_velocity);
+	ObjectTypeDB::bind_method(_MD("get_angular_velocity"),&Physics3DDirectBodyState::get_angular_velocity);
 
-	ObjectTypeDB::bind_method(_MD("add_force","force","pos"),&PhysicsDirectBodyState::add_force);
-	ObjectTypeDB::bind_method(_MD("apply_impulse","pos","j"),&PhysicsDirectBodyState::apply_impulse);
+	ObjectTypeDB::bind_method(_MD("set_transform","transform"),&Physics3DDirectBodyState::set_transform);
+	ObjectTypeDB::bind_method(_MD("get_transform"),&Physics3DDirectBodyState::get_transform);
 
-	ObjectTypeDB::bind_method(_MD("set_sleep_state","enabled"),&PhysicsDirectBodyState::set_sleep_state);
-	ObjectTypeDB::bind_method(_MD("is_sleeping"),&PhysicsDirectBodyState::is_sleeping);
+	ObjectTypeDB::bind_method(_MD("add_force","force","pos"),&Physics3DDirectBodyState::add_force);
+	ObjectTypeDB::bind_method(_MD("apply_impulse","pos","j"),&Physics3DDirectBodyState::apply_impulse);
 
-	ObjectTypeDB::bind_method(_MD("get_contact_count"),&PhysicsDirectBodyState::get_contact_count);
+	ObjectTypeDB::bind_method(_MD("set_sleep_state","enabled"),&Physics3DDirectBodyState::set_sleep_state);
+	ObjectTypeDB::bind_method(_MD("is_sleeping"),&Physics3DDirectBodyState::is_sleeping);
 
-	ObjectTypeDB::bind_method(_MD("get_contact_local_pos","contact_idx"),&PhysicsDirectBodyState::get_contact_local_pos);
-	ObjectTypeDB::bind_method(_MD("get_contact_local_normal","contact_idx"),&PhysicsDirectBodyState::get_contact_local_normal);
-	ObjectTypeDB::bind_method(_MD("get_contact_local_shape","contact_idx"),&PhysicsDirectBodyState::get_contact_local_shape);
-	ObjectTypeDB::bind_method(_MD("get_contact_collider","contact_idx"),&PhysicsDirectBodyState::get_contact_collider);
-	ObjectTypeDB::bind_method(_MD("get_contact_collider_pos","contact_idx"),&PhysicsDirectBodyState::get_contact_collider_pos);
-	ObjectTypeDB::bind_method(_MD("get_contact_collider_id","contact_idx"),&PhysicsDirectBodyState::get_contact_collider_id);
-	ObjectTypeDB::bind_method(_MD("get_contact_collider_object","contact_idx"),&PhysicsDirectBodyState::get_contact_collider_object);
-	ObjectTypeDB::bind_method(_MD("get_contact_collider_shape","contact_idx"),&PhysicsDirectBodyState::get_contact_collider_shape);
-	ObjectTypeDB::bind_method(_MD("get_contact_collider_velocity_at_pos","contact_idx"),&PhysicsDirectBodyState::get_contact_collider_velocity_at_pos);
-	ObjectTypeDB::bind_method(_MD("get_step"),&PhysicsDirectBodyState::get_step);
-	ObjectTypeDB::bind_method(_MD("integrate_forces"),&PhysicsDirectBodyState::integrate_forces);
-	ObjectTypeDB::bind_method(_MD("get_space_state:PhysicsDirectSpaceState"),&PhysicsDirectBodyState::get_space_state);
+	ObjectTypeDB::bind_method(_MD("get_contact_count"),&Physics3DDirectBodyState::get_contact_count);
+
+	ObjectTypeDB::bind_method(_MD("get_contact_local_pos","contact_idx"),&Physics3DDirectBodyState::get_contact_local_pos);
+	ObjectTypeDB::bind_method(_MD("get_contact_local_normal","contact_idx"),&Physics3DDirectBodyState::get_contact_local_normal);
+	ObjectTypeDB::bind_method(_MD("get_contact_local_shape","contact_idx"),&Physics3DDirectBodyState::get_contact_local_shape);
+	ObjectTypeDB::bind_method(_MD("get_contact_collider","contact_idx"),&Physics3DDirectBodyState::get_contact_collider);
+	ObjectTypeDB::bind_method(_MD("get_contact_collider_pos","contact_idx"),&Physics3DDirectBodyState::get_contact_collider_pos);
+	ObjectTypeDB::bind_method(_MD("get_contact_collider_id","contact_idx"),&Physics3DDirectBodyState::get_contact_collider_id);
+	ObjectTypeDB::bind_method(_MD("get_contact_collider_object","contact_idx"),&Physics3DDirectBodyState::get_contact_collider_object);
+	ObjectTypeDB::bind_method(_MD("get_contact_collider_shape","contact_idx"),&Physics3DDirectBodyState::get_contact_collider_shape);
+	ObjectTypeDB::bind_method(_MD("get_contact_collider_velocity_at_pos","contact_idx"),&Physics3DDirectBodyState::get_contact_collider_velocity_at_pos);
+	ObjectTypeDB::bind_method(_MD("get_step"),&Physics3DDirectBodyState::get_step);
+	ObjectTypeDB::bind_method(_MD("integrate_forces"),&Physics3DDirectBodyState::integrate_forces);
+	ObjectTypeDB::bind_method(_MD("get_space_state:Physics3DDirectSpaceState"),&Physics3DDirectBodyState::get_space_state);
 
 }
 
-PhysicsDirectBodyState::PhysicsDirectBodyState() {}
+Physics3DDirectBodyState::Physics3DDirectBodyState() {}
 
 ///////////////////////////////////////////////////////
 
 
 
-void PhysicsShapeQueryParameters::set_shape(const RES &p_shape) {
+void Physics3DShapeQueryParameters::set_shape(const RES &p_shape) {
 
 	ERR_FAIL_COND(p_shape.is_null());
 	shape=p_shape->get_rid();
 }
 
-void PhysicsShapeQueryParameters::set_shape_rid(const RID& p_shape) {
+void Physics3DShapeQueryParameters::set_shape_rid(const RID& p_shape) {
 
 	shape=p_shape;
 }
 
-RID PhysicsShapeQueryParameters::get_shape_rid() const {
+RID Physics3DShapeQueryParameters::get_shape_rid() const {
 
 	return shape;
 }
 
-void PhysicsShapeQueryParameters::set_transform(const Transform3D& p_transform){
+void Physics3DShapeQueryParameters::set_transform(const Transform3D& p_transform){
 
 	transform=p_transform;
 }
-Transform3D PhysicsShapeQueryParameters::get_transform() const{
+Transform3D Physics3DShapeQueryParameters::get_transform() const{
 
 	return transform;
 }
 
-void PhysicsShapeQueryParameters::set_margin(float p_margin){
+void Physics3DShapeQueryParameters::set_margin(float p_margin){
 
 	margin=p_margin;
 }
 
-float PhysicsShapeQueryParameters::get_margin() const{
+float Physics3DShapeQueryParameters::get_margin() const{
 
 	return margin;
 }
 
-void PhysicsShapeQueryParameters::set_layer_mask(int p_layer_mask){
+void Physics3DShapeQueryParameters::set_layer_mask(int p_layer_mask){
 
 	layer_mask=p_layer_mask;
 }
-int PhysicsShapeQueryParameters::get_layer_mask() const{
+int Physics3DShapeQueryParameters::get_layer_mask() const{
 
 	return layer_mask;
 }
 
 
-void PhysicsShapeQueryParameters::set_object_type_mask(int p_object_type_mask){
+void Physics3DShapeQueryParameters::set_object_type_mask(int p_object_type_mask){
 
 	object_type_mask=p_object_type_mask;
 }
-int PhysicsShapeQueryParameters::get_object_type_mask() const{
+int Physics3DShapeQueryParameters::get_object_type_mask() const{
 
 	return object_type_mask;
 }
-void PhysicsShapeQueryParameters::set_exclude(const Vector<RID>& p_exclude) {
+void Physics3DShapeQueryParameters::set_exclude(const Vector<RID>& p_exclude) {
 
 	exclude.clear();;
 	for(int i=0;i<p_exclude.size();i++)
@@ -174,7 +179,7 @@ void PhysicsShapeQueryParameters::set_exclude(const Vector<RID>& p_exclude) {
 
 }
 
-Vector<RID> PhysicsShapeQueryParameters::get_exclude() const{
+Vector<RID> Physics3DShapeQueryParameters::get_exclude() const{
 
 	Vector<RID> ret;
 	ret.resize(exclude.size());
@@ -185,35 +190,35 @@ Vector<RID> PhysicsShapeQueryParameters::get_exclude() const{
 	return ret;
 }
 
-void PhysicsShapeQueryParameters::_bind_methods() {
+void Physics3DShapeQueryParameters::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("set_shape","shape:Shape3D"),&PhysicsShapeQueryParameters::set_shape);
-	ObjectTypeDB::bind_method(_MD("set_shape_rid","shape"),&PhysicsShapeQueryParameters::set_shape_rid);
-	ObjectTypeDB::bind_method(_MD("get_shape_rid"),&PhysicsShapeQueryParameters::get_shape_rid);
+	ObjectTypeDB::bind_method(_MD("set_shape","shape:Shape3D"),&Physics3DShapeQueryParameters::set_shape);
+	ObjectTypeDB::bind_method(_MD("set_shape_rid","shape"),&Physics3DShapeQueryParameters::set_shape_rid);
+	ObjectTypeDB::bind_method(_MD("get_shape_rid"),&Physics3DShapeQueryParameters::get_shape_rid);
 
-	ObjectTypeDB::bind_method(_MD("set_transform","transform"),&PhysicsShapeQueryParameters::set_transform);
-	ObjectTypeDB::bind_method(_MD("get_transform"),&PhysicsShapeQueryParameters::get_transform);
+	ObjectTypeDB::bind_method(_MD("set_transform","transform"),&Physics3DShapeQueryParameters::set_transform);
+	ObjectTypeDB::bind_method(_MD("get_transform"),&Physics3DShapeQueryParameters::get_transform);
 
-	ObjectTypeDB::bind_method(_MD("set_margin","margin"),&PhysicsShapeQueryParameters::set_margin);
-	ObjectTypeDB::bind_method(_MD("get_margin"),&PhysicsShapeQueryParameters::get_margin);
+	ObjectTypeDB::bind_method(_MD("set_margin","margin"),&Physics3DShapeQueryParameters::set_margin);
+	ObjectTypeDB::bind_method(_MD("get_margin"),&Physics3DShapeQueryParameters::get_margin);
 
-	ObjectTypeDB::bind_method(_MD("set_layer_mask","layer_mask"),&PhysicsShapeQueryParameters::set_layer_mask);
-	ObjectTypeDB::bind_method(_MD("get_layer_mask"),&PhysicsShapeQueryParameters::get_layer_mask);
+	ObjectTypeDB::bind_method(_MD("set_layer_mask","layer_mask"),&Physics3DShapeQueryParameters::set_layer_mask);
+	ObjectTypeDB::bind_method(_MD("get_layer_mask"),&Physics3DShapeQueryParameters::get_layer_mask);
 
-	ObjectTypeDB::bind_method(_MD("set_object_type_mask","object_type_mask"),&PhysicsShapeQueryParameters::set_object_type_mask);
-	ObjectTypeDB::bind_method(_MD("get_object_type_mask"),&PhysicsShapeQueryParameters::get_object_type_mask);
+	ObjectTypeDB::bind_method(_MD("set_object_type_mask","object_type_mask"),&Physics3DShapeQueryParameters::set_object_type_mask);
+	ObjectTypeDB::bind_method(_MD("get_object_type_mask"),&Physics3DShapeQueryParameters::get_object_type_mask);
 
-	ObjectTypeDB::bind_method(_MD("set_exclude","exclude"),&PhysicsShapeQueryParameters::set_exclude);
-	ObjectTypeDB::bind_method(_MD("get_exclude"),&PhysicsShapeQueryParameters::get_exclude);
+	ObjectTypeDB::bind_method(_MD("set_exclude","exclude"),&Physics3DShapeQueryParameters::set_exclude);
+	ObjectTypeDB::bind_method(_MD("get_exclude"),&Physics3DShapeQueryParameters::get_exclude);
 
 
 }
 
-PhysicsShapeQueryParameters::PhysicsShapeQueryParameters() {
+Physics3DShapeQueryParameters::Physics3DShapeQueryParameters() {
 
 	margin=0;
 	layer_mask=0x7FFFFFFF;
-	object_type_mask=PhysicsDirectSpaceState::TYPE_MASK_COLLISION;
+	object_type_mask=Physics3DDirectSpaceState::TYPE_MASK_COLLISION;
 }
 
 
@@ -221,7 +226,7 @@ PhysicsShapeQueryParameters::PhysicsShapeQueryParameters() {
 /////////////////////////////////////
 
 /*
-Variant PhysicsDirectSpaceState::_intersect_shape(const RID& p_shape, const Transform3D& p_xform,int p_result_max,const Vector<RID>& p_exclude,uint32_t p_user_mask) {
+Variant Physics3DDirectSpaceState::_intersect_shape(const RID& p_shape, const Transform3D& p_xform,int p_result_max,const Vector<RID>& p_exclude,uint32_t p_user_mask) {
 
 
 
@@ -240,7 +245,7 @@ Variant PhysicsDirectSpaceState::_intersect_shape(const RID& p_shape, const Tran
 	if (rc==0)
 		return Variant();
 
-	Ref<PhysicsShapeQueryResult>  result = memnew( PhysicsShapeQueryResult );
+	Ref<Physics3DShapeQueryResult>  result = memnew( Physics3DShapeQueryResult );
 	result->result.resize(rc);
 	for(int i=0;i<rc;i++)
 		result->result[i]=res[i];
@@ -251,7 +256,7 @@ Variant PhysicsDirectSpaceState::_intersect_shape(const RID& p_shape, const Tran
 */
 
 
-Dictionary PhysicsDirectSpaceState::_intersect_ray(const Vector3& p_from, const Vector3& p_to,const Vector<RID>& p_exclude,uint32_t p_layers,uint32_t p_object_type_mask) {
+Dictionary Physics3DDirectSpaceState::_intersect_ray(const Vector3& p_from, const Vector3& p_to,const Vector<RID>& p_exclude,uint32_t p_layers,uint32_t p_object_type_mask) {
 
 	RayResult inters;
 	Set<RID> exclude;
@@ -274,7 +279,7 @@ Dictionary PhysicsDirectSpaceState::_intersect_ray(const Vector3& p_from, const 
 	return d;
 }
 
-Array PhysicsDirectSpaceState::_intersect_shape(const Ref<PhysicsShapeQueryParameters> &psq, int p_max_results) {
+Array Physics3DDirectSpaceState::_intersect_shape(const Ref<Physics3DShapeQueryParameters> &psq, int p_max_results) {
 
 	Vector<ShapeResult> sr;
 	sr.resize(p_max_results);
@@ -294,7 +299,7 @@ Array PhysicsDirectSpaceState::_intersect_shape(const Ref<PhysicsShapeQueryParam
 	return ret;
 }
 
-Array PhysicsDirectSpaceState::_cast_motion(const Ref<PhysicsShapeQueryParameters> &psq,const Vector3& p_motion){
+Array Physics3DDirectSpaceState::_cast_motion(const Ref<Physics3DShapeQueryParameters> &psq,const Vector3& p_motion){
 
 	float closest_safe,closest_unsafe;
 	bool res = cast_motion(psq->shape,psq->transform,p_motion,psq->margin,closest_safe,closest_unsafe,psq->exclude,psq->layer_mask,psq->object_type_mask);
@@ -307,7 +312,7 @@ Array PhysicsDirectSpaceState::_cast_motion(const Ref<PhysicsShapeQueryParameter
 	return ret;
 
 }
-Array PhysicsDirectSpaceState::_collide_shape(const Ref<PhysicsShapeQueryParameters> &psq, int p_max_results){
+Array Physics3DDirectSpaceState::_collide_shape(const Ref<Physics3DShapeQueryParameters> &psq, int p_max_results){
 
 	Vector<Vector3> ret;
 	ret.resize(p_max_results*2);
@@ -322,7 +327,7 @@ Array PhysicsDirectSpaceState::_collide_shape(const Ref<PhysicsShapeQueryParamet
 	return r;
 
 }
-Dictionary PhysicsDirectSpaceState::_get_rest_info(const Ref<PhysicsShapeQueryParameters> &psq){
+Dictionary Physics3DDirectSpaceState::_get_rest_info(const Ref<Physics3DShapeQueryParameters> &psq){
 
 	ShapeRestInfo sri;
 
@@ -343,24 +348,24 @@ Dictionary PhysicsDirectSpaceState::_get_rest_info(const Ref<PhysicsShapeQueryPa
 
 
 
-PhysicsDirectSpaceState::PhysicsDirectSpaceState() {
+Physics3DDirectSpaceState::Physics3DDirectSpaceState() {
 
 
 
 }
 
 
-void PhysicsDirectSpaceState::_bind_methods() {
+void Physics3DDirectSpaceState::_bind_methods() {
 
 
-//	ObjectTypeDB::bind_method(_MD("intersect_ray","from","to","exclude","umask"),&PhysicsDirectSpaceState::_intersect_ray,DEFVAL(Array()),DEFVAL(0));
-//	ObjectTypeDB::bind_method(_MD("intersect_shape:PhysicsShapeQueryResult","shape","xform","result_max","exclude","umask"),&PhysicsDirectSpaceState::_intersect_shape,DEFVAL(Array()),DEFVAL(0));
+//	ObjectTypeDB::bind_method(_MD("intersect_ray","from","to","exclude","umask"),&Physics3DDirectSpaceState::_intersect_ray,DEFVAL(Array()),DEFVAL(0));
+//	ObjectTypeDB::bind_method(_MD("intersect_shape:Physics3DShapeQueryResult","shape","xform","result_max","exclude","umask"),&Physics3DDirectSpaceState::_intersect_shape,DEFVAL(Array()),DEFVAL(0));
 
-	ObjectTypeDB::bind_method(_MD("intersect_ray:Dictionary","from","to","exclude","layer_mask","type_mask"),&PhysicsDirectSpaceState::_intersect_ray,DEFVAL(Array()),DEFVAL(0x7FFFFFFF),DEFVAL(TYPE_MASK_COLLISION));
-	ObjectTypeDB::bind_method(_MD("intersect_shape","shape:PhysicsShapeQueryParameters","max_results"),&PhysicsDirectSpaceState::_intersect_shape,DEFVAL(32));
-	ObjectTypeDB::bind_method(_MD("cast_motion","shape:PhysicsShapeQueryParameters","motion"),&PhysicsDirectSpaceState::_cast_motion);
-	ObjectTypeDB::bind_method(_MD("collide_shape","shape:PhysicsShapeQueryParameters","max_results"),&PhysicsDirectSpaceState::_collide_shape,DEFVAL(32));
-	ObjectTypeDB::bind_method(_MD("get_rest_info","shape:PhysicsShapeQueryParameters"),&PhysicsDirectSpaceState::_get_rest_info);
+	ObjectTypeDB::bind_method(_MD("intersect_ray:Dictionary","from","to","exclude","layer_mask","type_mask"),&Physics3DDirectSpaceState::_intersect_ray,DEFVAL(Array()),DEFVAL(0x7FFFFFFF),DEFVAL(TYPE_MASK_COLLISION));
+	ObjectTypeDB::bind_method(_MD("intersect_shape","shape:Physics3DShapeQueryParameters","max_results"),&Physics3DDirectSpaceState::_intersect_shape,DEFVAL(32));
+	ObjectTypeDB::bind_method(_MD("cast_motion","shape:Physics3DShapeQueryParameters","motion"),&Physics3DDirectSpaceState::_cast_motion);
+	ObjectTypeDB::bind_method(_MD("collide_shape","shape:Physics3DShapeQueryParameters","max_results"),&Physics3DDirectSpaceState::_collide_shape,DEFVAL(32));
+	ObjectTypeDB::bind_method(_MD("get_rest_info","shape:Physics3DShapeQueryParameters"),&Physics3DDirectSpaceState::_get_rest_info);
 
 
 	BIND_CONSTANT( TYPE_MASK_STATIC_BODY );
@@ -373,39 +378,39 @@ void PhysicsDirectSpaceState::_bind_methods() {
 }
 
 
-int PhysicsShapeQueryResult::get_result_count() const {
+int Physics3DShapeQueryResult::get_result_count() const {
 
 	return result.size();
 }
-RID PhysicsShapeQueryResult::get_result_rid(int p_idx) const {
+RID Physics3DShapeQueryResult::get_result_rid(int p_idx) const {
 
 	return result[p_idx].rid;
 }
-ObjectID PhysicsShapeQueryResult::get_result_object_id(int p_idx) const {
+ObjectID Physics3DShapeQueryResult::get_result_object_id(int p_idx) const {
 
 	return result[p_idx].collider_id;
 }
-Object* PhysicsShapeQueryResult::get_result_object(int p_idx) const {
+Object* Physics3DShapeQueryResult::get_result_object(int p_idx) const {
 
 	return result[p_idx].collider;
 }
-int PhysicsShapeQueryResult::get_result_object_shape(int p_idx) const {
+int Physics3DShapeQueryResult::get_result_object_shape(int p_idx) const {
 
 	return result[p_idx].shape;
 }
 
-PhysicsShapeQueryResult::PhysicsShapeQueryResult() {
+Physics3DShapeQueryResult::Physics3DShapeQueryResult() {
 
 
 }
 
-void PhysicsShapeQueryResult::_bind_methods() {
+void Physics3DShapeQueryResult::_bind_methods() {
 
-	ObjectTypeDB::bind_method(_MD("get_result_count"),&PhysicsShapeQueryResult::get_result_count);
-	ObjectTypeDB::bind_method(_MD("get_result_rid","idx"),&PhysicsShapeQueryResult::get_result_rid);
-	ObjectTypeDB::bind_method(_MD("get_result_object_id","idx"),&PhysicsShapeQueryResult::get_result_object_id);
-	ObjectTypeDB::bind_method(_MD("get_result_object","idx"),&PhysicsShapeQueryResult::get_result_object);
-	ObjectTypeDB::bind_method(_MD("get_result_object_shape","idx"),&PhysicsShapeQueryResult::get_result_object_shape);
+	ObjectTypeDB::bind_method(_MD("get_result_count"),&Physics3DShapeQueryResult::get_result_count);
+	ObjectTypeDB::bind_method(_MD("get_result_rid","idx"),&Physics3DShapeQueryResult::get_result_rid);
+	ObjectTypeDB::bind_method(_MD("get_result_object_id","idx"),&Physics3DShapeQueryResult::get_result_object_id);
+	ObjectTypeDB::bind_method(_MD("get_result_object","idx"),&Physics3DShapeQueryResult::get_result_object);
+	ObjectTypeDB::bind_method(_MD("get_result_object_shape","idx"),&Physics3DShapeQueryResult::get_result_object_shape);
 
 
 }
@@ -431,7 +436,7 @@ void PhysicsServer3D::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("space_is_active","space"),&PhysicsServer3D::space_is_active);
 	ObjectTypeDB::bind_method(_MD("space_set_param","space","param","value"),&PhysicsServer3D::space_set_param);
 	ObjectTypeDB::bind_method(_MD("space_get_param","space","param"),&PhysicsServer3D::space_get_param);
-	ObjectTypeDB::bind_method(_MD("space_get_direct_state:PhysicsDirectSpaceState","space"),&PhysicsServer3D::space_get_direct_state);
+	ObjectTypeDB::bind_method(_MD("space_get_direct_state:Physics3DDirectSpaceState","space"),&PhysicsServer3D::space_get_direct_state);
 
 	ObjectTypeDB::bind_method(_MD("area_create"),&PhysicsServer3D::area_create);
 	ObjectTypeDB::bind_method(_MD("area_set_space","area","space"),&PhysicsServer3D::area_set_space);
@@ -723,19 +728,4 @@ void PhysicsServer3D::_bind_methods() {
 	BIND_CONSTANT( INFO_COLLISION_PAIRS );
 	BIND_CONSTANT( INFO_ISLAND_COUNT );
 
-
-
 }
-
-
-PhysicsServer3D::PhysicsServer3D() {
-
-	ERR_FAIL_COND( singleton!=NULL );
-	singleton=this;
-}
-
-PhysicsServer3D::~PhysicsServer3D() {
-
-	singleton=NULL;
-}
-

@@ -29,7 +29,7 @@
 #include "container.h"
 #include "os_symbian.h"
 #include "print_string.h"
-#include "servers/physics/physics_server_sw.h"
+#include "servers/physics_3d_server.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "servers/visual/visual_server_raster.h"
 #include <stdio.h>
@@ -86,7 +86,7 @@ void OS_Symbian::initialize(const VideoMode &p_desired, int p_video_driver,
 
   physics_server = memnew(PhysicsServer3DSW);
   physics_server->init();
-  physics_1d_server = memnew(Physics2DServerSW);
+  physics_1d_server = memnew(PhysicsServer2DSW);
   physics_2d_server->init();
 
   input = memnew(InputDefault);

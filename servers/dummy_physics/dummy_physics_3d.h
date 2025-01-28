@@ -1,7 +1,7 @@
 #include "servers/physics_3d_server.h"
 
-class PhysicsDirectBodyStateDummy : public PhysicsDirectBodyState {
-	OBJ_TYPE( PhysicsDirectBodyStateDummy, PhysicsDirectBodyState );
+class Physics3DDirectBodyStateDummy : public Physics3DDirectBodyState {
+	OBJ_TYPE( Physics3DDirectBodyStateDummy, Physics3DDirectBodyState );
 
 public:
 
@@ -38,30 +38,30 @@ public:
 	virtual RID get_contact_collider(int p_contact_idx) const {return RID();}
 	virtual Vector3 get_contact_collider_pos(int p_contact_idx) const{return Vector3();}
 	virtual ObjectID get_contact_collider_id(int p_contact_idx) const{return ObjectID();}
-	virtual Object* get_contact_collider_object(int p_contact_idx) const;
+	virtual Object* get_contact_collider_object(int p_contact_idx) const{return NULL;};
 	virtual int get_contact_collider_shape(int p_contact_idx) const{return 0;}
 	virtual Vector3 get_contact_collider_velocity_at_pos(int p_contact_idx) const{return Vector3();}
 
 	virtual real_t get_step() const{return 0.0f;}
 	virtual void integrate_forces(){}
 
-	virtual PhysicsDirectSpaceState* get_space_state(){return NULL;}
+	virtual Physics3DDirectSpaceState* get_space_state(){return NULL;}
 
 };
 
-class PhysicsDirectSpaceStateDummy : public PhysicsDirectSpaceState {
-	OBJ_TYPE( PhysicsDirectSpaceStateDummy, PhysicsDirectSpaceState );
+class Physics3DDirectSpaceStateDummy : public Physics3DDirectSpaceState {
+	OBJ_TYPE( Physics3DDirectSpaceStateDummy, Physics3DDirectSpaceState );
 
 public:
-	virtual bool intersect_ray(const Vector3& p_from, const Vector3& p_to,RayResult &r_result,const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return false;};
+	virtual bool intersect_ray(const Vector3& p_from, const Vector3& p_to,RayResult &r_result,const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return false;}
 
-	virtual int intersect_shape(const RID& p_shape, const Transform3D& p_xform,float p_margin,ShapeResult *r_results,int p_result_max,const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return 0;};
+	virtual int intersect_shape(const RID& p_shape, const Transform3D& p_xform,float p_margin,ShapeResult *r_results,int p_result_max,const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return 0;}
 
-	virtual bool cast_motion(const RID& p_shape, const Transform3D& p_xform,const Vector3& p_motion,float p_margin,float &p_closest_safe,float &p_closest_unsafe, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION,ShapeRestInfo *r_info=NULL){return false;};
+	virtual bool cast_motion(const RID& p_shape, const Transform3D& p_xform,const Vector3& p_motion,float p_margin,float &p_closest_safe,float &p_closest_unsafe, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION,ShapeRestInfo *r_info=NULL){return false;}
 
-	virtual bool collide_shape(RID p_shape, const Transform3D& p_shape_xform,float p_margin,Vector3 *r_results,int p_result_max,int &r_result_count, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return false;};
+	virtual bool collide_shape(RID p_shape, const Transform3D& p_shape_xform,float p_margin,Vector3 *r_results,int p_result_max,int &r_result_count, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return false;}
 
-	virtual bool rest_info(RID p_shape, const Transform3D& p_shape_xform,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return false;};
+	virtual bool rest_info(RID p_shape, const Transform3D& p_shape_xform,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION){return false;}
 };
 
 
@@ -87,7 +87,7 @@ class PhysicsServer3DDummy : public PhysicsServer3D {
 	virtual real_t space_get_param(RID p_space,SpaceParameter p_param) const{return 0.0f;}
 
 	// this function only works on fixed process, errors and returns null otherwise
-	virtual PhysicsDirectSpaceState* space_get_direct_state(RID p_space){return NULL;}
+	virtual Physics3DDirectSpaceState* space_get_direct_state(RID p_space){return NULL;}
 
 	//missing space parameters
 

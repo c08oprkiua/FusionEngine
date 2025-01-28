@@ -32,7 +32,7 @@
 
 void CapsuleShape2D::_update_shape() {
 
-	Physics2DServer::get_singleton()->shape_set_data(get_rid(),Vector2(radius,height));
+	PhysicsServer2D::get_singleton()->shape_set_data(get_rid(),Vector2(radius,height));
 	emit_changed();
 }
 
@@ -74,7 +74,7 @@ void CapsuleShape2D::_bind_methods() {
 
 }
 
-CapsuleShape2D::CapsuleShape2D() : Shape2D( Physics2DServer::get_singleton()->shape_create(Physics2DServer::SHAPE_CAPSULE)) {
+CapsuleShape2D::CapsuleShape2D() : Shape2D( PhysicsServer2D::get_singleton()->shape_create(PhysicsServer2D::SHAPE_CAPSULE)) {
 
 	radius=10;
 	height=20;

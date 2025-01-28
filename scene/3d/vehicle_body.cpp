@@ -87,7 +87,7 @@ void VehicleWheel3D::_notification(int p_what) {
 }
 
 
-void VehicleWheel3D::_update(PhysicsDirectBodyState *s) {
+void VehicleWheel3D::_update(Physics3DDirectBodyState *s) {
 
 
 
@@ -303,7 +303,7 @@ VehicleWheel3D::VehicleWheel3D() {
 }
 
 
-void VehicleBody3D::_update_wheel_transform(VehicleWheel3D& wheel ,PhysicsDirectBodyState *s) {
+void VehicleBody3D::_update_wheel_transform(VehicleWheel3D& wheel ,Physics3DDirectBodyState *s) {
 
 	wheel.m_raycastInfo.m_isInContact = false;
 
@@ -319,7 +319,7 @@ void VehicleBody3D::_update_wheel_transform(VehicleWheel3D& wheel ,PhysicsDirect
 	wheel.m_raycastInfo.m_wheelAxleWS = chassisTrans.get_basis().xform( wheel.m_wheelAxleCS ).normalized();
 }
 
-void VehicleBody3D::_update_wheel(int p_idx,PhysicsDirectBodyState *s) {
+void VehicleBody3D::_update_wheel(int p_idx,Physics3DDirectBodyState *s) {
 
 	VehicleWheel3D& wheel = *wheels[p_idx];
 	_update_wheel_transform(wheel,s);
@@ -357,7 +357,7 @@ void VehicleBody3D::_update_wheel(int p_idx,PhysicsDirectBodyState *s) {
 }
 
 
-real_t VehicleBody3D::_ray_cast(int p_idx,PhysicsDirectBodyState *s) {
+real_t VehicleBody3D::_ray_cast(int p_idx,Physics3DDirectBodyState *s) {
 
 
 	VehicleWheel3D& wheel = *wheels[p_idx];
@@ -378,10 +378,10 @@ real_t VehicleBody3D::_ray_cast(int p_idx,PhysicsDirectBodyState *s) {
 	real_t param = real_t(0.);
 
 
-	PhysicsDirectSpaceState::RayResult rr;
+	Physics3DDirectSpaceState::RayResult rr;
 
 
-	PhysicsDirectSpaceState *ss=s->get_space_state();
+	Physics3DDirectSpaceState *ss=s->get_space_state();
 
 	bool col = ss->intersect_ray(source,target,rr,exclude);
 
@@ -457,7 +457,7 @@ real_t VehicleBody3D::_ray_cast(int p_idx,PhysicsDirectBodyState *s) {
 }
 
 
-void	VehicleBody3D::_update_suspension(PhysicsDirectBodyState *s)
+void	VehicleBody3D::_update_suspension(Physics3DDirectBodyState *s)
 {
 
 	real_t deltaTime = s->get_step();
@@ -516,7 +516,7 @@ void	VehicleBody3D::_update_suspension(PhysicsDirectBodyState *s)
 
 
 //bilateral constraint between two dynamic objects
-void VehicleBody3D::_resolve_single_bilateral(PhysicsDirectBodyState *s, const Vector3& pos1,
+void VehicleBody3D::_resolve_single_bilateral(Physics3DDirectBodyState *s, const Vector3& pos1,
 		      PhysicsBody3D* body2, const Vector3& pos2, const Vector3& normal,real_t& impulse)
 {
 
@@ -597,7 +597,7 @@ void VehicleBody3D::_resolve_single_bilateral(PhysicsDirectBodyState *s, const V
 
 
 
-VehicleBody3D::btVehicleWheelContactPoint::btVehicleWheelContactPoint(PhysicsDirectBodyState *s,PhysicsBody3D* body1,const Vector3& frictionPosWorld,const Vector3& frictionDirectionWorld, real_t maxImpulse)
+VehicleBody3D::btVehicleWheelContactPoint::btVehicleWheelContactPoint(Physics3DDirectBodyState *s,PhysicsBody3D* body1,const Vector3& frictionPosWorld,const Vector3& frictionDirectionWorld, real_t maxImpulse)
 	:m_s(s),
 	m_body1(body1),
 	m_frictionPositionWorld(frictionPosWorld),
@@ -663,7 +663,7 @@ real_t VehicleBody3D::_calc_rolling_friction(btVehicleWheelContactPoint& contact
 
 
 static const real_t sideFrictionStiffness2 = real_t(1.0);
-void VehicleBody3D::_update_friction(PhysicsDirectBodyState *s) {
+void VehicleBody3D::_update_friction(Physics3DDirectBodyState *s) {
 
 	//calculate the impulse, so that the wheels don't move sidewards
 	int numWheel = wheels.size();
@@ -859,7 +859,7 @@ void VehicleBody3D::_update_friction(PhysicsDirectBodyState *s) {
 void VehicleBody3D::_direct_state_changed(Object *p_state) {
 
 
-	PhysicsDirectBodyState *s = p_state->cast_to<PhysicsDirectBodyState>();
+	Physics3DDirectBodyState *s = p_state->cast_to<Physics3DDirectBodyState>();
 
 	set_ignore_transform_notification(true);
 	set_global_transform(s->get_transform());

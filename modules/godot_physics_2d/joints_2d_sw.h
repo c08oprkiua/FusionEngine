@@ -50,7 +50,7 @@ public:
 	_FORCE_INLINE_ void set_max_bias(real_t p_bias) { max_bias=p_bias; }
 	_FORCE_INLINE_ real_t get_max_bias() const { return max_bias; }
 
-	virtual Physics2DServer::JointType get_type() const=0;
+	virtual PhysicsServer2D::JointType get_type() const=0;
 	Joint2DSW(Body2DSW **p_body_ptr=NULL,int p_body_count=0) : Constraint2DSW(p_body_ptr,p_body_count) { bias=0; max_force=max_bias=3.40282e+38; };
 
 };
@@ -83,7 +83,7 @@ class PinJoint2DSW : public Joint2DSW {
 
 public:
 
-	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_PIN; }
+	virtual PhysicsServer2D::JointType get_type() const { return PhysicsServer2D::JOINT_PIN; }
 
 	virtual bool setup(float p_step);
 	virtual void solve(float p_step);
@@ -116,7 +116,7 @@ class PinJoint2DSW : public Joint2DSW {
 
 public:
 
-	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_PIN; }
+	virtual PhysicsServer2D::JointType get_type() const { return PhysicsServer2D::JOINT_PIN; }
 
 	virtual bool setup(float p_step);
 	virtual void solve(float p_step);
@@ -156,7 +156,7 @@ class GrooveJoint2DSW : public Joint2DSW {
 
 public:
 
-	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_GROOVE; }
+	virtual PhysicsServer2D::JointType get_type() const { return PhysicsServer2D::JOINT_GROOVE; }
 
 	virtual bool setup(float p_step);
 	virtual void solve(float p_step);
@@ -194,13 +194,13 @@ class DampedSpringJoint2DSW : public Joint2DSW {
 
 public:
 
-	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_DAMPED_SPRING; }
+	virtual PhysicsServer2D::JointType get_type() const { return PhysicsServer2D::JOINT_DAMPED_SPRING; }
 
 	virtual bool setup(float p_step);
 	virtual void solve(float p_step);
 
-	void set_param(Physics2DServer::DampedStringParam p_param, real_t p_value);
-	real_t get_param(Physics2DServer::DampedStringParam p_param) const;
+	void set_param(PhysicsServer2D::DampedStringParam p_param, real_t p_value);
+	real_t get_param(PhysicsServer2D::DampedStringParam p_param) const;
 
 	DampedSpringJoint2DSW(const Vector2& p_anchor_a,const Vector2& p_anchor_b, Body2DSW* p_body_a,Body2DSW* p_body_b);
 	~DampedSpringJoint2DSW();

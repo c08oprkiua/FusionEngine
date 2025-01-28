@@ -141,7 +141,7 @@ int Physics2DDirectSpaceStateSW::intersect_shape(const RID& p_shape, const Trans
 	if (p_result_max<=0)
 		return 0;
 
-	Shape2DSW *shape = static_cast<Physics2DServerSW*>(Physics2DServer::get_singleton())->shape_owner.get(p_shape);
+	Shape2DSW *shape = static_cast<PhysicsServer2DSW*>(PhysicsServer2D::get_singleton())->shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,0);
 
 	Rect2 aabb = p_xform.xform(shape->get_aabb());
@@ -188,7 +188,7 @@ bool Physics2DDirectSpaceStateSW::cast_motion(const RID& p_shape, const Transfor
 
 
 
-	Shape2DSW *shape = static_cast<Physics2DServerSW*>(Physics2DServer::get_singleton())->shape_owner.get(p_shape);
+	Shape2DSW *shape = static_cast<PhysicsServer2DSW*>(PhysicsServer2D::get_singleton())->shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,false);
 
 	Rect2 aabb = p_xform.xform(shape->get_aabb());
@@ -275,7 +275,7 @@ bool Physics2DDirectSpaceStateSW::collide_shape(RID p_shape, const Transform2D& 
 	if (p_result_max<=0)
 		return 0;
 
-	Shape2DSW *shape = static_cast<Physics2DServerSW*>(Physics2DServer::get_singleton())->shape_owner.get(p_shape);
+	Shape2DSW *shape = static_cast<PhysicsServer2DSW*>(PhysicsServer2D::get_singleton())->shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,0);
 
 	Rect2 aabb = p_shape_xform.xform(shape->get_aabb());
@@ -288,16 +288,16 @@ bool Physics2DDirectSpaceStateSW::collide_shape(RID p_shape, const Transform2D& 
 	int cc=0;
 	r_result_count=0;
 
-	Physics2DServerSW::CollCbkData cbk;
+	PhysicsServer2DSW::CollCbkData cbk;
 	cbk.max=p_result_max;
 	cbk.amount=0;
 	cbk.ptr=r_results;
 	CollisionSolver2DSW::CallbackResult cbkres=NULL;
 
-	Physics2DServerSW::CollCbkData *cbkptr=NULL;
+	PhysicsServer2DSW::CollCbkData *cbkptr=NULL;
 	if (p_result_max>0) {
 		cbkptr=&cbk;
-		cbkres=Physics2DServerSW::_shape_col_cbk;
+		cbkres=PhysicsServer2DSW::_shape_col_cbk;
 	}
 
 
@@ -359,7 +359,7 @@ static void _rest_cbk_result(const Vector2& p_point_A,const Vector2& p_point_B,v
 bool Physics2DDirectSpaceStateSW::rest_info(RID p_shape, const Transform2D& p_shape_xform,const Vector2& p_motion,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude,uint32_t p_layer_mask,uint32_t p_object_type_mask) {
 
 
-	Shape2DSW *shape = static_cast<Physics2DServerSW*>(Physics2DServer::get_singleton())->shape_owner.get(p_shape);
+	Shape2DSW *shape = static_cast<PhysicsServer2DSW*>(PhysicsServer2D::get_singleton())->shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,0);
 
 	Rect2 aabb = p_shape_xform.xform(shape->get_aabb());
@@ -597,33 +597,33 @@ void Space2DSW::update() {
 }
 
 
-void Space2DSW::set_param(Physics2DServer::SpaceParameter p_param, real_t p_value) {
+void Space2DSW::set_param(PhysicsServer2D::SpaceParameter p_param, real_t p_value) {
 
 	switch(p_param) {
 
-		case Physics2DServer::SPACE_PARAM_CONTACT_RECYCLE_RADIUS: contact_recycle_radius=p_value; break;
-		case Physics2DServer::SPACE_PARAM_CONTACT_MAX_SEPARATION: contact_max_separation=p_value; break;
-		case Physics2DServer::SPACE_PARAM_BODY_MAX_ALLOWED_PENETRATION: contact_max_allowed_penetration=p_value; break;
-		case Physics2DServer::SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_TRESHOLD: body_linear_velocity_sleep_treshold=p_value; break;
-		case Physics2DServer::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_TRESHOLD: body_angular_velocity_sleep_treshold=p_value; break;
-		case Physics2DServer::SPACE_PARAM_BODY_TIME_TO_SLEEP: body_time_to_sleep=p_value; break;
-		case Physics2DServer::SPACE_PARAM_BODY_ANGULAR_VELOCITY_DAMP_RATIO: body_angular_velocity_damp_ratio=p_value; break;
-		case Physics2DServer::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS: constraint_bias=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_CONTACT_RECYCLE_RADIUS: contact_recycle_radius=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_CONTACT_MAX_SEPARATION: contact_max_separation=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_BODY_MAX_ALLOWED_PENETRATION: contact_max_allowed_penetration=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_TRESHOLD: body_linear_velocity_sleep_treshold=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_TRESHOLD: body_angular_velocity_sleep_treshold=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_BODY_TIME_TO_SLEEP: body_time_to_sleep=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_BODY_ANGULAR_VELOCITY_DAMP_RATIO: body_angular_velocity_damp_ratio=p_value; break;
+		case PhysicsServer2D::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS: constraint_bias=p_value; break;
 	}
 }
 
-real_t Space2DSW::get_param(Physics2DServer::SpaceParameter p_param) const {
+real_t Space2DSW::get_param(PhysicsServer2D::SpaceParameter p_param) const {
 
 	switch(p_param) {
 
-		case Physics2DServer::SPACE_PARAM_CONTACT_RECYCLE_RADIUS: return contact_recycle_radius;
-		case Physics2DServer::SPACE_PARAM_CONTACT_MAX_SEPARATION: return contact_max_separation;
-		case Physics2DServer::SPACE_PARAM_BODY_MAX_ALLOWED_PENETRATION: return contact_max_allowed_penetration;
-		case Physics2DServer::SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_TRESHOLD: return body_linear_velocity_sleep_treshold;
-		case Physics2DServer::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_TRESHOLD: return body_angular_velocity_sleep_treshold;
-		case Physics2DServer::SPACE_PARAM_BODY_TIME_TO_SLEEP: return body_time_to_sleep;
-		case Physics2DServer::SPACE_PARAM_BODY_ANGULAR_VELOCITY_DAMP_RATIO: return body_angular_velocity_damp_ratio;
-		case Physics2DServer::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS: return constraint_bias;
+		case PhysicsServer2D::SPACE_PARAM_CONTACT_RECYCLE_RADIUS: return contact_recycle_radius;
+		case PhysicsServer2D::SPACE_PARAM_CONTACT_MAX_SEPARATION: return contact_max_separation;
+		case PhysicsServer2D::SPACE_PARAM_BODY_MAX_ALLOWED_PENETRATION: return contact_max_allowed_penetration;
+		case PhysicsServer2D::SPACE_PARAM_BODY_LINEAR_VELOCITY_SLEEP_TRESHOLD: return body_linear_velocity_sleep_treshold;
+		case PhysicsServer2D::SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_TRESHOLD: return body_angular_velocity_sleep_treshold;
+		case PhysicsServer2D::SPACE_PARAM_BODY_TIME_TO_SLEEP: return body_time_to_sleep;
+		case PhysicsServer2D::SPACE_PARAM_BODY_ANGULAR_VELOCITY_DAMP_RATIO: return body_angular_velocity_damp_ratio;
+		case PhysicsServer2D::SPACE_PARAM_CONSTRAINT_DEFAULT_BIAS: return constraint_bias;
 	}
 	return 0;
 }

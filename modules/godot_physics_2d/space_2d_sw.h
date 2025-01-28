@@ -154,8 +154,8 @@ public:
 	void lock();
 	void unlock();
 
-	void set_param(Physics2DServer::SpaceParameter p_param, real_t p_value);
-	real_t get_param(Physics2DServer::SpaceParameter p_param) const;
+	void set_param(PhysicsServer2D::SpaceParameter p_param, real_t p_value);
+	real_t get_param(PhysicsServer2D::SpaceParameter p_param) const;
 
 	void set_island_count(int p_island_count) { island_count=p_island_count; }
 	int get_island_count() const { return island_count; }

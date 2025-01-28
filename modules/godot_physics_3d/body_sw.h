@@ -127,7 +127,7 @@ class BodySW : public CollisionObjectSW {
 
 	_FORCE_INLINE_ void _update_inertia_tensor();
 
-friend class PhysicsDirectBodyStateSW; // i give up, too many functions to expose
+friend class Physics3DDirectBodyStateSW; // i give up, too many functions to expose
 
 public:
 
@@ -320,13 +320,13 @@ void BodySW::add_contact(const Vector3& p_local_pos,const Vector3& p_local_norma
 }
 
 
-class PhysicsDirectBodyStateSW : public PhysicsDirectBodyState {
+class Physics3DDirectBodyStateSW : public Physics3DDirectBodyState {
 
-	OBJ_TYPE( PhysicsDirectBodyStateSW, PhysicsDirectBodyState );
+	OBJ_TYPE( Physics3DDirectBodyStateSW, Physics3DDirectBodyState );
 
 public:
 
-	static PhysicsDirectBodyStateSW *singleton;
+	static Physics3DDirectBodyStateSW *singleton;
 	BodySW *body;
 	real_t step;
 
@@ -367,11 +367,11 @@ public:
 	virtual int get_contact_collider_shape(int p_contact_idx) const {  ERR_FAIL_INDEX_V(p_contact_idx,body->contact_count,0); return body->contacts[p_contact_idx].collider_shape;  }
 	virtual Vector3 get_contact_collider_velocity_at_pos(int p_contact_idx) const {  ERR_FAIL_INDEX_V(p_contact_idx,body->contact_count,Vector3()); return body->contacts[p_contact_idx].collider_velocity_at_pos;  }
 
-	virtual PhysicsDirectSpaceState* get_space_state();
+	virtual Physics3DDirectSpaceState* get_space_state();
 
 
 	virtual real_t get_step() const { return step; }
-	PhysicsDirectBodyStateSW() { singleton=this; body=NULL; }
+	Physics3DDirectBodyStateSW() { singleton=this; body=NULL; }
 };
 
 

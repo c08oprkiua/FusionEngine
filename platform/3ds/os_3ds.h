@@ -59,7 +59,7 @@ class OS_3DS : public OS {
 	
 	
 	PhysicsServer *physics_server;
-	Physics2DServer *physics_2d_server;
+	PhysicsServer2D *physics_2d_server;
 
 	virtual void delete_main_loop();
 	// IP_Unix *ip_unix;

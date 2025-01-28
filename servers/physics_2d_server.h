@@ -29,6 +29,8 @@
 #ifndef PHYSICS_2D_SERVER_H
 #define PHYSICS_2D_SERVER_H
 
+#ifndef PHYSICS_2D_DISABLED
+
 #include "object.h"
 #include "reference.h"
 #include "resource.h"
@@ -227,18 +229,19 @@ public:
 };
 
 
-class Physics2DServer : public Object {
+class PhysicsServer2D : public Object {
 
-	OBJ_TYPE( Physics2DServer, Object );
+	OBJ_TYPE( PhysicsServer2D, Object );
 
-	static Physics2DServer * singleton;
+	static PhysicsServer2D * singleton;
 
 protected:
 	static void _bind_methods();
 
 public:
 
-	static Physics2DServer * get_singleton();
+	static PhysicsServer2D * get_singleton();
+	static void set_singleton(PhysicsServer2D *server);
 
 	enum ShapeType {
 		SHAPE_LINE, ///< plane:"plane"
@@ -509,23 +512,23 @@ public:
 
 	virtual int get_process_info(ProcessInfo p_info)=0;
 
-	Physics2DServer();
-	~Physics2DServer();
+	virtual void set_active()=0;
 };
 
-VARIANT_ENUM_CAST( Physics2DServer::ShapeType );
-VARIANT_ENUM_CAST( Physics2DServer::SpaceParameter );
-VARIANT_ENUM_CAST( Physics2DServer::AreaParameter );
-VARIANT_ENUM_CAST( Physics2DServer::AreaSpaceOverrideMode );
-VARIANT_ENUM_CAST( Physics2DServer::BodyMode );
-VARIANT_ENUM_CAST( Physics2DServer::BodyParameter );
-VARIANT_ENUM_CAST( Physics2DServer::BodyState );
-VARIANT_ENUM_CAST( Physics2DServer::CCDMode );
-VARIANT_ENUM_CAST( Physics2DServer::JointParam );
-VARIANT_ENUM_CAST( Physics2DServer::JointType );
-VARIANT_ENUM_CAST( Physics2DServer::DampedStringParam );
-//VARIANT_ENUM_CAST( Physics2DServer::ObjectType );
-VARIANT_ENUM_CAST( Physics2DServer::AreaBodyStatus );
-VARIANT_ENUM_CAST( Physics2DServer::ProcessInfo );
+VARIANT_ENUM_CAST( PhysicsServer2D::ShapeType );
+VARIANT_ENUM_CAST( PhysicsServer2D::SpaceParameter );
+VARIANT_ENUM_CAST( PhysicsServer2D::AreaParameter );
+VARIANT_ENUM_CAST( PhysicsServer2D::AreaSpaceOverrideMode );
+VARIANT_ENUM_CAST( PhysicsServer2D::BodyMode );
+VARIANT_ENUM_CAST( PhysicsServer2D::BodyParameter );
+VARIANT_ENUM_CAST( PhysicsServer2D::BodyState );
+VARIANT_ENUM_CAST( PhysicsServer2D::CCDMode );
+VARIANT_ENUM_CAST( PhysicsServer2D::JointParam );
+VARIANT_ENUM_CAST( PhysicsServer2D::JointType );
+VARIANT_ENUM_CAST( PhysicsServer2D::DampedStringParam );
+//VARIANT_ENUM_CAST( PhysicsServer2D::ObjectType );
+VARIANT_ENUM_CAST( PhysicsServer2D::AreaBodyStatus );
+VARIANT_ENUM_CAST( PhysicsServer2D::ProcessInfo );
 
+#endif //ifndef PHYSICS_2D_ENABLED
 #endif

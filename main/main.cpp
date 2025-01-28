@@ -733,7 +733,7 @@ Error Main::setup2() {
 		} else {
 #ifndef NO_DEFAULT_BOOT_LOGO
 
-			MAIN_PRINT("Main: Create botsplash");
+			MAIN_PRINT("Main: Create bootsplash");
 			Image splash(boot_splash_png);
 
 			MAIN_PRINT("Main: ClearColor");
@@ -1259,8 +1259,8 @@ bool Main::iteration() {
 		PhysicsServer3D::get_singleton()->sync();
 		PhysicsServer3D::get_singleton()->flush_queries();
 
-		Physics2DServer::get_singleton()->sync();
-		Physics2DServer::get_singleton()->flush_queries();
+		PhysicsServer2D::get_singleton()->sync();
+		PhysicsServer2D::get_singleton()->flush_queries();
 
 		if (OS::get_singleton()->get_main_loop()->iteration( frame_slice*time_scale )) {
 			exit=true;
@@ -1270,7 +1270,7 @@ bool Main::iteration() {
 		message_queue->flush();
 
 		PhysicsServer3D::get_singleton()->step(frame_slice*time_scale);
-		Physics2DServer::get_singleton()->step(frame_slice*time_scale);
+		PhysicsServer2D::get_singleton()->step(frame_slice*time_scale);
 
 		time_accum-=frame_slice;
 		message_queue->flush();

@@ -33,12 +33,12 @@
 
 void ConcavePolygonShape2D::set_segments(const DVector<Vector2>& p_segments) {
 
-	Physics2DServer::get_singleton()->shape_set_data(get_rid(),p_segments);
+	PhysicsServer2D::get_singleton()->shape_set_data(get_rid(),p_segments);
 }
 
 DVector<Vector2> ConcavePolygonShape2D::get_segments() const {
 
-	return Physics2DServer::get_singleton()->shape_get_data(get_rid());
+	return PhysicsServer2D::get_singleton()->shape_get_data(get_rid());
 }
 
 
@@ -51,7 +51,7 @@ void ConcavePolygonShape2D::_bind_methods() {
 
 }
 
-ConcavePolygonShape2D::ConcavePolygonShape2D() : Shape2D( Physics2DServer::get_singleton()->shape_create(Physics2DServer::SHAPE_CONCAVE_POLYGON)) {
+ConcavePolygonShape2D::ConcavePolygonShape2D() : Shape2D( PhysicsServer2D::get_singleton()->shape_create(PhysicsServer2D::SHAPE_CONCAVE_POLYGON)) {
 
 }
 

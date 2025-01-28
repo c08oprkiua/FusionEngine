@@ -45,7 +45,7 @@ void Body2DSW::update_inertias() {
 
 	switch(mode) {
 
-		case Physics2DServer::BODY_MODE_RIGID: {
+		case PhysicsServer2D::BODY_MODE_RIGID: {
 
 			//update tensor for allshapes, not the best way but should be somehow OK. (inspired from bullet)
 			float total_area=0;
@@ -86,13 +86,13 @@ void Body2DSW::update_inertias() {
 				_inv_mass=0;
 
 		} break;
-		case Physics2DServer::BODY_MODE_KINEMATIC:
-		case Physics2DServer::BODY_MODE_STATIC: {
+		case PhysicsServer2D::BODY_MODE_KINEMATIC:
+		case PhysicsServer2D::BODY_MODE_STATIC: {
 
 			_inv_inertia=0;
 			_inv_mass=0;
 		} break;
-		case Physics2DServer::BODY_MODE_CHARACTER: {
+		case PhysicsServer2D::BODY_MODE_CHARACTER: {
 
 			_inv_inertia=0;
 			_inv_mass=1.0/mass;
@@ -117,7 +117,7 @@ void Body2DSW::set_active(bool p_active) {
 		if (get_space())
 			get_space()->body_remove_from_active_list(&active_list);
 	} else {
-		if (mode==Physics2DServer::BODY_MODE_STATIC)
+		if (mode==PhysicsServer2D::BODY_MODE_STATIC)
 			return; //static bodies can't become active
 		if (get_space())
 			get_space()->body_add_to_active_list(&active_list);
@@ -139,18 +139,18 @@ void Body2DSW::set_active(bool p_active) {
 
 
 
-void Body2DSW::set_param(Physics2DServer::BodyParameter p_param, float p_value) {
+void Body2DSW::set_param(PhysicsServer2D::BodyParameter p_param, float p_value) {
 
 	switch(p_param) {
-		case Physics2DServer::BODY_PARAM_BOUNCE: {
+		case PhysicsServer2D::BODY_PARAM_BOUNCE: {
 
 			bounce=p_value;
 		} break;
-		case Physics2DServer::BODY_PARAM_FRICTION: {
+		case PhysicsServer2D::BODY_PARAM_FRICTION: {
 
 			friction=p_value;
 		} break;
-		case Physics2DServer::BODY_PARAM_MASS: {
+		case PhysicsServer2D::BODY_PARAM_MASS: {
 			ERR_FAIL_COND(p_value<=0);
 			mass=p_value;
 			_update_inertia();
@@ -160,18 +160,18 @@ void Body2DSW::set_param(Physics2DServer::BodyParameter p_param, float p_value) 
 	}
 }
 
-float Body2DSW::get_param(Physics2DServer::BodyParameter p_param) const {
+float Body2DSW::get_param(PhysicsServer2D::BodyParameter p_param) const {
 
 	switch(p_param) {
-		case Physics2DServer::BODY_PARAM_BOUNCE: {
+		case PhysicsServer2D::BODY_PARAM_BOUNCE: {
 
 			return bounce;
 		} break;
-		case Physics2DServer::BODY_PARAM_FRICTION: {
+		case PhysicsServer2D::BODY_PARAM_FRICTION: {
 
 			return friction;
 		} break;
-		case Physics2DServer::BODY_PARAM_MASS: {
+		case PhysicsServer2D::BODY_PARAM_MASS: {
 			return mass;
 		} break;
 		default:{}
@@ -180,33 +180,33 @@ float Body2DSW::get_param(Physics2DServer::BodyParameter p_param) const {
 	return 0;
 }
 
-void Body2DSW::set_mode(Physics2DServer::BodyMode p_mode) {
+void Body2DSW::set_mode(PhysicsServer2D::BodyMode p_mode) {
 
-	Physics2DServer::BodyMode prev=mode;
+	PhysicsServer2D::BodyMode prev=mode;
 	mode=p_mode;
 
 	switch(p_mode) {
 	//CLEAR UP EVERYTHING IN CASE IT NOT WORKS!
-		case Physics2DServer::BODY_MODE_STATIC:
-		case Physics2DServer::BODY_MODE_KINEMATIC: {
+		case PhysicsServer2D::BODY_MODE_STATIC:
+		case PhysicsServer2D::BODY_MODE_KINEMATIC: {
 
 			_set_inv_transform(get_transform().affine_inverse());
 			_inv_mass=0;
-			_set_static(p_mode==Physics2DServer::BODY_MODE_STATIC);
-			set_active(p_mode==Physics2DServer::BODY_MODE_KINEMATIC && contacts.size());
+			_set_static(p_mode==PhysicsServer2D::BODY_MODE_STATIC);
+			set_active(p_mode==PhysicsServer2D::BODY_MODE_KINEMATIC && contacts.size());
 			linear_velocity=Vector2();
 			angular_velocity=0;
-			if (mode==Physics2DServer::BODY_MODE_KINEMATIC && prev!=mode) {
+			if (mode==PhysicsServer2D::BODY_MODE_KINEMATIC && prev!=mode) {
 				first_time_kinematic=true;
 			}
 		} break;
-		case Physics2DServer::BODY_MODE_RIGID: {
+		case PhysicsServer2D::BODY_MODE_RIGID: {
 
 			_inv_mass=mass>0?(1.0/mass):0;
 			_set_static(false);
 
 		} break;
-		case Physics2DServer::BODY_MODE_CHARACTER: {
+		case PhysicsServer2D::BODY_MODE_CHARACTER: {
 
 			_inv_mass=mass>0?(1.0/mass):0;
 			_set_static(false);
@@ -218,7 +218,7 @@ void Body2DSW::set_mode(Physics2DServer::BodyMode p_mode) {
 //		_update_queries();
 
 }
-Physics2DServer::BodyMode Body2DSW::get_mode() const {
+PhysicsServer2D::BodyMode Body2DSW::get_mode() const {
 
 	return mode;
 }
@@ -229,13 +229,13 @@ void Body2DSW::_shapes_changed() {
 	wakeup_neighbours();
 }
 
-void Body2DSW::set_state(Physics2DServer::BodyState p_state, const Variant& p_variant) {
+void Body2DSW::set_state(PhysicsServer2D::BodyState p_state, const Variant& p_variant) {
 
 	switch(p_state)	{
-		case Physics2DServer::BODY_STATE_TRANSFORM: {
+		case PhysicsServer2D::BODY_STATE_TRANSFORM: {
 
 
-			if (mode==Physics2DServer::BODY_MODE_KINEMATIC) {
+			if (mode==PhysicsServer2D::BODY_MODE_KINEMATIC) {
 
 				new_transform=p_variant;				
 				//wakeup_neighbours();
@@ -245,7 +245,7 @@ void Body2DSW::set_state(Physics2DServer::BodyState p_state, const Variant& p_va
 					_set_inv_transform(get_transform().affine_inverse());
 					first_time_kinematic=false;
 				}
-			} else if (mode==Physics2DServer::BODY_MODE_STATIC) {
+			} else if (mode==PhysicsServer2D::BODY_MODE_STATIC) {
 				_set_transform(p_variant);
 				_set_inv_transform(get_transform().affine_inverse());
 				wakeup_neighbours();
@@ -259,22 +259,22 @@ void Body2DSW::set_state(Physics2DServer::BodyState p_state, const Variant& p_va
 			}
 
 		} break;
-		case Physics2DServer::BODY_STATE_LINEAR_VELOCITY: {
+		case PhysicsServer2D::BODY_STATE_LINEAR_VELOCITY: {
 
-			//if (mode==Physics2DServer::BODY_MODE_STATIC)
+			//if (mode==PhysicsServer2D::BODY_MODE_STATIC)
 			//	break;
 			linear_velocity=p_variant;
 
 		} break;
-		case Physics2DServer::BODY_STATE_ANGULAR_VELOCITY: {
-			//if (mode!=Physics2DServer::BODY_MODE_RIGID)
+		case PhysicsServer2D::BODY_STATE_ANGULAR_VELOCITY: {
+			//if (mode!=PhysicsServer2D::BODY_MODE_RIGID)
 			//	break;
 			angular_velocity=p_variant;
 
 		} break;
-		case Physics2DServer::BODY_STATE_SLEEPING: {
+		case PhysicsServer2D::BODY_STATE_SLEEPING: {
 			//?
-			if (mode==Physics2DServer::BODY_MODE_STATIC || mode==Physics2DServer::BODY_MODE_KINEMATIC)
+			if (mode==PhysicsServer2D::BODY_MODE_STATIC || mode==PhysicsServer2D::BODY_MODE_KINEMATIC)
 				break;
 			bool do_sleep=p_variant;
 			if (do_sleep) {
@@ -284,35 +284,35 @@ void Body2DSW::set_state(Physics2DServer::BodyState p_state, const Variant& p_va
 				//biased_angular_velocity=Vector3();
 				set_active(false);
 			} else {
-				if (mode!=Physics2DServer::BODY_MODE_STATIC)
+				if (mode!=PhysicsServer2D::BODY_MODE_STATIC)
 					set_active(true);
 			}
 		} break;
-		case Physics2DServer::BODY_STATE_CAN_SLEEP: {
+		case PhysicsServer2D::BODY_STATE_CAN_SLEEP: {
 			can_sleep=p_variant;
-			if (mode==Physics2DServer::BODY_MODE_RIGID && !active && !can_sleep)
+			if (mode==PhysicsServer2D::BODY_MODE_RIGID && !active && !can_sleep)
 				set_active(true);
 
 		} break;
 	}
 
 }
-Variant Body2DSW::get_state(Physics2DServer::BodyState p_state) const {
+Variant Body2DSW::get_state(PhysicsServer2D::BodyState p_state) const {
 
 	switch(p_state)	{
-		case Physics2DServer::BODY_STATE_TRANSFORM: {
+		case PhysicsServer2D::BODY_STATE_TRANSFORM: {
 			return get_transform();
 		} break;
-		case Physics2DServer::BODY_STATE_LINEAR_VELOCITY: {
+		case PhysicsServer2D::BODY_STATE_LINEAR_VELOCITY: {
 			return linear_velocity;
 		} break;
-		case Physics2DServer::BODY_STATE_ANGULAR_VELOCITY: {
+		case PhysicsServer2D::BODY_STATE_ANGULAR_VELOCITY: {
 			return angular_velocity;
 		} break;
-		case Physics2DServer::BODY_STATE_SLEEPING: {
+		case PhysicsServer2D::BODY_STATE_SLEEPING: {
 			return !is_active();
 		} break;
-		case Physics2DServer::BODY_STATE_CAN_SLEEP: {
+		case PhysicsServer2D::BODY_STATE_CAN_SLEEP: {
 			return can_sleep;
 		} break;
 	}
@@ -366,7 +366,7 @@ void Body2DSW::_compute_area_gravity(const Area2DSW *p_area) {
 
 void Body2DSW::integrate_forces(real_t p_step) {
 
-	if (mode==Physics2DServer::BODY_MODE_STATIC)
+	if (mode==PhysicsServer2D::BODY_MODE_STATIC)
 		return;
 
 	Area2DSW *current_area = get_space()->get_default_area();
@@ -390,7 +390,7 @@ void Body2DSW::integrate_forces(real_t p_step) {
 	Vector2 motion;
 	bool do_motion=false;
 
-	if (mode==Physics2DServer::BODY_MODE_KINEMATIC) {
+	if (mode==PhysicsServer2D::BODY_MODE_KINEMATIC) {
 
 		//compute motion, angular and etc. velocities from prev transform
 		linear_velocity = (new_transform.elements[2] - get_transform().elements[2])/p_step;
@@ -431,7 +431,7 @@ void Body2DSW::integrate_forces(real_t p_step) {
 			angular_velocity+=_inv_inertia * torque * p_step;
 		}
 
-		if (continuous_cd_mode!=Physics2DServer::CCD_MODE_DISABLED) {
+		if (continuous_cd_mode!=PhysicsServer2D::CCD_MODE_DISABLED) {
 
 			motion = new_transform.get_origin() - get_transform().get_origin();
 			//linear_velocity*p_step;
@@ -456,13 +456,13 @@ void Body2DSW::integrate_forces(real_t p_step) {
 
 void Body2DSW::integrate_velocities(real_t p_step) {
 
-	if (mode==Physics2DServer::BODY_MODE_STATIC)
+	if (mode==PhysicsServer2D::BODY_MODE_STATIC)
 		return;
 
 	if (fi_callback)
 		get_space()->body_add_to_state_query_list(&direct_state_query_list);
 
-	if (mode==Physics2DServer::BODY_MODE_KINEMATIC) {
+	if (mode==PhysicsServer2D::BODY_MODE_KINEMATIC) {
 
 		_set_transform(new_transform,false);
 		_set_inv_transform(new_transform.affine_inverse());
@@ -477,10 +477,10 @@ void Body2DSW::integrate_velocities(real_t p_step) {
 	real_t angle = get_transform().get_rotation() - total_angular_velocity * p_step;
 	Vector2 pos = get_transform().get_origin() + total_linear_velocity * p_step;
 
-	_set_transform(Transform2D(angle,pos),continuous_cd_mode==Physics2DServer::CCD_MODE_DISABLED);
+	_set_transform(Transform2D(angle,pos),continuous_cd_mode==PhysicsServer2D::CCD_MODE_DISABLED);
 	_set_inv_transform(get_transform().inverse());
 
-	if (continuous_cd_mode!=Physics2DServer::CCD_MODE_DISABLED)
+	if (continuous_cd_mode!=PhysicsServer2D::CCD_MODE_DISABLED)
 		new_transform=get_transform();
 
 	//_update_inertia_tensor();
@@ -503,7 +503,7 @@ void Body2DSW::wakeup_neighbours() {
 			if (i==E->get())
 				continue;
 			Body2DSW *b = n[i];
-			if (b->mode!=Physics2DServer::BODY_MODE_RIGID)
+			if (b->mode!=PhysicsServer2D::BODY_MODE_RIGID)
 				continue;
 
 			if (!b->is_active())
@@ -547,9 +547,9 @@ void Body2DSW::call_queries() {
 
 bool Body2DSW::sleep_test(real_t p_step)  {
 
-	if (mode==Physics2DServer::BODY_MODE_STATIC || mode==Physics2DServer::BODY_MODE_KINEMATIC)
+	if (mode==PhysicsServer2D::BODY_MODE_STATIC || mode==PhysicsServer2D::BODY_MODE_KINEMATIC)
 		return true; //
-	else if (mode==Physics2DServer::BODY_MODE_CHARACTER)
+	else if (mode==PhysicsServer2D::BODY_MODE_CHARACTER)
 		return !active; // characters and kinematic bodies don't sleep unless asked to sleep
 	else if (!can_sleep)
 		return false;
@@ -592,7 +592,7 @@ void Body2DSW::set_force_integration_callback(ObjectID p_id,const StringName& p_
 Body2DSW::Body2DSW() : CollisionObject2DSW(TYPE_BODY), active_list(this), inertia_update_list(this), direct_state_query_list(this) {
 
 
-	mode=Physics2DServer::BODY_MODE_RIGID;
+	mode=PhysicsServer2D::BODY_MODE_RIGID;
 	active=true;
 	angular_velocity=0;
 	biased_angular_velocity=0;
@@ -612,7 +612,7 @@ Body2DSW::Body2DSW() : CollisionObject2DSW(TYPE_BODY), active_list(this), inerti
 	contact_count=0;
 
 	still_time=0;
-	continuous_cd_mode=Physics2DServer::CCD_MODE_DISABLED;
+	continuous_cd_mode=PhysicsServer2D::CCD_MODE_DISABLED;
 	can_sleep=false;
 	fi_callback=NULL;
 

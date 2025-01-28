@@ -32,7 +32,7 @@
 
 void CircleShape2D::_update_shape() {
 
-	Physics2DServer::get_singleton()->shape_set_data(get_rid(),radius);
+	PhysicsServer2D::get_singleton()->shape_set_data(get_rid(),radius);
 	emit_changed();
 }
 
@@ -58,7 +58,7 @@ void CircleShape2D::_bind_methods() {
 
 }
 
-CircleShape2D::CircleShape2D() : Shape2D( Physics2DServer::get_singleton()->shape_create(Physics2DServer::SHAPE_CIRCLE)) {
+CircleShape2D::CircleShape2D() : Shape2D( PhysicsServer2D::get_singleton()->shape_create(PhysicsServer2D::SHAPE_CIRCLE)) {
 
 	radius=10;
 	_update_shape();

@@ -105,7 +105,7 @@ MainLoop* test_main(String p_test,const List<String>& p_args) {
 		return TestRender::test();
 	}
   
-	#ifndef _3D_DISABLED
+	#ifndef NODE_3D_DISABLED
 	if (p_test=="gui") {
 
 		return TestGUI::test();

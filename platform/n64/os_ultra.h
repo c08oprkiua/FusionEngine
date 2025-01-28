@@ -41,7 +41,8 @@
 #include "servers/spatial_sound/spatial_sound_server_sw.h"
 #include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
-#include "servers/physics_2d/physics_2d_server_sw.h"
+#include "servers/physics_2d_server.h"
+#include "servers/physics_3d_server.h"
 
 //bitch
 #undef CursorShape
@@ -60,8 +61,8 @@ class OS_Ultra : public OS {
 	AudioDriverDummy driver_dummy;
 	bool grab;
 
-	PhysicsServer *physics_server;
-	Physics2DServer *physics_2d_server;
+	Physics3DServer *physics_server;
+	PhysicsServer2D *physics_2d_server;
 
 	virtual void delete_main_loop();
 	// IP_Unix *ip_unix;

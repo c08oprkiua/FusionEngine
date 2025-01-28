@@ -243,7 +243,7 @@ void Viewport::update_worlds() {
 
 
 void Viewport::_test_new_mouseover(ObjectID new_collider) {
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	if (new_collider!=physics_object_over) {
 
 		if (physics_object_over) {
@@ -318,7 +318,7 @@ void Viewport::_notification(int p_what) {
 
 		} break;
 		case NOTIFICATION_READY: {
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 			if (cameras.size() && !camera) {
 				//there are cameras but no current camera, pick first in tree and make it current
 				Camera3D *first=NULL;
@@ -353,11 +353,11 @@ void Viewport::_notification(int p_what) {
 		case NOTIFICATION_FIXED_PROCESS: {
 
 			if (physics_object_picking) {
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 				Vector2 last_pos(1e20,1e20);
 				CollisionObject3D *last_object;
 				ObjectID last_id=0;
-				PhysicsDirectSpaceState::RayResult result;
+				Physics3DDirectSpaceState::RayResult result;
 
 				bool motion_tested=false;
 
@@ -439,7 +439,7 @@ void Viewport::_notification(int p_what) {
 							Vector3 from = camera->project_ray_origin(pos);
 							Vector3 dir = camera->project_ray_normal(pos);
 
-							PhysicsDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
+							Physics3DDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
 							if (space) {
 
 								bool col = space->intersect_ray(from,from+dir*10000,result,Set<RID>(),0xFFFFFFFF,0xFFFFFFFF);
@@ -479,7 +479,7 @@ void Viewport::_notification(int p_what) {
 					Vector3 from = camera->project_ray_origin(physics_last_mousepos);
 					Vector3 dir = camera->project_ray_normal(physics_last_mousepos);
 
-					PhysicsDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
+					Physics3DDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
 					if (space) {
 
 						bool col = space->intersect_ray(from,from+dir*10000,result,Set<RID>(),0xFFFFFFFF,0xFFFFFFFF);
@@ -660,7 +660,7 @@ Transform2D Viewport::get_global_canvas_transform() const{
 
 void Viewport::_camera_transform_changed_notify() {
 
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	if (camera)
 		SpatialSoundServer::get_singleton()->listener_set_transform(listener,camera->get_camera_transform());
 #endif
@@ -668,7 +668,7 @@ void Viewport::_camera_transform_changed_notify() {
 
 void Viewport::_set_camera(Camera3D* p_camera) {
 
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 
 	if (camera==p_camera)
 		return;
@@ -804,7 +804,7 @@ void Viewport::set_world(const Ref<World3D>& p_world) {
 	if (is_inside_tree())
 		_propagate_exit_world(this);
 
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	if (find_world().is_valid() && camera)
 		camera->notification(Camera3D::NOTIFICATION_LOST_CURRENT);
 #endif
@@ -814,7 +814,7 @@ void Viewport::set_world(const Ref<World3D>& p_world) {
 	if (is_inside_tree())
 		_propagate_enter_world(this);
 
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	if (find_world().is_valid() && camera)
 		camera->notification(Camera3D::NOTIFICATION_BECAME_CURRENT);
 #endif
@@ -1137,7 +1137,7 @@ void Viewport::set_use_own_world(bool p_world) {
 	if (is_inside_tree())
 		_propagate_exit_world(this);
 
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	if (find_world().is_valid() && camera)
 		camera->notification(Camera3D::NOTIFICATION_LOST_CURRENT);
 #endif
@@ -1150,7 +1150,7 @@ void Viewport::set_use_own_world(bool p_world) {
 	if (is_inside_tree())
 		_propagate_enter_world(this);
 
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	if (find_world().is_valid() && camera)
 		camera->notification(Camera3D::NOTIFICATION_BECAME_CURRENT);
 #endif

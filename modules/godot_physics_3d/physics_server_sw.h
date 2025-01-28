@@ -41,7 +41,7 @@ class PhysicsServer3DSW : public PhysicsServer3D {
 
 	OBJ_TYPE( PhysicsServer3DSW, PhysicsServer3D );
 
-friend class PhysicsDirectSpaceStateSW;
+friend class Physics3DDirectSpaceStateSW;
 	bool active;
 	int iterations;
 	bool doing_sync;
@@ -54,7 +54,7 @@ friend class PhysicsDirectSpaceStateSW;
 	StepSW *stepper;
 	Set<const SpaceSW*> active_spaces;
 
-	PhysicsDirectBodyStateSW *direct_state;
+	Physics3DDirectBodyStateSW *direct_state;
 
 	mutable RID_Owner<ShapeSW> shape_owner;
 	mutable RID_Owner<SpaceSW> space_owner;
@@ -92,7 +92,7 @@ public:
 	virtual real_t space_get_param(RID p_space,SpaceParameter p_param) const;
 
 	// this function only works on fixed process, errors and returns null otherwise
-	virtual PhysicsDirectSpaceState* space_get_direct_state(RID p_space);
+	virtual Physics3DDirectSpaceState* space_get_direct_state(RID p_space);
 
 
 	/* AREA API */

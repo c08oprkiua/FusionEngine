@@ -31,7 +31,7 @@
 #include "broad_phase_2d_hash_grid.h"
 #include "collision_solver_2d_sw.h"
 
-RID Physics2DServerSW::shape_create(ShapeType p_shape) {
+RID PhysicsServer2DSW::shape_create(ShapeType p_shape) {
 
 	Shape2DSW *shape=NULL;
 	switch(p_shape) {
@@ -85,7 +85,7 @@ RID Physics2DServerSW::shape_create(ShapeType p_shape) {
 
 
 
-void Physics2DServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
+void PhysicsServer2DSW::shape_set_data(RID p_shape, const Variant& p_data) {
 
 	Shape2DSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND(!shape);
@@ -95,7 +95,7 @@ void Physics2DServerSW::shape_set_data(RID p_shape, const Variant& p_data) {
 };
 
 
-void Physics2DServerSW::shape_set_custom_solver_bias(RID p_shape, real_t p_bias) {
+void PhysicsServer2DSW::shape_set_custom_solver_bias(RID p_shape, real_t p_bias) {
 
 	Shape2DSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND(!shape);
@@ -104,7 +104,7 @@ void Physics2DServerSW::shape_set_custom_solver_bias(RID p_shape, real_t p_bias)
 }
 
 
-Physics2DServer::ShapeType Physics2DServerSW::shape_get_type(RID p_shape) const {
+PhysicsServer2D::ShapeType PhysicsServer2DSW::shape_get_type(RID p_shape) const {
 
 	const Shape2DSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,SHAPE_CUSTOM);
@@ -112,7 +112,7 @@ Physics2DServer::ShapeType Physics2DServerSW::shape_get_type(RID p_shape) const 
 
 };
 
-Variant Physics2DServerSW::shape_get_data(RID p_shape) const {
+Variant PhysicsServer2DSW::shape_get_data(RID p_shape) const {
 
 	const Shape2DSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,Variant());
@@ -121,7 +121,7 @@ Variant Physics2DServerSW::shape_get_data(RID p_shape) const {
 
 };
 
-real_t Physics2DServerSW::shape_get_custom_solver_bias(RID p_shape) const {
+real_t PhysicsServer2DSW::shape_get_custom_solver_bias(RID p_shape) const {
 
 	const Shape2DSW *shape = shape_owner.get(p_shape);
 	ERR_FAIL_COND_V(!shape,0);
@@ -130,7 +130,7 @@ real_t Physics2DServerSW::shape_get_custom_solver_bias(RID p_shape) const {
 }
 
 
-void Physics2DServerSW::_shape_col_cbk(const Vector2& p_point_A,const Vector2& p_point_B,void *p_userdata) {
+void PhysicsServer2DSW::_shape_col_cbk(const Vector2& p_point_A,const Vector2& p_point_B,void *p_userdata) {
 
 
 	CollCbkData *cbk=(CollCbkData *)p_userdata;
@@ -167,7 +167,7 @@ void Physics2DServerSW::_shape_col_cbk(const Vector2& p_point_A,const Vector2& p
 	}
 }
 
-bool Physics2DServerSW::shape_collide(RID p_shape_A, const Transform2D& p_xform_A,const Vector2& p_motion_A,RID p_shape_B, const Transform2D& p_xform_B, const Vector2& p_motion_B,Vector2 *r_results,int p_result_max,int &r_result_count) {
+bool PhysicsServer2DSW::shape_collide(RID p_shape_A, const Transform2D& p_xform_A,const Vector2& p_motion_A,RID p_shape_B, const Transform2D& p_xform_B, const Vector2& p_motion_B,Vector2 *r_results,int p_result_max,int &r_result_count) {
 
 
 	Shape2DSW *shape_A = shape_owner.get(p_shape_A);
@@ -192,7 +192,7 @@ bool Physics2DServerSW::shape_collide(RID p_shape_A, const Transform2D& p_xform_
 }
 
 
-RID Physics2DServerSW::space_create() {
+RID PhysicsServer2DSW::space_create() {
 
 	Space2DSW *space = memnew( Space2DSW );
 	RID id = space_owner.make_rid(space);
@@ -207,7 +207,7 @@ RID Physics2DServerSW::space_create() {
 	return id;
 };
 
-void Physics2DServerSW::space_set_active(RID p_space,bool p_active) {
+void PhysicsServer2DSW::space_set_active(RID p_space,bool p_active) {
 
 	Space2DSW *space = space_owner.get(p_space);
 	ERR_FAIL_COND(!space);
@@ -217,7 +217,7 @@ void Physics2DServerSW::space_set_active(RID p_space,bool p_active) {
 		active_spaces.erase(space);
 }
 
-bool Physics2DServerSW::space_is_active(RID p_space) const {
+bool PhysicsServer2DSW::space_is_active(RID p_space) const {
 
 	const Space2DSW *space = space_owner.get(p_space);
 	ERR_FAIL_COND_V(!space,false);
@@ -226,7 +226,7 @@ bool Physics2DServerSW::space_is_active(RID p_space) const {
 
 }
 
-void Physics2DServerSW::space_set_param(RID p_space,SpaceParameter p_param, real_t p_value) {
+void PhysicsServer2DSW::space_set_param(RID p_space,SpaceParameter p_param, real_t p_value) {
 
 	Space2DSW *space = space_owner.get(p_space);
 	ERR_FAIL_COND(!space);
@@ -235,14 +235,14 @@ void Physics2DServerSW::space_set_param(RID p_space,SpaceParameter p_param, real
 
 }
 
-real_t Physics2DServerSW::space_get_param(RID p_space,SpaceParameter p_param) const {
+real_t PhysicsServer2DSW::space_get_param(RID p_space,SpaceParameter p_param) const {
 
 	const Space2DSW *space = space_owner.get(p_space);
 	ERR_FAIL_COND_V(!space,0);
 	return space->get_param(p_param);
 }
 
-Physics2DDirectSpaceState* Physics2DServerSW::space_get_direct_state(RID p_space) {
+Physics2DDirectSpaceState* PhysicsServer2DSW::space_get_direct_state(RID p_space) {
 
 	Space2DSW *space = space_owner.get(p_space);
 	ERR_FAIL_COND_V(!space,NULL);
@@ -255,7 +255,7 @@ Physics2DDirectSpaceState* Physics2DServerSW::space_get_direct_state(RID p_space
 	return space->get_direct_state();
 }
 
-RID Physics2DServerSW::area_create() {
+RID PhysicsServer2DSW::area_create() {
 
 	Area2DSW *area = memnew( Area2DSW );
 	RID rid = area_owner.make_rid(area);
@@ -263,7 +263,7 @@ RID Physics2DServerSW::area_create() {
 	return rid;
 };
 
-void Physics2DServerSW::area_set_space(RID p_area, RID p_space) {
+void PhysicsServer2DSW::area_set_space(RID p_area, RID p_space) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -277,7 +277,7 @@ void Physics2DServerSW::area_set_space(RID p_area, RID p_space) {
 
 };
 
-RID Physics2DServerSW::area_get_space(RID p_area) const {
+RID PhysicsServer2DSW::area_get_space(RID p_area) const {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND_V(!area,RID());
@@ -288,7 +288,7 @@ RID Physics2DServerSW::area_get_space(RID p_area) const {
 	return space->get_self();
 };
 
-void Physics2DServerSW::area_set_space_override_mode(RID p_area, AreaSpaceOverrideMode p_mode) {
+void PhysicsServer2DSW::area_set_space_override_mode(RID p_area, AreaSpaceOverrideMode p_mode) {
 
 
 	Area2DSW *area = area_owner.get(p_area);
@@ -297,7 +297,7 @@ void Physics2DServerSW::area_set_space_override_mode(RID p_area, AreaSpaceOverri
 	area->set_space_override_mode(p_mode);
 }
 
-Physics2DServer::AreaSpaceOverrideMode Physics2DServerSW::area_get_space_override_mode(RID p_area) const {
+PhysicsServer2D::AreaSpaceOverrideMode PhysicsServer2DSW::area_get_space_override_mode(RID p_area) const {
 
 	const Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND_V(!area,AREA_SPACE_OVERRIDE_DISABLED);
@@ -306,7 +306,7 @@ Physics2DServer::AreaSpaceOverrideMode Physics2DServerSW::area_get_space_overrid
 }
 
 
-void Physics2DServerSW::area_add_shape(RID p_area, RID p_shape, const Transform2D& p_transform) {
+void PhysicsServer2DSW::area_add_shape(RID p_area, RID p_shape, const Transform2D& p_transform) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -318,7 +318,7 @@ void Physics2DServerSW::area_add_shape(RID p_area, RID p_shape, const Transform2
 
 }
 
-void Physics2DServerSW::area_set_shape(RID p_area, int p_shape_idx,RID p_shape) {
+void PhysicsServer2DSW::area_set_shape(RID p_area, int p_shape_idx,RID p_shape) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -330,7 +330,7 @@ void Physics2DServerSW::area_set_shape(RID p_area, int p_shape_idx,RID p_shape) 
 	area->set_shape(p_shape_idx,shape);
 
 }
-void Physics2DServerSW::area_set_shape_transform(RID p_area, int p_shape_idx, const Transform2D& p_transform) {
+void PhysicsServer2DSW::area_set_shape_transform(RID p_area, int p_shape_idx, const Transform2D& p_transform) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -338,7 +338,7 @@ void Physics2DServerSW::area_set_shape_transform(RID p_area, int p_shape_idx, co
 	area->set_shape_transform(p_shape_idx,p_transform);
 }
 
-int Physics2DServerSW::area_get_shape_count(RID p_area) const {
+int PhysicsServer2DSW::area_get_shape_count(RID p_area) const {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND_V(!area,-1);
@@ -346,7 +346,7 @@ int Physics2DServerSW::area_get_shape_count(RID p_area) const {
 	return area->get_shape_count();
 
 }
-RID Physics2DServerSW::area_get_shape(RID p_area, int p_shape_idx) const {
+RID PhysicsServer2DSW::area_get_shape(RID p_area, int p_shape_idx) const {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND_V(!area,RID());
@@ -356,7 +356,7 @@ RID Physics2DServerSW::area_get_shape(RID p_area, int p_shape_idx) const {
 
 	return shape->get_self();
 }
-Transform2D Physics2DServerSW::area_get_shape_transform(RID p_area, int p_shape_idx) const {
+Transform2D PhysicsServer2DSW::area_get_shape_transform(RID p_area, int p_shape_idx) const {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND_V(!area,Transform2D());
@@ -364,7 +364,7 @@ Transform2D Physics2DServerSW::area_get_shape_transform(RID p_area, int p_shape_
 	return area->get_shape_transform(p_shape_idx);
 }
 
-void Physics2DServerSW::area_remove_shape(RID p_area, int p_shape_idx) {
+void PhysicsServer2DSW::area_remove_shape(RID p_area, int p_shape_idx) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -372,7 +372,7 @@ void Physics2DServerSW::area_remove_shape(RID p_area, int p_shape_idx) {
 	area->remove_shape(p_shape_idx);
 }
 
-void Physics2DServerSW::area_clear_shapes(RID p_area) {
+void PhysicsServer2DSW::area_clear_shapes(RID p_area) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -382,7 +382,7 @@ void Physics2DServerSW::area_clear_shapes(RID p_area) {
 
 }
 
-void Physics2DServerSW::area_attach_object_instance_ID(RID p_area,ObjectID p_ID) {
+void PhysicsServer2DSW::area_attach_object_instance_ID(RID p_area,ObjectID p_ID) {
 
 	if (space_owner.owns(p_area)) {
 		Space2DSW *space=space_owner.get(p_area);
@@ -393,7 +393,7 @@ void Physics2DServerSW::area_attach_object_instance_ID(RID p_area,ObjectID p_ID)
 	area->set_instance_id(p_ID);
 
 }
-ObjectID Physics2DServerSW::area_get_object_instance_ID(RID p_area) const {
+ObjectID PhysicsServer2DSW::area_get_object_instance_ID(RID p_area) const {
 
 	if (space_owner.owns(p_area)) {
 		Space2DSW *space=space_owner.get(p_area);
@@ -407,7 +407,7 @@ ObjectID Physics2DServerSW::area_get_object_instance_ID(RID p_area) const {
 }
 
 
-void Physics2DServerSW::area_set_param(RID p_area,AreaParameter p_param,const Variant& p_value) {
+void PhysicsServer2DSW::area_set_param(RID p_area,AreaParameter p_param,const Variant& p_value) {
 
 	if (space_owner.owns(p_area)) {
 		Space2DSW *space=space_owner.get(p_area);
@@ -420,7 +420,7 @@ void Physics2DServerSW::area_set_param(RID p_area,AreaParameter p_param,const Va
 };
 
 
-void Physics2DServerSW::area_set_transform(RID p_area, const Transform2D& p_transform) {
+void PhysicsServer2DSW::area_set_transform(RID p_area, const Transform2D& p_transform) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -428,7 +428,7 @@ void Physics2DServerSW::area_set_transform(RID p_area, const Transform2D& p_tran
 
 };
 
-Variant Physics2DServerSW::area_get_param(RID p_area,AreaParameter p_param) const {
+Variant PhysicsServer2DSW::area_get_param(RID p_area,AreaParameter p_param) const {
 
 	if (space_owner.owns(p_area)) {
 		Space2DSW *space=space_owner.get(p_area);
@@ -440,7 +440,7 @@ Variant Physics2DServerSW::area_get_param(RID p_area,AreaParameter p_param) cons
 	return area->get_param(p_param);
 };
 
-Transform2D Physics2DServerSW::area_get_transform(RID p_area) const {
+Transform2D PhysicsServer2DSW::area_get_transform(RID p_area) const {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND_V(!area,Transform2D());
@@ -448,7 +448,7 @@ Transform2D Physics2DServerSW::area_get_transform(RID p_area) const {
 	return area->get_transform();
 };
 
-void Physics2DServerSW::area_set_monitor_callback(RID p_area,Object *p_receiver,const StringName& p_method) {
+void PhysicsServer2DSW::area_set_monitor_callback(RID p_area,Object *p_receiver,const StringName& p_method) {
 
 	Area2DSW *area = area_owner.get(p_area);
 	ERR_FAIL_COND(!area);
@@ -461,7 +461,7 @@ void Physics2DServerSW::area_set_monitor_callback(RID p_area,Object *p_receiver,
 
 /* BODY API */
 
-RID Physics2DServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
+RID PhysicsServer2DSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 
 	Body2DSW *body = memnew( Body2DSW );
 	if (p_mode!=BODY_MODE_RIGID)
@@ -474,7 +474,7 @@ RID Physics2DServerSW::body_create(BodyMode p_mode,bool p_init_sleeping) {
 };
 
 
-void Physics2DServerSW::body_set_space(RID p_body, RID p_space) {
+void PhysicsServer2DSW::body_set_space(RID p_body, RID p_space) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -488,7 +488,7 @@ void Physics2DServerSW::body_set_space(RID p_body, RID p_space) {
 
 };
 
-RID Physics2DServerSW::body_get_space(RID p_body) const {
+RID PhysicsServer2DSW::body_get_space(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,RID());
@@ -500,7 +500,7 @@ RID Physics2DServerSW::body_get_space(RID p_body) const {
 };
 
 
-void Physics2DServerSW::body_set_mode(RID p_body, BodyMode p_mode) {
+void PhysicsServer2DSW::body_set_mode(RID p_body, BodyMode p_mode) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -508,7 +508,7 @@ void Physics2DServerSW::body_set_mode(RID p_body, BodyMode p_mode) {
 	body->set_mode(p_mode);
 };
 
-Physics2DServer::BodyMode Physics2DServerSW::body_get_mode(RID p_body) const {
+PhysicsServer2D::BodyMode PhysicsServer2DSW::body_get_mode(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,BODY_MODE_STATIC);
@@ -516,7 +516,7 @@ Physics2DServer::BodyMode Physics2DServerSW::body_get_mode(RID p_body) const {
 	return body->get_mode();
 };
 
-void Physics2DServerSW::body_add_shape(RID p_body, RID p_shape, const Transform2D& p_transform) {
+void PhysicsServer2DSW::body_add_shape(RID p_body, RID p_shape, const Transform2D& p_transform) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -528,7 +528,7 @@ void Physics2DServerSW::body_add_shape(RID p_body, RID p_shape, const Transform2
 
 }
 
-void Physics2DServerSW::body_set_shape(RID p_body, int p_shape_idx,RID p_shape) {
+void PhysicsServer2DSW::body_set_shape(RID p_body, int p_shape_idx,RID p_shape) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -540,7 +540,7 @@ void Physics2DServerSW::body_set_shape(RID p_body, int p_shape_idx,RID p_shape) 
 	body->set_shape(p_shape_idx,shape);
 
 }
-void Physics2DServerSW::body_set_shape_transform(RID p_body, int p_shape_idx, const Transform2D& p_transform) {
+void PhysicsServer2DSW::body_set_shape_transform(RID p_body, int p_shape_idx, const Transform2D& p_transform) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -548,7 +548,7 @@ void Physics2DServerSW::body_set_shape_transform(RID p_body, int p_shape_idx, co
 	body->set_shape_transform(p_shape_idx,p_transform);
 }
 
-void Physics2DServerSW::body_set_shape_metadata(RID p_body, int p_shape_idx, const Variant& p_metadata) {
+void PhysicsServer2DSW::body_set_shape_metadata(RID p_body, int p_shape_idx, const Variant& p_metadata) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -556,7 +556,7 @@ void Physics2DServerSW::body_set_shape_metadata(RID p_body, int p_shape_idx, con
 }
 
 
-Variant Physics2DServerSW::body_get_shape_metadata(RID p_body, int p_shape_idx) const {
+Variant PhysicsServer2DSW::body_get_shape_metadata(RID p_body, int p_shape_idx) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,Variant());
@@ -564,7 +564,7 @@ Variant Physics2DServerSW::body_get_shape_metadata(RID p_body, int p_shape_idx) 
 }
 
 
-int Physics2DServerSW::body_get_shape_count(RID p_body) const {
+int PhysicsServer2DSW::body_get_shape_count(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,-1);
@@ -572,7 +572,7 @@ int Physics2DServerSW::body_get_shape_count(RID p_body) const {
 	return body->get_shape_count();
 
 }
-RID Physics2DServerSW::body_get_shape(RID p_body, int p_shape_idx) const {
+RID PhysicsServer2DSW::body_get_shape(RID p_body, int p_shape_idx) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,RID());
@@ -582,7 +582,7 @@ RID Physics2DServerSW::body_get_shape(RID p_body, int p_shape_idx) const {
 
 	return shape->get_self();
 }
-Transform2D Physics2DServerSW::body_get_shape_transform(RID p_body, int p_shape_idx) const {
+Transform2D PhysicsServer2DSW::body_get_shape_transform(RID p_body, int p_shape_idx) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,Transform2D());
@@ -590,7 +590,7 @@ Transform2D Physics2DServerSW::body_get_shape_transform(RID p_body, int p_shape_
 	return body->get_shape_transform(p_shape_idx);
 }
 
-void Physics2DServerSW::body_remove_shape(RID p_body, int p_shape_idx) {
+void PhysicsServer2DSW::body_remove_shape(RID p_body, int p_shape_idx) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -598,7 +598,7 @@ void Physics2DServerSW::body_remove_shape(RID p_body, int p_shape_idx) {
 	body->remove_shape(p_shape_idx);
 }
 
-void Physics2DServerSW::body_clear_shapes(RID p_body) {
+void PhysicsServer2DSW::body_clear_shapes(RID p_body) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -609,7 +609,7 @@ void Physics2DServerSW::body_clear_shapes(RID p_body) {
 }
 
 
-void Physics2DServerSW::body_set_shape_as_trigger(RID p_body, int p_shape_idx,bool p_enable) {
+void PhysicsServer2DSW::body_set_shape_as_trigger(RID p_body, int p_shape_idx,bool p_enable) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -620,7 +620,7 @@ void Physics2DServerSW::body_set_shape_as_trigger(RID p_body, int p_shape_idx,bo
 
 }
 
-bool Physics2DServerSW::body_is_shape_set_as_trigger(RID p_body, int p_shape_idx) const {
+bool PhysicsServer2DSW::body_is_shape_set_as_trigger(RID p_body, int p_shape_idx) const {
 
 	const Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,false);
@@ -632,7 +632,7 @@ bool Physics2DServerSW::body_is_shape_set_as_trigger(RID p_body, int p_shape_idx
 }
 
 
-void Physics2DServerSW::body_set_continuous_collision_detection_mode(RID p_body,CCDMode p_mode) {
+void PhysicsServer2DSW::body_set_continuous_collision_detection_mode(RID p_body,CCDMode p_mode) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -640,7 +640,7 @@ void Physics2DServerSW::body_set_continuous_collision_detection_mode(RID p_body,
 
 }
 
-Physics2DServerSW::CCDMode Physics2DServerSW::body_get_continuous_collision_detection_mode(RID p_body) const{
+PhysicsServer2DSW::CCDMode PhysicsServer2DSW::body_get_continuous_collision_detection_mode(RID p_body) const{
 
 	const Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,CCD_MODE_DISABLED);
@@ -651,7 +651,7 @@ Physics2DServerSW::CCDMode Physics2DServerSW::body_get_continuous_collision_dete
 
 
 
-void Physics2DServerSW::body_attach_object_instance_ID(RID p_body,uint32_t p_ID) {
+void PhysicsServer2DSW::body_attach_object_instance_ID(RID p_body,uint32_t p_ID) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -660,7 +660,7 @@ void Physics2DServerSW::body_attach_object_instance_ID(RID p_body,uint32_t p_ID)
 
 };
 
-uint32_t Physics2DServerSW::body_get_object_instance_ID(RID p_body) const {
+uint32_t PhysicsServer2DSW::body_get_object_instance_ID(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,0);
@@ -668,7 +668,7 @@ uint32_t Physics2DServerSW::body_get_object_instance_ID(RID p_body) const {
 	return body->get_instance_id();
 };
 
-void Physics2DServerSW::body_set_layer_mask(RID p_body, uint32_t p_flags) {
+void PhysicsServer2DSW::body_set_layer_mask(RID p_body, uint32_t p_flags) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -676,7 +676,7 @@ void Physics2DServerSW::body_set_layer_mask(RID p_body, uint32_t p_flags) {
 
 };
 
-uint32_t Physics2DServerSW::body_get_layer_mask(RID p_body, uint32_t p_flags) const {
+uint32_t PhysicsServer2DSW::body_get_layer_mask(RID p_body, uint32_t p_flags) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,0);
@@ -685,7 +685,7 @@ uint32_t Physics2DServerSW::body_get_layer_mask(RID p_body, uint32_t p_flags) co
 };
 
 
-void Physics2DServerSW::body_set_user_mask(RID p_body, uint32_t p_flags) {
+void PhysicsServer2DSW::body_set_user_mask(RID p_body, uint32_t p_flags) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -693,7 +693,7 @@ void Physics2DServerSW::body_set_user_mask(RID p_body, uint32_t p_flags) {
 
 };
 
-uint32_t Physics2DServerSW::body_get_user_mask(RID p_body, uint32_t p_flags) const {
+uint32_t PhysicsServer2DSW::body_get_user_mask(RID p_body, uint32_t p_flags) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,0);
@@ -701,7 +701,7 @@ uint32_t Physics2DServerSW::body_get_user_mask(RID p_body, uint32_t p_flags) con
 	return body->get_user_mask();
 };
 
-void Physics2DServerSW::body_set_param(RID p_body, BodyParameter p_param, float p_value) {
+void PhysicsServer2DSW::body_set_param(RID p_body, BodyParameter p_param, float p_value) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -709,7 +709,7 @@ void Physics2DServerSW::body_set_param(RID p_body, BodyParameter p_param, float 
 	body->set_param(p_param,p_value);
 };
 
-float Physics2DServerSW::body_get_param(RID p_body, BodyParameter p_param) const {
+float PhysicsServer2DSW::body_get_param(RID p_body, BodyParameter p_param) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,0);
@@ -719,7 +719,7 @@ float Physics2DServerSW::body_get_param(RID p_body, BodyParameter p_param) const
 
 
 
-void Physics2DServerSW::body_set_state(RID p_body, BodyState p_state, const Variant& p_variant) {
+void PhysicsServer2DSW::body_set_state(RID p_body, BodyState p_state, const Variant& p_variant) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -727,7 +727,7 @@ void Physics2DServerSW::body_set_state(RID p_body, BodyState p_state, const Vari
 	body->set_state(p_state,p_variant);
 };
 
-Variant Physics2DServerSW::body_get_state(RID p_body, BodyState p_state) const {
+Variant PhysicsServer2DSW::body_get_state(RID p_body, BodyState p_state) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,Variant());
@@ -736,7 +736,7 @@ Variant Physics2DServerSW::body_get_state(RID p_body, BodyState p_state) const {
 };
 
 
-void Physics2DServerSW::body_set_applied_force(RID p_body, const Vector2& p_force) {
+void PhysicsServer2DSW::body_set_applied_force(RID p_body, const Vector2& p_force) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -744,14 +744,14 @@ void Physics2DServerSW::body_set_applied_force(RID p_body, const Vector2& p_forc
 	body->set_applied_force(p_force);
 };
 
-Vector2 Physics2DServerSW::body_get_applied_force(RID p_body) const {
+Vector2 PhysicsServer2DSW::body_get_applied_force(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,Vector2());
 	return body->get_applied_force();
 };
 
-void Physics2DServerSW::body_set_applied_torque(RID p_body, float p_torque) {
+void PhysicsServer2DSW::body_set_applied_torque(RID p_body, float p_torque) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -759,7 +759,7 @@ void Physics2DServerSW::body_set_applied_torque(RID p_body, float p_torque) {
 	body->set_applied_torque(p_torque);
 };
 
-float Physics2DServerSW::body_get_applied_torque(RID p_body) const {
+float PhysicsServer2DSW::body_get_applied_torque(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,0);
@@ -767,7 +767,7 @@ float Physics2DServerSW::body_get_applied_torque(RID p_body) const {
 	return body->get_applied_torque();
 };
 
-void Physics2DServerSW::body_apply_impulse(RID p_body, const Vector2& p_pos, const Vector2& p_impulse) {
+void PhysicsServer2DSW::body_apply_impulse(RID p_body, const Vector2& p_pos, const Vector2& p_impulse) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -775,7 +775,7 @@ void Physics2DServerSW::body_apply_impulse(RID p_body, const Vector2& p_pos, con
 	body->apply_impulse(p_pos,p_impulse);
 };
 
-void Physics2DServerSW::body_set_axis_velocity(RID p_body, const Vector2& p_axis_velocity) {
+void PhysicsServer2DSW::body_set_axis_velocity(RID p_body, const Vector2& p_axis_velocity) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -788,7 +788,7 @@ void Physics2DServerSW::body_set_axis_velocity(RID p_body, const Vector2& p_axis
 
 };
 
-void Physics2DServerSW::body_add_collision_exception(RID p_body, RID p_body_b) {
+void PhysicsServer2DSW::body_add_collision_exception(RID p_body, RID p_body_b) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -797,7 +797,7 @@ void Physics2DServerSW::body_add_collision_exception(RID p_body, RID p_body_b) {
 
 };
 
-void Physics2DServerSW::body_remove_collision_exception(RID p_body, RID p_body_b) {
+void PhysicsServer2DSW::body_remove_collision_exception(RID p_body, RID p_body_b) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -806,7 +806,7 @@ void Physics2DServerSW::body_remove_collision_exception(RID p_body, RID p_body_b
 
 };
 
-void Physics2DServerSW::body_get_collision_exceptions(RID p_body, List<RID> *p_exceptions) {
+void PhysicsServer2DSW::body_get_collision_exceptions(RID p_body, List<RID> *p_exceptions) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -817,21 +817,21 @@ void Physics2DServerSW::body_get_collision_exceptions(RID p_body, List<RID> *p_e
 
 };
 
-void Physics2DServerSW::body_set_contacts_reported_depth_treshold(RID p_body, float p_treshold) {
+void PhysicsServer2DSW::body_set_contacts_reported_depth_treshold(RID p_body, float p_treshold) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
 
 };
 
-float Physics2DServerSW::body_get_contacts_reported_depth_treshold(RID p_body) const {
+float PhysicsServer2DSW::body_get_contacts_reported_depth_treshold(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,0);
 	return 0;
 };
 
-void Physics2DServerSW::body_set_omit_force_integration(RID p_body,bool p_omit) {
+void PhysicsServer2DSW::body_set_omit_force_integration(RID p_body,bool p_omit) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -839,28 +839,28 @@ void Physics2DServerSW::body_set_omit_force_integration(RID p_body,bool p_omit) 
 	body->set_omit_force_integration(p_omit);
 };
 
-bool Physics2DServerSW::body_is_omitting_force_integration(RID p_body) const {
+bool PhysicsServer2DSW::body_is_omitting_force_integration(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,false);
 	return body->get_omit_force_integration();
 };
 
-void Physics2DServerSW::body_set_max_contacts_reported(RID p_body, int p_contacts) {
+void PhysicsServer2DSW::body_set_max_contacts_reported(RID p_body, int p_contacts) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
 	body->set_max_contacts_reported(p_contacts);
 }
 
-int Physics2DServerSW::body_get_max_contacts_reported(RID p_body) const {
+int PhysicsServer2DSW::body_get_max_contacts_reported(RID p_body) const {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,-1);
 	return body->get_max_contacts_reported();
 }
 
-void Physics2DServerSW::body_set_force_integration_callback(RID p_body,Object *p_receiver,const StringName& p_method,const Variant& p_udata) {
+void PhysicsServer2DSW::body_set_force_integration_callback(RID p_body,Object *p_receiver,const StringName& p_method,const Variant& p_udata) {
 
 
 	Body2DSW *body = body_owner.get(p_body);
@@ -869,7 +869,7 @@ void Physics2DServerSW::body_set_force_integration_callback(RID p_body,Object *p
 
 }
 
-bool Physics2DServerSW::body_collide_shape(RID p_body, int p_body_shape, RID p_shape, const Transform2D& p_shape_xform,const Vector2& p_motion,Vector2 *r_results,int p_result_max,int &r_result_count) {
+bool PhysicsServer2DSW::body_collide_shape(RID p_body, int p_body_shape, RID p_shape, const Transform2D& p_shape_xform,const Vector2& p_motion,Vector2 *r_results,int p_result_max,int &r_result_count) {
 
 	Body2DSW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body,false);
@@ -882,7 +882,7 @@ bool Physics2DServerSW::body_collide_shape(RID p_body, int p_body_shape, RID p_s
 
 /* JOINT API */
 
-void Physics2DServerSW::joint_set_param(RID p_joint, JointParam p_param, real_t p_value) {
+void PhysicsServer2DSW::joint_set_param(RID p_joint, JointParam p_param, real_t p_value) {
 
 	Joint2DSW *joint = joint_owner.get(p_joint);
 	ERR_FAIL_COND(!joint);
@@ -896,7 +896,7 @@ void Physics2DServerSW::joint_set_param(RID p_joint, JointParam p_param, real_t 
 
 }
 
-real_t Physics2DServerSW::joint_get_param(RID p_joint,JointParam p_param) const {
+real_t PhysicsServer2DSW::joint_get_param(RID p_joint,JointParam p_param) const {
 
 	const Joint2DSW *joint = joint_owner.get(p_joint);
 	ERR_FAIL_COND_V(!joint,-1);
@@ -911,7 +911,7 @@ real_t Physics2DServerSW::joint_get_param(RID p_joint,JointParam p_param) const 
 }
 
 
-RID Physics2DServerSW::pin_joint_create(const Vector2& p_pos,RID p_body_a,RID p_body_b) {
+RID PhysicsServer2DSW::pin_joint_create(const Vector2& p_pos,RID p_body_a,RID p_body_b) {
 
 	Body2DSW *A=body_owner.get(p_body_a);
 	ERR_FAIL_COND_V(!A,RID());
@@ -928,7 +928,7 @@ RID Physics2DServerSW::pin_joint_create(const Vector2& p_pos,RID p_body_a,RID p_
 	return self;
 }
 
-RID Physics2DServerSW::groove_joint_create(const Vector2& p_a_groove1,const Vector2& p_a_groove2, const Vector2& p_b_anchor, RID p_body_a,RID p_body_b) {
+RID PhysicsServer2DSW::groove_joint_create(const Vector2& p_a_groove1,const Vector2& p_a_groove2, const Vector2& p_b_anchor, RID p_body_a,RID p_body_b) {
 
 
 	Body2DSW *A=body_owner.get(p_body_a);
@@ -945,7 +945,7 @@ RID Physics2DServerSW::groove_joint_create(const Vector2& p_a_groove1,const Vect
 
 }
 
-RID Physics2DServerSW::damped_spring_joint_create(const Vector2& p_anchor_a,const Vector2& p_anchor_b,RID p_body_a,RID p_body_b) {
+RID PhysicsServer2DSW::damped_spring_joint_create(const Vector2& p_anchor_a,const Vector2& p_anchor_b,RID p_body_a,RID p_body_b) {
 
 	Body2DSW *A=body_owner.get(p_body_a);
 	ERR_FAIL_COND_V(!A,RID());
@@ -960,7 +960,7 @@ RID Physics2DServerSW::damped_spring_joint_create(const Vector2& p_anchor_a,cons
 
 }
 
-void Physics2DServerSW::damped_string_joint_set_param(RID p_joint, DampedStringParam p_param, real_t p_value) {
+void PhysicsServer2DSW::damped_string_joint_set_param(RID p_joint, DampedStringParam p_param, real_t p_value) {
 
 
 	Joint2DSW *j = joint_owner.get(p_joint);
@@ -971,7 +971,7 @@ void Physics2DServerSW::damped_string_joint_set_param(RID p_joint, DampedStringP
 	dsj->set_param(p_param,p_value);
 }
 
-real_t Physics2DServerSW::damped_string_joint_get_param(RID p_joint, DampedStringParam p_param) const {
+real_t PhysicsServer2DSW::damped_string_joint_get_param(RID p_joint, DampedStringParam p_param) const {
 
 	Joint2DSW *j = joint_owner.get(p_joint);
 	ERR_FAIL_COND_V(!j,0);
@@ -981,7 +981,7 @@ real_t Physics2DServerSW::damped_string_joint_get_param(RID p_joint, DampedStrin
 	return dsj->get_param(p_param);
 }
 
-Physics2DServer::JointType Physics2DServerSW::joint_get_type(RID p_joint) const {
+PhysicsServer2D::JointType PhysicsServer2DSW::joint_get_type(RID p_joint) const {
 
 
 	Joint2DSW *joint = joint_owner.get(p_joint);
@@ -992,7 +992,7 @@ Physics2DServer::JointType Physics2DServerSW::joint_get_type(RID p_joint) const 
 
 
 
-void Physics2DServerSW::free(RID p_rid) {
+void PhysicsServer2DSW::free(RID p_rid) {
 
 	if (shape_owner.owns(p_rid)) {
 
@@ -1077,12 +1077,12 @@ void Physics2DServerSW::free(RID p_rid) {
 
 };
 
-void Physics2DServerSW::set_active(bool p_active) {
+void PhysicsServer2DSW::set_active(bool p_active) {
 
 	active=p_active;
 };
 
-void Physics2DServerSW::init() {
+void PhysicsServer2DSW::init() {
 
 	doing_sync=true;
 	last_step=0.001;
@@ -1092,7 +1092,7 @@ void Physics2DServerSW::init() {
 };
 
 
-void Physics2DServerSW::step(float p_step) {
+void PhysicsServer2DSW::step(float p_step) {
 
 
 	if (!active)
@@ -1114,11 +1114,11 @@ void Physics2DServerSW::step(float p_step) {
 	}
 };
 
-void Physics2DServerSW::sync() {
+void PhysicsServer2DSW::sync() {
 
 };
 
-void Physics2DServerSW::flush_queries() {
+void PhysicsServer2DSW::flush_queries() {
 
 	if (!active)
 		return;
@@ -1134,13 +1134,13 @@ void Physics2DServerSW::flush_queries() {
 
 
 
-void Physics2DServerSW::finish() {
+void PhysicsServer2DSW::finish() {
 
 	memdelete(stepper);
 	memdelete(direct_state);
 };
 
-int Physics2DServerSW::get_process_info(ProcessInfo p_info) {
+int PhysicsServer2DSW::get_process_info(ProcessInfo p_info) {
 
 	switch(p_info) {
 
@@ -1162,7 +1162,7 @@ int Physics2DServerSW::get_process_info(ProcessInfo p_info) {
 }
 
 
-Physics2DServerSW::Physics2DServerSW() {
+PhysicsServer2DSW::PhysicsServer2DSW() {
 
 	BroadPhase2DSW::create_func=BroadPhase2DHashGrid::_create;
 //	BroadPhase2DSW::create_func=BroadPhase2DBasic::_create;
@@ -1175,7 +1175,7 @@ Physics2DServerSW::Physics2DServerSW() {
 };
 
 
-Physics2DServerSW::~Physics2DServerSW() {
+PhysicsServer2DSW::~PhysicsServer2DSW() {
 
 };
 

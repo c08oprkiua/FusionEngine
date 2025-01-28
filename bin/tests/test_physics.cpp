@@ -68,7 +68,7 @@ class TestPhysicsMainLoop : public MainLoop {
 
 	void body_changed_transform(Object *p_state, RID p_visual_instance) {
 
-		PhysicsDirectBodyState *state = (PhysicsDirectBodyState*)p_state;
+		Physics3DDirectBodyState *state = (Physics3DDirectBodyState*)p_state;
 		VisualServer *vs=VisualServer::get_singleton();
 		Transform3D t=state->get_transform();
 		//t.basis.scale( Vector3(1.0,0.5,0.2) );

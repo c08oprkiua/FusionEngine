@@ -118,7 +118,7 @@ public:
 private:
 
 	bool can_sleep;
-	PhysicsDirectBodyState *state;
+	Physics3DDirectBodyState *state;
 	Mode mode;
 
 	real_t bounce;

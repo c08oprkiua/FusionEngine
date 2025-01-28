@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "print_string.h"
-#include "servers/physics/physics_server_sw.h"
+#include "servers/physics_3d_server.h"
 #include "drivers/unix/mutex_posix.h"
 #include "drivers/unix/thread_posix.h"
 // #include "drivers/unix/semaphore_posix.h"
@@ -127,7 +127,7 @@ void OS_KOS::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 	//
 	physics_server = memnew( PhysicsServer3DSW );
 	physics_server->init();
-	physics_2d_server = memnew( Physics2DServerSW );
+	physics_2d_server = memnew( PhysicsServer2DSW );
 	physics_2d_server->init();
 
 	input = memnew( InputDefault );

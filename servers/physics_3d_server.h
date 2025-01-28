@@ -32,11 +32,11 @@
 #include "object.h"
 #include "resource.h"
 
-class PhysicsDirectSpaceState;
+class Physics3DDirectSpaceState;
 
-class PhysicsDirectBodyState : public Object {
+class Physics3DDirectBodyState : public Object {
 
-	OBJ_TYPE( PhysicsDirectBodyState, Object );
+	OBJ_TYPE( Physics3DDirectBodyState, Object );
 protected:
 	static void _bind_methods();
 public:
@@ -81,18 +81,18 @@ public:
 	virtual real_t get_step() const=0;
 	virtual void integrate_forces();
 
-	virtual PhysicsDirectSpaceState* get_space_state()=0;
+	virtual Physics3DDirectSpaceState* get_space_state()=0;
 
-	PhysicsDirectBodyState();
+	Physics3DDirectBodyState();
 };
 
 
-class PhysicsShapeQueryResult;
+class Physics3DShapeQueryResult;
 
-class PhysicsShapeQueryParameters : public RefCounted {
+class Physics3DShapeQueryParameters : public RefCounted {
 
-	OBJ_TYPE(PhysicsShapeQueryParameters, RefCounted);
-friend class PhysicsDirectSpaceState;
+	OBJ_TYPE(Physics3DShapeQueryParameters, RefCounted);
+friend class Physics3DDirectSpaceState;
 	RID shape;
 	Transform3D transform;
 	float margin;
@@ -123,15 +123,15 @@ public:
 	void set_exclude(const Vector<RID>& p_exclude);
 	Vector<RID> get_exclude() const;
 
-	PhysicsShapeQueryParameters();
+	Physics3DShapeQueryParameters();
 
 };
 
 
 
-class PhysicsDirectSpaceState : public Object {
+class Physics3DDirectSpaceState : public Object {
 
-	OBJ_TYPE( PhysicsDirectSpaceState, Object );
+	OBJ_TYPE( Physics3DDirectSpaceState, Object );
 
 //	Variant _intersect_ray(const Vector3& p_from, const Vector3& p_to,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_user_mask=0);
 //	Variant _intersect_shape(const RID& p_shape, const Transform3D& p_xform,int p_result_max=64,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_user_mask=0);
@@ -149,10 +149,10 @@ public:
 
 private:
 	Dictionary _intersect_ray(const Vector3& p_from, const Vector3& p_to,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_layers=0,uint32_t p_object_type_mask=TYPE_MASK_COLLISION);
-	Array _intersect_shape(const Ref<PhysicsShapeQueryParameters> &p_shape_query,int p_max_results=32);
-	Array _cast_motion(const Ref<PhysicsShapeQueryParameters> &p_shape_query,const Vector3& p_motion);
-	Array _collide_shape(const Ref<PhysicsShapeQueryParameters> &p_shape_query,int p_max_results=32);
-	Dictionary _get_rest_info(const Ref<PhysicsShapeQueryParameters> &p_shape_query);
+	Array _intersect_shape(const Ref<Physics3DShapeQueryParameters> &p_shape_query,int p_max_results=32);
+	Array _cast_motion(const Ref<Physics3DShapeQueryParameters> &p_shape_query,const Vector3& p_motion);
+	Array _collide_shape(const Ref<Physics3DShapeQueryParameters> &p_shape_query,int p_max_results=32);
+	Dictionary _get_rest_info(const Ref<Physics3DShapeQueryParameters> &p_shape_query);
 
 
 protected:
@@ -202,17 +202,17 @@ public:
 	virtual bool rest_info(RID p_shape, const Transform3D& p_shape_xform,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION)=0;
 
 
-	PhysicsDirectSpaceState();
+	Physics3DDirectSpaceState();
 };
 
 
-class PhysicsShapeQueryResult : public RefCounted {
+class Physics3DShapeQueryResult : public RefCounted {
 
-	OBJ_TYPE( PhysicsShapeQueryResult, RefCounted );
+	OBJ_TYPE( Physics3DShapeQueryResult, RefCounted );
 
-	Vector<PhysicsDirectSpaceState::ShapeResult> result;
+	Vector<Physics3DDirectSpaceState::ShapeResult> result;
 
-friend class PhysicsDirectSpaceState;
+friend class Physics3DDirectSpaceState;
 
 protected:
 	static void _bind_methods();
@@ -224,7 +224,7 @@ public:
 	Object* get_result_object(int p_idx) const;
 	int get_result_object_shape(int p_idx) const;
 
-	PhysicsShapeQueryResult();
+	Physics3DShapeQueryResult();
 };
 
 
@@ -241,6 +241,7 @@ protected:
 public:
 
 	static PhysicsServer3D * get_singleton();
+	static void set_singleton(PhysicsServer3D *server);
 
 	enum ShapeType {
 		SHAPE_PLANE, ///< plane:"plane"
@@ -285,7 +286,7 @@ public:
 	virtual real_t space_get_param(RID p_space,SpaceParameter p_param) const=0;
 
 	// this function only works on fixed process, errors and returns null otherwise
-	virtual PhysicsDirectSpaceState* space_get_direct_state(RID p_space)=0;
+	virtual Physics3DDirectSpaceState* space_get_direct_state(RID p_space)=0;
 
 
 	//missing space parameters
@@ -667,9 +668,6 @@ public:
 	};
 
 	virtual int get_process_info(ProcessInfo p_info)=0;
-
-	PhysicsServer3D();
-	~PhysicsServer3D();
 };
 
 VARIANT_ENUM_CAST( PhysicsServer3D::ShapeType );

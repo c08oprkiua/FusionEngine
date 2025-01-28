@@ -37,7 +37,7 @@ RID Space2D::get_rid() const {
 void Space2D::set_active(bool p_active) {
 
 	active=p_active;
-	Physics2DServer::get_singleton()->space_set_active(space,active);
+	PhysicsServer2D::get_singleton()->space_set_active(space,active);
 }
 
 bool Space2D::is_active() const {
@@ -58,11 +58,11 @@ void Space2D::_bind_methods() {
 Space2D::Space2D() {
 
 	active=false;
-	space=Physics2DServer::get_singleton()->space_create();
+	space=PhysicsServer2D::get_singleton()->space_create();
 }
 
 Space2D::~Space2D() {
 
-	Physics2DServer::get_singleton()->free(space);
+	PhysicsServer2D::get_singleton()->free(space);
 }
 

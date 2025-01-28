@@ -37,9 +37,9 @@
 #include "joints_2d_sw.h"
 
 
-class Physics2DServerSW : public Physics2DServer {
+class PhysicsServer2DSW : public PhysicsServer2D {
 
-	OBJ_TYPE( Physics2DServerSW, Physics2DServer );
+	OBJ_TYPE( PhysicsServer2DSW, PhysicsServer2D );
 
 friend class Physics2DDirectSpaceStateSW;
 	bool active;
@@ -234,8 +234,8 @@ public:
 
 	int get_process_info(ProcessInfo p_info);
 
-	Physics2DServerSW();
-	~Physics2DServerSW();
+	PhysicsServer2DSW();
+	~PhysicsServer2DSW();
 
 };
 

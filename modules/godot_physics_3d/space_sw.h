@@ -39,9 +39,9 @@
 #include "collision_object_sw.h"
 
 
-class PhysicsDirectSpaceStateSW : public PhysicsDirectSpaceState {
+class Physics3DDirectSpaceStateSW : public Physics3DDirectSpaceState {
 
-	OBJ_TYPE( PhysicsDirectSpaceStateSW, PhysicsDirectSpaceState );
+	OBJ_TYPE( Physics3DDirectSpaceStateSW, Physics3DDirectSpaceState );
 public:
 
 	SpaceSW *space;
@@ -52,7 +52,7 @@ public:
 	virtual bool collide_shape(RID p_shape, const Transform3D& p_shape_xform,float p_margin,Vector3 *r_results,int p_result_max,int &r_result_count, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION);
 	virtual bool rest_info(RID p_shape, const Transform3D& p_shape_xform,float p_margin,ShapeRestInfo *r_info, const Set<RID>& p_exclude=Set<RID>(),uint32_t p_layer_mask=0xFFFFFFFF,uint32_t p_object_type_mask=TYPE_MASK_COLLISION);
 
-	PhysicsDirectSpaceStateSW();
+	Physics3DDirectSpaceStateSW();
 };
 
 
@@ -60,7 +60,7 @@ public:
 class SpaceSW {
 
 
-	PhysicsDirectSpaceStateSW *direct_access;
+	Physics3DDirectSpaceStateSW *direct_access;
 	RID self;
 
 	BroadPhaseSW *broadphase;
@@ -103,7 +103,7 @@ class SpaceSW {
 
 	RID static_global_body;
 
-friend class PhysicsDirectSpaceStateSW;
+friend class Physics3DDirectSpaceStateSW;
 
 public:
 
@@ -164,7 +164,7 @@ public:
 
 	int get_collision_pairs() const { return collision_pairs; }
 
-	PhysicsDirectSpaceStateSW *get_direct_state();
+	Physics3DDirectSpaceStateSW *get_direct_state();
 
 
 	void set_static_global_body(RID p_body) { static_global_body=p_body; }

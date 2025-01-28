@@ -83,39 +83,39 @@ void Area2DSW::set_monitor_callback(ObjectID p_id, const StringName& p_method) {
 
 
 
-void Area2DSW::set_space_override_mode(Physics2DServer::AreaSpaceOverrideMode p_mode) {
-	bool do_override=p_mode!=Physics2DServer::AREA_SPACE_OVERRIDE_DISABLED;
-	if (do_override==(space_override_mode!=Physics2DServer::AREA_SPACE_OVERRIDE_DISABLED))
+void Area2DSW::set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMode p_mode) {
+	bool do_override=p_mode!=PhysicsServer2D::AREA_SPACE_OVERRIDE_DISABLED;
+	if (do_override==(space_override_mode!=PhysicsServer2D::AREA_SPACE_OVERRIDE_DISABLED))
 		return;
 	_unregister_shapes();
 	space_override_mode=p_mode;
 	_shape_changed();
 }
 
-void Area2DSW::set_param(Physics2DServer::AreaParameter p_param, const Variant& p_value) {
+void Area2DSW::set_param(PhysicsServer2D::AreaParameter p_param, const Variant& p_value) {
 
 	switch(p_param) {
-		case Physics2DServer::AREA_PARAM_GRAVITY: gravity=p_value; ; break;
-		case Physics2DServer::AREA_PARAM_GRAVITY_VECTOR: gravity_vector=p_value; ; break;
-		case Physics2DServer::AREA_PARAM_GRAVITY_IS_POINT: gravity_is_point=p_value; ; break;
-		case Physics2DServer::AREA_PARAM_GRAVITY_POINT_ATTENUATION:  point_attenuation=p_value; ; break;
-		case Physics2DServer::AREA_PARAM_DENSITY: density=p_value; ; break;
-		case Physics2DServer::AREA_PARAM_PRIORITY: priority=p_value; ; break;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY: gravity=p_value; ; break;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR: gravity_vector=p_value; ; break;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_IS_POINT: gravity_is_point=p_value; ; break;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_POINT_ATTENUATION:  point_attenuation=p_value; ; break;
+		case PhysicsServer2D::AREA_PARAM_DENSITY: density=p_value; ; break;
+		case PhysicsServer2D::AREA_PARAM_PRIORITY: priority=p_value; ; break;
 	}
 
 
 }
 
-Variant Area2DSW::get_param(Physics2DServer::AreaParameter p_param) const {
+Variant Area2DSW::get_param(PhysicsServer2D::AreaParameter p_param) const {
 
 
 	switch(p_param) {
-		case Physics2DServer::AREA_PARAM_GRAVITY: return gravity;
-		case Physics2DServer::AREA_PARAM_GRAVITY_VECTOR: return gravity_vector;
-		case Physics2DServer::AREA_PARAM_GRAVITY_IS_POINT: return gravity_is_point;
-		case Physics2DServer::AREA_PARAM_GRAVITY_POINT_ATTENUATION: return  point_attenuation;
-		case Physics2DServer::AREA_PARAM_DENSITY: return density;
-		case Physics2DServer::AREA_PARAM_PRIORITY: return priority;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY: return gravity;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR: return gravity_vector;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_IS_POINT: return gravity_is_point;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_POINT_ATTENUATION: return  point_attenuation;
+		case PhysicsServer2D::AREA_PARAM_DENSITY: return density;
+		case PhysicsServer2D::AREA_PARAM_PRIORITY: return priority;
 	}
 
 	return Variant();
@@ -155,7 +155,7 @@ void Area2DSW::call_queries() {
 			if (E->get().state==0)
 				continue; //nothing happened
 
-			res[0]=E->get().state>0 ? Physics2DServer::AREA_BODY_ADDED : Physics2DServer::AREA_BODY_REMOVED;
+			res[0]=E->get().state>0 ? PhysicsServer2D::AREA_BODY_ADDED : PhysicsServer2D::AREA_BODY_REMOVED;
 			res[1]=E->key().rid;
 			res[2]=E->key().instance_id;
 			res[3]=E->key().body_shape;
@@ -175,7 +175,7 @@ void Area2DSW::call_queries() {
 Area2DSW::Area2DSW() : CollisionObject2DSW(TYPE_AREA), monitor_query_list(this), moved_list(this)  {
 
 	_set_static(true); //areas are never active
-	space_override_mode=Physics2DServer::AREA_SPACE_OVERRIDE_DISABLED;
+	space_override_mode=PhysicsServer2D::AREA_SPACE_OVERRIDE_DISABLED;
 	gravity=9.80665;
 	gravity_vector=Vector2(0,-1);
 	gravity_is_point=false;

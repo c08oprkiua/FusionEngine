@@ -186,7 +186,7 @@ real_t PhysicsServer3DSW::space_get_param(RID p_space,SpaceParameter p_param) co
 	return space->get_param(p_param);
 }
 
-PhysicsDirectSpaceState* PhysicsServer3DSW::space_get_direct_state(RID p_space) {
+Physics3DDirectSpaceState* PhysicsServer3DSW::space_get_direct_state(RID p_space) {
 
 	SpaceSW *space = space_owner.get(p_space);
 	ERR_FAIL_COND_V(!space,NULL);
@@ -1402,7 +1402,7 @@ void PhysicsServer3DSW::init() {
 	last_step=0.001;
 	iterations=8;// 8?
 	stepper = memnew( StepSW );
-	direct_state = memnew( PhysicsDirectBodyStateSW );
+	direct_state = memnew( Physics3DDirectBodyStateSW );
 };
 
 
@@ -1416,7 +1416,7 @@ void PhysicsServer3DSW::step(float p_step) {
 	doing_sync=false;
 
 	last_step=p_step;
-	PhysicsDirectBodyStateSW::singleton->step=p_step;
+	Physics3DDirectBodyStateSW::singleton->step=p_step;
 
 	island_count=0;
 	active_objects=0;

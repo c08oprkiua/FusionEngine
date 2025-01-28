@@ -32,7 +32,7 @@
 #include "grid_map_editor_plugin.h"
 
 void register_gridmap_types() {
-#ifndef _3D_DISABLED
+#ifndef NODE_3D_DISABLED
 	REGISTER_OBJECT(GridMap);
 #endif
 #ifdef TOOLS_ENABLED

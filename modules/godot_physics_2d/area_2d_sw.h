@@ -42,7 +42,7 @@ class Constraint2DSW;
 class Area2DSW : public CollisionObject2DSW{
 
 
-	Physics2DServer::AreaSpaceOverrideMode space_override_mode;
+	PhysicsServer2D::AreaSpaceOverrideMode space_override_mode;
 	float gravity;
 	Vector2 gravity_vector;
 	bool gravity_is_point;
@@ -110,11 +110,11 @@ public:
 	_FORCE_INLINE_ void add_body_to_query(Body2DSW *p_body, uint32_t p_body_shape,uint32_t p_area_shape);
 	_FORCE_INLINE_ void remove_body_from_query(Body2DSW *p_body, uint32_t p_body_shape,uint32_t p_area_shape);
 
-	void set_param(Physics2DServer::AreaParameter p_param, const Variant& p_value);
-	Variant get_param(Physics2DServer::AreaParameter p_param) const;
+	void set_param(PhysicsServer2D::AreaParameter p_param, const Variant& p_value);
+	Variant get_param(PhysicsServer2D::AreaParameter p_param) const;
 
-	void set_space_override_mode(Physics2DServer::AreaSpaceOverrideMode p_mode);
-	Physics2DServer::AreaSpaceOverrideMode get_space_override_mode() const { return space_override_mode; }
+	void set_space_override_mode(PhysicsServer2D::AreaSpaceOverrideMode p_mode);
+	PhysicsServer2D::AreaSpaceOverrideMode get_space_override_mode() const { return space_override_mode; }
 
 	_FORCE_INLINE_ void set_gravity(float p_gravity) { gravity=p_gravity; }
 	_FORCE_INLINE_ float get_gravity() const { return gravity; }

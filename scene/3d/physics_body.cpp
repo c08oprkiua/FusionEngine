@@ -307,9 +307,9 @@ void RigidBody3D::_direct_state_changed(Object *p_state) {
 	//eh.. fuck
 #ifdef DEBUG_ENABLED
 
-	state=p_state->cast_to<PhysicsDirectBodyState>();
+	state=p_state->cast_to<Physics3DDirectBodyState>();
 #else
-	state=(PhysicsDirectBodyState*)p_state; //trust it
+	state=(Physics3DDirectBodyState*)p_state; //trust it
 #endif
 
 	if (contact_monitor) {
@@ -711,7 +711,7 @@ void RigidBody3D::_bind_methods() {
 
 	ObjectTypeDB::bind_method(_MD("get_colliding_bodies"),&RigidBody3D::get_colliding_bodies);
 
-	BIND_VMETHOD(MethodInfo("_integrate_forces",PropertyInfo(Variant::OBJECT,"state:PhysicsDirectBodyState")));
+	BIND_VMETHOD(MethodInfo("_integrate_forces",PropertyInfo(Variant::OBJECT,"state:Physics3DDirectBodyState")));
 
 	ADD_PROPERTY( PropertyInfo(Variant::INT,"mode",PROPERTY_HINT_ENUM,"Rigid,Static,Character,Kinematic"),_SCS("set_mode"),_SCS("get_mode"));
 	ADD_PROPERTY( PropertyInfo(Variant::REAL,"mass",PROPERTY_HINT_EXP_RANGE,"0.01,65535,0.01"),_SCS("set_mass"),_SCS("get_mass"));
@@ -816,7 +816,7 @@ Vector3 CharacterBody3D::move(const Vector3& p_motion) {
 
 	colliding=false;
 	ERR_FAIL_COND_V(!is_inside_tree(),Vector3());
-	PhysicsDirectSpaceState *dss = PhysicsServer3D::get_singleton()->space_get_direct_state(get_world()->get_space());
+	Physics3DDirectSpaceState *dss = PhysicsServer3D::get_singleton()->space_get_direct_state(get_world()->get_space());
 	ERR_FAIL_COND_V(!dss,Vector3());
 	const int max_shapes=32;
 	Vector3 sr[max_shapes*2];
@@ -832,13 +832,13 @@ Vector3 CharacterBody3D::move(const Vector3& p_motion) {
 	bool collided=false;
 	uint32_t mask=0;
 	if (collide_static)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_STATIC_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_STATIC_BODY;
 	if (collide_kinematic)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_KINEMATIC_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_KINEMATIC_BODY;
 	if (collide_rigid)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_RIGID_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_RIGID_BODY;
 	if (collide_character)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_CHARACTER_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_CHARACTER_BODY;
 
 //	print_line("motion: "+p_motion+" margin: "+rtos(margin));
 
@@ -921,7 +921,7 @@ Vector3 CharacterBody3D::move(const Vector3& p_motion) {
 	float unsafe = 1.0;
 	int best_shape=-1;
 
-	PhysicsDirectSpaceState::ShapeRestInfo rest;
+	Physics3DDirectSpaceState::ShapeRestInfo rest;
 
 	//print_line("pos: "+get_global_transform().origin);
 	//print_line("motion: "+p_motion);
@@ -932,7 +932,7 @@ Vector3 CharacterBody3D::move(const Vector3& p_motion) {
 
 
 		float lsafe,lunsafe;
-		PhysicsDirectSpaceState::ShapeRestInfo lrest;
+		Physics3DDirectSpaceState::ShapeRestInfo lrest;
 		bool valid = dss->cast_motion(get_shape(i)->get_rid(), get_global_transform() * get_shape_transform(i), p_motion,0, lsafe,lunsafe,exclude,get_layer_mask(),mask,&lrest);
 		//print_line("shape: "+itos(i)+" travel:"+rtos(ltravel));
 		if (!valid) {
@@ -973,7 +973,7 @@ Vector3 CharacterBody3D::move(const Vector3& p_motion) {
 			Transform3D ugt = get_global_transform();
 			ugt.origin+=p_motion*unsafe;
 
-			PhysicsDirectSpaceState::ShapeRestInfo rest_info;
+			Physics3DDirectSpaceState::ShapeRestInfo rest_info;
 			bool c2 = dss->rest_info(get_shape(best_shape)->get_rid(), ugt*get_shape_transform(best_shape), m,&rest,exclude,get_layer_mask(),mask);
 			if (!c2) {
 				//should not happen, but floating point precision is so weird..
@@ -1013,18 +1013,18 @@ Vector3 CharacterBody3D::move_to(const Vector3& p_position) {
 bool CharacterBody3D::can_move_to(const Vector3& p_position, bool p_discrete) {
 
 	ERR_FAIL_COND_V(!is_inside_tree(),false);
-	PhysicsDirectSpaceState *dss = PhysicsServer3D::get_singleton()->space_get_direct_state(get_world()->get_space());
+	Physics3DDirectSpaceState *dss = PhysicsServer3D::get_singleton()->space_get_direct_state(get_world()->get_space());
 	ERR_FAIL_COND_V(!dss,false);
 
 	uint32_t mask=0;
 	if (collide_static)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_STATIC_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_STATIC_BODY;
 	if (collide_kinematic)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_KINEMATIC_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_KINEMATIC_BODY;
 	if (collide_rigid)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_RIGID_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_RIGID_BODY;
 	if (collide_character)
-		mask|=PhysicsDirectSpaceState::TYPE_MASK_CHARACTER_BODY;
+		mask|=Physics3DDirectSpaceState::TYPE_MASK_CHARACTER_BODY;
 
 	Vector3 motion = p_position-get_global_transform().origin;
 	Transform3D xform=get_global_transform();
