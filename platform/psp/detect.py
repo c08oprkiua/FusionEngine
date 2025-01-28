@@ -19,7 +19,9 @@ def can_build():
 
 
 def get_opts():
-	return []
+		return [
+		('compile_prx', 'Compile a prx executable for use with PSPLink', 'no')
+	]
 
 
 def get_flags():
@@ -56,6 +58,8 @@ def configure(env):
 
 
 	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED', '-fno-exceptions', '-DNO_SAFE_CAST', '-fno-rtti'])
+	if env['compile_prx'] == 'yes':
+		env.Append(LDFLAGS=['-Wl', '$(LIBDIR) -specs=$(PSPSDK)/lib/prxspecs', '-q', '-T$(PSPSDK)/lib/linkfile.prx', '-nostartfiles', "-zmax-page-size=128"])
 	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum_vfpu', 'pspvfpu', 'pspctrl', 'psppower', 'pspaudio', 'pspnet', 'pspnet_apctl'])
 
 
