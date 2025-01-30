@@ -16,24 +16,18 @@ common_psp=[\
 
 prog = env.Program('#bin/godot_psp',['godot_psp.cpp']+common_psp)
 
-env.Command(
-	"#bin/godot.elf", prog, shlex.join(['psp-fixup-imports', '-o', 'bin/godot.elf', str(prog if not isinstance(prog, NodeList) else prog[0])])
-)
+#env.Command(
+#	"#bin/godot.elf", prog, shlex.join(['psp-fixup-imports', '-o', 'bin/godot.elf', str(prog if not isinstance(prog, NodeList) else prog[0])])
+#)
 
-env.Command(
-	"#bin/strip.elf", "#bin/godot.elf" ,"psp-strip bin/godot.elf -o bin/strip.elf"
-)
+#env.Command(
+#	"#bin/strip.elf", "#bin/godot.elf" ,"psp-strip bin/godot.elf -o bin/strip.elf"
+#)
 
-env.Command(
-	"#bin/strip2.elf", "#bin/strip.elf" ,"psp-strip bin/strip.elf -o bin/strip2.elf"
-)
-
-env.Command(
-	"#bin/EBOOT.PBP", "#bin/strip2.elf" ,"pack-pbp bin/EBOOT.PBP bin/PARAM.SFO NULL          NULL NULL NULL          NULL  bin/strip2.elf NULL"
-)
+#env.Command(
+#	"#bin/EBOOT.PBP", "#bin/strip.elf" ,"pack-pbp bin/EBOOT.PBP bin/PARAM.SFO NULL          NULL NULL NULL          NULL  bin/strip.elf NULL"
+#)
 
 if env['compile_prx'] == 'yes':
+	#env.Command("#bin/fusion.prx", "#bin/strip.elf", "psp-prxgen strip2.elf fusion.prx"
 	pass
-
-#To make a prx file after this point, make sure the LDFlags in SCsub are enabled and not
-#commented out. Then, after compilation, run "prxgen

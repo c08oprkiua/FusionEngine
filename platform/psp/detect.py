@@ -40,9 +40,7 @@ def configure(env):
 	env["CXX"]="psp-g++"
 	env["LD"]="psp-g++"
 
-
 	env["bits"]="32"
-
 
 	psp_path = os.environ["PSPDEV"]
 
@@ -59,8 +57,8 @@ def configure(env):
 
 	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED', '-fno-exceptions', '-DNO_SAFE_CAST', '-fno-rtti'])
 	if env['compile_prx'] == 'yes':
-		env.Append(LDFLAGS=['-Wl', '$(LIBDIR) -specs=$(PSPSDK)/lib/prxspecs', '-q', '-T$(PSPSDK)/lib/linkfile.prx', '-nostartfiles', "-zmax-page-size=128"])
-	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum_vfpu', 'pspvfpu', 'pspctrl', 'psppower', 'pspaudio', 'pspnet', 'pspnet_apctl'])
+		env.Append(LDFLAGS=['-Wl', psp_path+'/psp/sdk/lib','-specs='+psp_path+'/lib/prxspecs', '-q', '-T'+psp_path+'/lib/linkfile.prx', '-nostartfiles', "-zmax-page-size=128"])
+	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum_vfpu', 'pspvfpu', 'pspctrl', 'psppower', 'pspaudio', 'pspnet', 'pspnet_apctl', 'pspdebug'])
 
 
 	if (env["CXX"]=="clang++"):
