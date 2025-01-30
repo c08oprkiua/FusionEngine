@@ -3,6 +3,8 @@
 #include "tools/editor/editor_import_export.h"
 #include "tools/editor/editor_settings.h"
 #include "scene/resources/texture.h"
+#include "core/os/os.h"
+#include "core/globals.h"
 
 class EditorExportPlatformPSP : public EditorExportPlatform {
     OBJ_TYPE(EditorExportPlatformPSP, EditorExportPlatform);
@@ -52,6 +54,8 @@ Ref<Texture> EditorExportPlatformPSP::get_logo() const {
 }
 
 bool EditorExportPlatformPSP::can_export(String *r_error) const {
+	String err("PSP exporting is not set up yet!");
+	r_error = &err;
     return false;
 };
 
@@ -60,11 +64,42 @@ String EditorExportPlatformPSP::get_binary_extension() const {
 };
 
 Error EditorExportPlatformPSP::export_project(const String& p_path,bool p_debug,bool p_dumb){
-    return Error::ERR_DOES_NOT_EXIST;
+	//This is not a complete implementation, just a start
+	List<String> args;
+
+	//Make PARAM.SFO
+	args.push_back(Globals::get_singleton()->get("application/name"));
+
+	String sfo_path = EditorSettings::get_singleton()->get_settings_path() + "/tmp/PARAM.SFO";
+
+	args.push_back(sfo_path);
+
+	OS::get_singleton()->execute("mksfo", args, true);
+
+	args.clear();
+
+	//Make EBOOT.PBP
+
+	args.push_back(p_path + "EBOOT.PBP"); //output.pbp
+	args.push_back(sfo_path); //param.sfo
+
+	args.push_back("NULL"); //icon0.png
+	args.push_back("NULL"); //icon1.pmf
+	args.push_back("NULL"); //pic0.png
+	args.push_back("NULL"); //pic1.png
+	args.push_back("NULL"); //snd0.at3
+
+	if (p_debug){ //debug template
+		args.push_back("NULL");
+	} else { //release template
+		args.push_back("NULL");
+	}
+	args.push_back("NULL"); //data.psar
+
+	OS::get_singleton()->execute("pack-pbp", args, true);
 };
 
 void register_psp_exporter(){
-	EDITOR_DEF("psp/embed_pck", "");
     Ref<EditorExportPlatformPSP> exporter = Ref<EditorExportPlatformPSP>(memnew(EditorExportPlatformPSP));
 	EditorImportExport::get_singleton()->add_export_platform(exporter);
 }
