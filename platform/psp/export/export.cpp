@@ -19,9 +19,11 @@ private:
 	bool embed_pck;
 	String background_path;
 	String icon_path;
+	String sound_path;
 
 	mutable bool background_valid;
 	mutable bool icon_valid;
+	mutable bool sound_valid;
 
 public:
 
@@ -61,7 +63,7 @@ bool EditorExportPlatformPSP::_set(const StringName& p_name, const Variant& p_va
 	} else if (p_name == "launcher/icon"){
 		icon_path = p_value;
 	} else if (p_name == "launcher/sound"){
-
+		sound_path = p_value;
 	} else {
 		return false;
 	}
@@ -77,7 +79,7 @@ bool EditorExportPlatformPSP::_get(const StringName& p_name,Variant &r_ret) cons
 	} else if (p_name == "launcher/icon"){
 		r_ret = icon_path;
 	} else if (p_name == "launcher/sound"){
-		r_ret = "";
+		r_ret = sound_path;
 	} else {
 		return false;
 	}
@@ -172,6 +174,15 @@ bool EditorExportPlatformPSP::can_export(String *r_error) const {
 		}
 	}
 
+	sound_valid = false;
+	if (sound_path != ""){
+		if (FileAccess::exists(Globals::get_singleton()->globalize_path(sound_path))){
+			//Idk man lgtm until I can actually test the file here
+			sound_valid = true;
+		} else {
+			err += "The sound file cannot be found!\n";
+		}
+	}
 
 	if (r_error){
 		*r_error=err;
@@ -233,7 +244,7 @@ Error EditorExportPlatformPSP::export_project(const String& p_path,bool p_debug,
 	args.push_back("NULL"); //icon1.pmf
 	args.push_back("NULL"); //pic0.png
 	args.push_back(background_valid ? Globals::get_singleton()->globalize_path(background_path) : "NULL"); //pic1.png
-	args.push_back("NULL"); //snd0.at3
+	args.push_back(sound_valid ? Globals::get_singleton()->globalize_path(sound_path) : "NULL"); //snd0.at3
 
 	String exe_path = EditorSettings::get_singleton()->get_settings_path()+"/templates/";
 
@@ -251,8 +262,8 @@ Error EditorExportPlatformPSP::export_project(const String& p_path,bool p_debug,
 		} else {
 			args.push_back(exe_path + "psp_release.32");
 		}
-
 	}
+
 	args.push_back("NULL"); //data.psar
 
 	run_err = OS::get_singleton()->execute(sdk_path + pack_pbp_path, args, true, NULL, NULL, &retcode);
