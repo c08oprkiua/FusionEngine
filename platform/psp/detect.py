@@ -57,7 +57,7 @@ def configure(env):
 
 	env.Append(CPPFLAGS=['-DNEED_LONG_INT', '-DPSP_ENABLED', '-fno-exceptions', '-DNO_SAFE_CAST', '-fno-rtti'])
 	if env['compile_prx'] == 'yes':
-		env.Append(LDFLAGS=['-Wl', psp_path+'/psp/sdk/lib','-specs='+psp_path+'/lib/prxspecs', '-q', '-T'+psp_path+'/lib/linkfile.prx', '-nostartfiles', "-zmax-page-size=128"])
+		env.Append(LDFLAGS=['-specs='+psp_path+'/psp/sdk/lib/prxspecs', '-Wl', '-q', '-T'+psp_path+'psp/sdk/lib/linkfile.prx', psp_path +"/psp/sdk/lib/prxexports.o" , '-nostartfiles', "-zmax-page-size=128"])
 	env.Append(LIBS=['pthread', 'z', 'pspdisplay', 'pspge', 'pspgu', 'pspgum_vfpu', 'pspvfpu', 'pspctrl', 'psppower', 'pspaudio', 'pspnet', 'pspnet_apctl', 'pspdebug'])
 
 
