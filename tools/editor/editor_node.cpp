@@ -88,6 +88,7 @@
 #include "plugins/animation_player_editor_plugin.h"
 #include "plugins/baked_light_editor_plugin.h"
 #include "plugins/polygon_2d_editor_plugin.h"
+#include "plugins/texture_and_atlas_editor_plugin.h"
 // end
 #include "tools/editor/io_plugins/editor_texture_import_plugin.h"
 #include "tools/editor/io_plugins/editor_scene_import_plugin.h"
@@ -3812,24 +3813,9 @@ EditorNode::EditorNode() {
 	animation_menu->connect("pressed",this,"_animation_visibility_toggle");;
 */
 
-
-
-
-
-
-	
 	call_dialog = memnew( CallDialog );
 	call_dialog->hide();
 	gui_base->add_child( call_dialog );
-
-
-
-
-
-
-
-
-
 
 	confirmation = memnew( ConfirmationDialog  );
 	gui_base->add_child(confirmation);
@@ -3838,10 +3824,6 @@ EditorNode::EditorNode() {
 	accept = memnew( AcceptDialog  );
 	gui_base->add_child(accept);
 	accept->connect("confirmed", this,"_menu_confirm_current");
-
-
-
-
 
 //	optimized_save = memnew( OptimizedSaveDialog(&editor_data) );
 	//gui_base->add_child(optimized_save);
@@ -4042,6 +4024,7 @@ EditorNode::EditorNode() {
 	add_editor_plugin( memnew( CollisionPolygon2DEditorPlugin(this) ) );
 	add_editor_plugin( memnew( TileSetEditorPlugin(this) ) );
 	add_editor_plugin( memnew( TileMapEditorPlugin(this) ) );
+	add_editor_plugin( memnew( TexViewAtlasEditEditorPlugin(this) ) );
 	add_editor_plugin( memnew( SpriteFramesEditorPlugin(this) ) );
 	add_editor_plugin( memnew( Particles2DEditorPlugin(this) ) );
 	add_editor_plugin( memnew( Path2DEditorPlugin(this) ) );
