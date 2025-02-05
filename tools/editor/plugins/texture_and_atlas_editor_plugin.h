@@ -8,17 +8,7 @@
 #include "scene/gui/scroll_container.h"
 #include "scene/gui/dialogs.h"
 
-class AtlasTexPreview : public PanelContainer {
-    OBJ_TYPE(AtlasTexPreview, PanelContainer);
-
-    AtlasTexture *tex;
-    Button *select;
-    Button *del_button;
-
-public:
-    AtlasTexPreview(AtlasTexture *p_tex);
-};
-
+class TextureViewerEditor;
 
 class TextureViewerEditor : public PanelContainer {
     OBJ_TYPE(TextureViewerEditor, PanelContainer);
@@ -39,6 +29,7 @@ private:
     Vector2 corner_b;
 
     ViewMode mode;
+    uint32_t preview_count;
     bool creating_atlas;
     bool panning;
 
@@ -46,7 +37,6 @@ private:
     //void load_palette_menu();
 
     void load_atlas_textures(EditorFileSystemDirectory *efsd);
-
     void add_atlas_button(AtlasTexture *p_atlas);
 
 protected:
@@ -58,6 +48,10 @@ public:
 
     Texture *get_texture();
     void load_texture(Texture *p_texture);
+
+    void delete_atlas(ObjectID p_to_delete);
+    void set_editing_atlas(AtlasTexture *p_editing);
+    uint32_t append_preview();
 
     void set_undo_redo(UndoRedo *p_undo_redo) {undo_redo=p_undo_redo; }
 
