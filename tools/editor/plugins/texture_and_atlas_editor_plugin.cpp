@@ -1,50 +1,100 @@
 #include "texture_and_atlas_editor_plugin.h"
 
+Rect2i create_rect_from_points(Point2i p_point_a, Point2i p_point_b){
+    Rect2i rect;
 
-void TextureViewerAtlasTexEditor::_notification(int p_what){
-    if (p_what == NOTIFICATION_DRAW and creating_atlas){
+    Point2i top_left;
+    Point2i bottom_right;
 
-        Rect2 rect;
-        rect.pos = corner_a;
+    bool a_is_leftward = p_point_a.x < p_point_b.x;
+    bool a_is_upward = p_point_a.y < p_point_b.y;
 
-        draw_rect(Rect2(corner_a, corner_b), Color(1.0, 1.0, 1.0));
+    if (a_is_leftward){
+            top_left.x = p_point_a.x;
+            bottom_right.x = p_point_b.x;
+    } else {
+            top_left.x = p_point_b.x;
+            bottom_right.x = p_point_a.x;
+    }
+    if (a_is_upward){
+            top_left.y = p_point_a.y;
+            bottom_right.y = p_point_b.y;
+    } else {
+            top_left.y = p_point_b.y;
+            bottom_right.y = p_point_a.y;
+    }
+
+    rect.pos = top_left;
+    rect.size = bottom_right - top_left;
+
+    return rect;
+}
+
+
+AtlasTexPreview::AtlasTexPreview(AtlasTexture *p_tex){
+    tex = p_tex;
+
+    HBoxContainer *hbox = memnew(HBoxContainer);
+
+    select = memnew(Button);
+    select->set_icon(tex);
+
+    del_button = memnew(Button);
+    del_button->set_text("Delete");
+    del_button->set_h_size_flags(SIZE_EXPAND_FILL);
+    del_button->set_v_size_flags(SIZE_EXPAND_FILL);
+
+    hbox->add_child(select);
+    hbox->add_child(del_button);
+
+    add_child(hbox);
+}
+
+void TextureViewerEditor::_notification(int p_what){
+    if (p_what == NOTIFICATION_DRAW){
+        if (creating_atlas and corner_b != Vector2(0,0)){
+            Color rect_color = Color::hex(0x00'FF'00'FF);
+            Color corn_a_color = Color::hex(0xFF'00'00'FF);
+            Color corn_b_color = Color::hex(0x00'00'FF'FF);
+
+            Rect2 corner_rect;
+            corner_rect.size = Vector2(10.0f, 10.0f);
+
+            draw_rect(create_rect_from_points(corner_a, corner_b), rect_color);
+
+            corner_rect.pos = corner_a - Vector2(5.0, 5.0);
+            draw_rect(corner_rect, corn_a_color);
+
+            corner_rect.pos = corner_b - Vector2(5.0, 5.0);
+            draw_rect(corner_rect, corn_b_color);
+        }
     }
 }
 
-void TextureViewerAtlasTexEditor::_bind_methods(){
-    ObjectTypeDB::bind_method(_MD("_input_event"),&TextureViewerAtlasTexEditor::input_process);
-    ObjectTypeDB::bind_method(_MD("switch_mode", "mode"),&TextureViewerAtlasTexEditor::switch_mode);
-
-
-}
-
-void TextureViewerAtlasTexEditor::load_texture(Texture *p_texture){
-    if (!p_texture){ hide(); return;}
-
-    texture_preview->set_texture(p_texture);
-
-    switch_mode(mode);
-}
-
-void TextureViewerAtlasTexEditor::input_process(const InputEvent p_event){
+void TextureViewerEditor::_input_event(const InputEvent p_event){
     if (p_event.type == InputEvent::MOUSE_BUTTON){
         int button = p_event.mouse_button.button_index;
 
         if (p_event.is_pressed()){
             switch (button){
                 case BUTTON_LEFT: //left click
-                    creating_atlas = true;
+                    if (mode == VIEW_ATLASTEX_CREATOR){
+                        if (!texture_scroll){ break;}
+                        Point2i mouse_pos = Point2i(p_event.mouse_button.global_x, p_event.mouse_button.global_y);
+
+                        corner_a = mouse_pos - get_global_transform().get_origin();
+                        creating_atlas = true;
+                    }
                     break;
                 case BUTTON_RIGHT: //right click
                     //TODO: Have this create an atlas texture by scanning outwards from the click point until clear space is hit on all sides
                     break;
 
                 case BUTTON_WHEEL_UP: //zoom in / pan up
-                    //texture_scroll->set_v_scroll(texture_scroll->get_v_scroll() - 1);
+                    texture_scroll->set_v_scroll(texture_scroll->get_v_scroll() - 1);
                     break;
                 case BUTTON_WHEEL_DOWN: //zoom out / pan down
-                    //texture_scroll->set_v_scroll(texture_scroll->get_v_scroll() + 1);
-
+                    texture_scroll->set_v_scroll(texture_scroll->get_v_scroll() + 1);
                     break;
                 case 6: //pan left
                     texture_scroll->set_h_scroll(texture_scroll->get_h_scroll() - 1);
@@ -59,26 +109,45 @@ void TextureViewerAtlasTexEditor::input_process(const InputEvent p_event){
             creating_atlas = false;
         }
 
-        if (creating_atlas){
-            corner_a = Vector2(0, 0);
-        } else {
-            //generate_atlas();
+        if (not creating_atlas and corner_a != Point2i(0,0) and corner_b != Point2i(0,0)){
+            //generate_atlas
+
+            AtlasTexture *new_tex = memnew(AtlasTexture);
+
+            new_tex->set_atlas(texture_preview->get_texture());
+
+            Rect2i tex_region = create_rect_from_points(corner_a, corner_b);
+
+            new_tex->set_region(tex_region);
+
+            add_atlas_button(new_tex);
+
+            corner_a = Vector2(0,0);
+            corner_b = Vector2(0,0);
         }
     } else if (p_event.type == InputEvent::MOUSE_MOTION and creating_atlas){
-
-
-        Vector2 pos = Vector2(p_event.mouse_motion.global_x, p_event.mouse_motion.global_y);
-        if (corner_a == Vector2(0,0)){
-            corner_a = pos;
-        } else {
-            corner_b = pos;
-        }
-
-        //emit_signal("draw");
+        Point2i mouse_pos = Point2i(p_event.mouse_motion.global_x, p_event.mouse_motion.global_y);
+        corner_b = mouse_pos - get_global_transform().get_origin();
     }
+    update();
 }
 
-void TextureViewerAtlasTexEditor::switch_mode(ViewMode p_mode){
+void TextureViewerEditor::_bind_methods(){
+    ObjectTypeDB::bind_method(_MD("_input_event"),&TextureViewerEditor::_input_event);
+    ObjectTypeDB::bind_method(_MD("switch_mode", "mode"),&TextureViewerEditor::switch_mode);
+
+
+}
+
+void TextureViewerEditor::load_texture(Texture *p_texture){
+    if (!p_texture){ hide(); return;}
+
+    texture_preview->set_texture(p_texture);
+
+    switch_mode(mode);
+}
+
+void TextureViewerEditor::switch_mode(ViewMode p_mode){
 
     if (p_mode != mode){ //clear out info panel
         for (int i = 0; i < info_base->get_child_count();){
@@ -96,8 +165,7 @@ void TextureViewerAtlasTexEditor::switch_mode(ViewMode p_mode){
             load_atlas_menu();
         }
 
-        //TODO: Load atlases
-        load_atlas_textures();
+        load_atlas_textures(EditorFileSystem::get_singleton()->get_filesystem());
     }
 
     else if (p_mode == VIEW_PALETTE){
@@ -114,7 +182,7 @@ void TextureViewerAtlasTexEditor::switch_mode(ViewMode p_mode){
     mode = p_mode;
 }
 
-void TextureViewerAtlasTexEditor::load_atlas_menu(){
+void TextureViewerEditor::load_atlas_menu(){
     info_base->show();
     info_base->set_tooltip("All the AtlasTextures using this texture as an atlas.");
 
@@ -132,8 +200,6 @@ void TextureViewerAtlasTexEditor::load_atlas_menu(){
 
     vbox->add_child(scroll);
 
-    if (atlastex_list){memdelete(atlastex_list);}
-
     atlastex_list = memnew(VBoxContainer);
     atlastex_list->set_h_size_flags(SIZE_EXPAND_FILL);
     atlastex_list->set_v_size_flags(SIZE_EXPAND_FILL);
@@ -141,11 +207,33 @@ void TextureViewerAtlasTexEditor::load_atlas_menu(){
     scroll->add_child(atlastex_list);
 }
 
-void TextureViewerAtlasTexEditor::load_atlas_textures(){
+//based on QuickOpen
+void TextureViewerEditor::load_atlas_textures(EditorFileSystemDirectory *efsd){
 
+	for(int i = 0; i < efsd->get_subdir_count(); i++) {
+		load_atlas_textures(efsd->get_subdir(i));
+	}
+
+	for(int i = 0; i < efsd->get_file_count(); i++) {
+		if (ObjectTypeDB::is_type(efsd->get_file_type(i),"AtlasTexture")) {
+            String atlas_path = efsd->get_file(i);
+
+            Ref<AtlasTexture> tex = ResourceLoader::load(atlas_path);
+            //This kinda just assumes the file loads successfully, might be an issue but idk
+            add_atlas_button(tex.ptr());
+		}
+	}
 }
 
-TextureViewerAtlasTexEditor::TextureViewerAtlasTexEditor(){
+void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
+    if (!atlastex_list){return;}
+
+    AtlasTexPreview *preview = memnew(AtlasTexPreview(p_atlas));
+
+    atlastex_list->add_child(preview);
+}
+
+TextureViewerEditor::TextureViewerEditor(){
     set_h_size_flags(SIZE_EXPAND_FILL);
     set_v_size_flags(SIZE_EXPAND_FILL);
 
@@ -176,7 +264,7 @@ TextureViewerAtlasTexEditor::TextureViewerAtlasTexEditor(){
 
     hsplit->set_anchor(MARGIN_RIGHT, ANCHOR_END);
     hsplit->set_anchor(MARGIN_BOTTOM, ANCHOR_END);
-    hsplit->set_ignore_mouse(false);
+    hsplit->set_stop_mouse(false);
     hsplit->set_h_size_flags(SIZE_FILL);
     hsplit->set_v_size_flags(SIZE_EXPAND_FILL);
 
@@ -199,25 +287,24 @@ TextureViewerAtlasTexEditor::TextureViewerAtlasTexEditor(){
     texture_preview->set_expand(false);
     texture_preview->set_h_size_flags(SIZE_FILL);
     texture_preview->set_v_size_flags(SIZE_FILL);
+    texture_preview->set_stop_mouse(false);
+    texture_preview->set_ignore_mouse(false);
 
 
-    ScrollContainer *scroll = memnew(ScrollContainer);
-    scroll->set_h_size_flags(SIZE_EXPAND_FILL);
-    scroll->set_v_size_flags(SIZE_EXPAND_FILL);
+    texture_scroll = memnew(ScrollContainer);
+    texture_scroll->set_h_size_flags(SIZE_EXPAND_FILL);
+    texture_scroll->set_v_size_flags(SIZE_EXPAND_FILL);
+    texture_scroll->set_stop_mouse(false);
 
-    CenterContainer *centbox = memnew(CenterContainer);
-    centbox->set_h_size_flags(SIZE_EXPAND_FILL);
-    centbox->set_v_size_flags(SIZE_EXPAND_FILL);
-    centbox->add_child(texture_preview);
-    scroll->add_child(centbox);
+    texture_scroll->add_child(texture_preview);
 
-    hsplit->add_child(scroll);
+    hsplit->add_child(texture_scroll);
 
 }
 
 
 
-void TexViewAtlasEditEditorPlugin::edit(Object *p_node){
+void TextureViewEditorPlugin::edit(Object *p_node){
 
     tex_view->set_undo_redo(&get_undo_redo());
 
@@ -228,22 +315,24 @@ void TexViewAtlasEditEditorPlugin::edit(Object *p_node){
      tex_view->load_texture(tex);
 }
 
-bool TexViewAtlasEditEditorPlugin::handles(Object *p_node) const {
+bool TextureViewEditorPlugin::handles(Object *p_node) const {
     return p_node->is_type("Texture");
 }
 
-void TexViewAtlasEditEditorPlugin::make_visible(bool p_visible){
-    p_visible ? tex_view->show() : tex_view->hide();
+void TextureViewEditorPlugin::make_visible(bool p_visible){
+    if (p_visible){
+        tex_view->show();
+        tex_view->set_process(true);
+
+    } else {
+        tex_view->hide();
+        tex_view->set_process(false);
+    }
 }
 
-bool TexViewAtlasEditEditorPlugin::forward_input_event(const InputEvent& p_event){
-    tex_view->input_process(p_event);
-    return false;
-}
-
-TexViewAtlasEditEditorPlugin::TexViewAtlasEditEditorPlugin(EditorNode *p_node){
+TextureViewEditorPlugin::TextureViewEditorPlugin(EditorNode *p_node){
 	editor=p_node;
-	tex_view = memnew( TextureViewerAtlasTexEditor );
+	tex_view = memnew( TextureViewerEditor );
 	editor->get_viewport()->add_child(tex_view);
 	tex_view->set_area_as_parent_rect();
     tex_view->hide();

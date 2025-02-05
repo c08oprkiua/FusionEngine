@@ -8,8 +8,20 @@
 #include "scene/gui/scroll_container.h"
 #include "scene/gui/dialogs.h"
 
-class TextureViewerAtlasTexEditor : public PanelContainer {
-    OBJ_TYPE(TextureViewerAtlasTexEditor, PanelContainer);
+class AtlasTexPreview : public PanelContainer {
+    OBJ_TYPE(AtlasTexPreview, PanelContainer);
+
+    AtlasTexture *tex;
+    Button *select;
+    Button *del_button;
+
+public:
+    AtlasTexPreview(AtlasTexture *p_tex);
+};
+
+
+class TextureViewerEditor : public PanelContainer {
+    OBJ_TYPE(TextureViewerEditor, PanelContainer);
 public:
     enum ViewMode {
         VIEW_IMAGE,
@@ -33,45 +45,44 @@ private:
     void load_atlas_menu();
     //void load_palette_menu();
 
-    void load_atlas_textures();
+    void load_atlas_textures(EditorFileSystemDirectory *efsd);
+
+    void add_atlas_button(AtlasTexture *p_atlas);
 
 protected:
     void _notification(int p_what);
-
     static void _bind_methods();
 
 public:
+    void _input_event(const InputEvent p_event);
+
     Texture *get_texture();
     void load_texture(Texture *p_texture);
 
     void set_undo_redo(UndoRedo *p_undo_redo) {undo_redo=p_undo_redo; }
 
-    void input_process(const InputEvent p_event);
-
     void switch_mode(ViewMode mode);
 
-    TextureViewerAtlasTexEditor();
+    TextureViewerEditor();
 };
 
-VARIANT_ENUM_CAST(TextureViewerAtlasTexEditor::ViewMode);
+VARIANT_ENUM_CAST(TextureViewerEditor::ViewMode);
 
-class TexViewAtlasEditEditorPlugin : public EditorPlugin {
-    OBJ_TYPE(TexViewAtlasEditEditorPlugin, EditorPlugin);
+class TextureViewEditorPlugin : public EditorPlugin {
+    OBJ_TYPE(TextureViewEditorPlugin, EditorPlugin);
 
     EditorNode *editor;
-    TextureViewerAtlasTexEditor *tex_view;
+    TextureViewerEditor *tex_view;
 
 public:
 
-	virtual String get_name() const { return "ImageTexture"; }
-	bool has_main_screen() const { return false; }
+	virtual String get_name() const { return "Texture"; }
+	bool has_main_screen() const { return true; }
 	virtual void edit(Object *p_node);
 	virtual bool handles(Object *p_node) const;
 	virtual void make_visible(bool p_visible);
 
-    virtual bool forward_input_event(const InputEvent& p_event);
-
-    TexViewAtlasEditEditorPlugin(EditorNode *p_editor_node);
+    TextureViewEditorPlugin(EditorNode *p_editor_node);
 };
 
 #endif
