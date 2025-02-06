@@ -10,8 +10,8 @@
 
 class TextureViewerEditor;
 
-class TextureViewerEditor : public PanelContainer {
-    OBJ_TYPE(TextureViewerEditor, PanelContainer);
+class TextureViewerEditor : public VBoxContainer {
+    OBJ_TYPE(TextureViewerEditor, VBoxContainer);
 public:
     enum ViewMode {
         VIEW_IMAGE,
@@ -21,8 +21,11 @@ public:
 private:
     TextureFrame *texture_preview;
     ScrollContainer *texture_scroll;
-    VBoxContainer *atlastex_list;
+
     PanelContainer *info_base;
+
+    LineEdit *atlas_name;
+    VBoxContainer *atlastex_list;
     UndoRedo *undo_redo;
 
     Vector2 corner_a;

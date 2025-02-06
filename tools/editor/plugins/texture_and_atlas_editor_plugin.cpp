@@ -60,11 +60,12 @@ void TextureViewerEditor::_input_event(const InputEvent p_event){
 
         const int pan_speed = 10;
 
+        Transform2D texture_transform = texture_preview->get_transform();
+
         if (p_event.is_pressed()){
             switch (button){
                 case BUTTON_LEFT: //left click
                     if (mode == VIEW_ATLASTEX_CREATOR){
-                        if (!texture_scroll){ break;}
                         Point2i mouse_pos = Point2i(p_event.mouse_button.global_x, p_event.mouse_button.global_y);
 
                         corner_a = mouse_pos - get_global_transform().get_origin();
@@ -73,6 +74,13 @@ void TextureViewerEditor::_input_event(const InputEvent p_event){
                     break;
                 case BUTTON_RIGHT: //right click
                     //TODO: Have this create an atlas texture by scanning outwards from the click point until clear space is hit on all sides
+                    break;
+                case BUTTON_WHEEL_UP:
+                    texture_transform.scale_basis(Vector2(1.1, 1.1));
+
+                    break;
+                case BUTTON_WHEEL_DOWN:
+                    texture_transform.scale_basis(Vector2(0.9, 0.9));
                     break;
                 case 6: //pan left
                     texture_scroll->set_h_scroll(texture_scroll->get_h_scroll() - pan_speed);
@@ -94,7 +102,7 @@ void TextureViewerEditor::_input_event(const InputEvent p_event){
 
             new_tex->set_atlas(texture_preview->get_texture());
 
-            Point2 preview_offset = texture_preview->get_global_transform().get_origin()- get_global_transform().get_origin();
+            Point2 preview_offset = texture_preview->get_global_transform().get_origin() - get_global_transform().get_origin();
 
             Rect2i tex_region = create_rect_from_points(corner_a - preview_offset, corner_b - preview_offset);
 
@@ -119,8 +127,17 @@ void TextureViewerEditor::_bind_methods(){
 
 }
 
+Texture *TextureViewerEditor::get_texture(){
+    return texture_preview->get_texture().ptr();
+}
+
 void TextureViewerEditor::load_texture(Texture *p_texture){
-    if (!p_texture){ hide(); return;}
+    if (!p_texture){
+        hide();
+        return;
+    } else if (p_texture == texture_preview->get_texture().ptr()){
+        return;
+    }
 
     texture_preview->set_texture(p_texture);
 
@@ -135,16 +152,20 @@ void TextureViewerEditor::delete_atlas(ObjectID p_obj){
 }
 
 void TextureViewerEditor::set_editing_atlas(AtlasTexture *p_atlas){
-
+    mode = VIEW_IMAGE;
+    load_texture(p_atlas);
 }
 
 void TextureViewerEditor::switch_mode(ViewMode p_mode){
 
-    if (p_mode != mode){ //clear out info panel
+    bool mode_switched = p_mode != mode;
+
+    if (mode_switched){ //clear out info panel
         for (int i = 0; i < info_base->get_child_count();){
             Node * child =info_base->get_child(i);
             memdelete(child);
         }
+        mode = p_mode;
     }
 
     if (p_mode == VIEW_IMAGE){
@@ -152,7 +173,7 @@ void TextureViewerEditor::switch_mode(ViewMode p_mode){
     }
 
     else if (p_mode == VIEW_ATLASTEX_CREATOR){
-        if (p_mode != mode){
+        if (mode_switched){
             load_atlas_menu();
         }
 
@@ -169,8 +190,6 @@ void TextureViewerEditor::switch_mode(ViewMode p_mode){
             //smth smth tell the user this is not an indexed image
         }
     }
-
-    mode = p_mode;
 }
 
 void TextureViewerEditor::load_atlas_menu(){
@@ -183,9 +202,13 @@ void TextureViewerEditor::load_atlas_menu(){
 
     info_base->add_child(vbox);
 
-    Label *label = memnew(Label); label->set_text("AtlasTextures");
+    Label *label = memnew(Label); label->set_text("AtlasTextures\n\nDefault name:");
 
     vbox->add_child(label);
+
+    atlas_name = memnew(LineEdit);
+
+    vbox->add_child(atlas_name);
 
     ScrollContainer *scroll = memnew(ScrollContainer);
     scroll->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -209,6 +232,11 @@ void TextureViewerEditor::load_atlas_textures(EditorFileSystemDirectory *efsd){
 
 	for(int i = 0; i < efsd->get_file_count(); i++) {
 		if (ObjectTypeDB::is_type(efsd->get_file_type(i),"AtlasTexture")) {
+            //TODO: What this code is *meant* to do, is load all AtlasTextures for the percieved
+            //atlas that is being loaded. But, when this line is changed to call get_file_path,
+            //it starts working... and introduces an infinite recursion.
+
+            //String atlas_path = efsd->get_file_path(i);
             String atlas_path = efsd->get_file(i);
 
             List<String> deps;
@@ -218,13 +246,19 @@ void TextureViewerEditor::load_atlas_textures(EditorFileSystemDirectory *efsd){
             if (deps.find(texture_preview->get_texture()->get_path())){
                 Ref<AtlasTexture> tex = ResourceLoader::load(atlas_path);
                 //This kinda just assumes the file loads successfully, might be an issue but idk
-                add_atlas_button(tex.ptr());
+                if (tex.ptr()){
+                    add_atlas_button(tex.ptr());
+                }
             }
 		}
 	}
 }
 
 void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
+
+    if (atlas_name->get_text() != "" and p_atlas->get_name() == ""){
+        p_atlas->set_name(atlas_name->get_text() + "_" + String::num(p_atlas->get_instance_ID()));
+    }
 
     HBoxContainer *hbox = memnew(HBoxContainer);
     hbox->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -236,6 +270,9 @@ void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
 
     Button *select = memnew(Button);
     select->set_icon(p_atlas);
+    if (p_atlas->get_path() != ""){
+        select->set_text(p_atlas->get_path().basename());
+    }
     select->set_h_size_flags(SIZE_EXPAND_FILL);
     select->set_v_size_flags(SIZE_EXPAND_FILL);
     select->connect("pressed", this, "set_editing_atlas", bind_args);
@@ -245,7 +282,7 @@ void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
     bind_args.push_back(hbox->get_instance_ID());
 
     Button *del_button = memnew(Button);
-    del_button->set_text("Delete");
+    del_button->set_text("Hide");
     del_button->set_v_size_flags(SIZE_EXPAND_FILL);
     del_button->set_anchor(MARGIN_RIGHT, ANCHOR_END);
     del_button->set_anchor(MARGIN_BOTTOM, ANCHOR_END);
@@ -261,7 +298,10 @@ void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
     atlastex_list->add_child(hbox);
 
     //Open the resource but then go back to the OG atlas
-    EditorNode::get_singleton()->edit_resource(p_atlas);
+    if (p_atlas != texture_preview->get_texture().ptr()){
+        EditorNode::get_singleton()->edit_resource(p_atlas);
+    }
+
     EditorNode::get_singleton()->edit_resource(p_atlas->get_atlas());
 
 }
@@ -270,26 +310,22 @@ TextureViewerEditor::TextureViewerEditor(){
     set_h_size_flags(SIZE_EXPAND_FILL);
     set_v_size_flags(SIZE_EXPAND_FILL);
 
-    VBoxContainer *base = memnew(VBoxContainer);
-
-    add_child(base);
-
     //Header bar with options
+
+    HBoxContainer *hbox = memnew(HBoxContainer);
 
     OptionButton *opt = memnew(OptionButton);
 
     opt->set_tooltip("Change the image viewer mode");
-    opt->add_item("Texture viewer");
+    opt->add_item("Texture Viewer");
     opt->add_item("AtlasTexture Creator");
-    //opt->add_item("PaletteTexture viewer");
+    //opt->add_item("PaletteTexture Viewer");
 
     opt->connect("item_selected", this, "switch_mode");
 
-    HBoxContainer *hbox = memnew(HBoxContainer);
-
     hbox->add_child(opt);
 
-    base->add_child(hbox);
+    add_child(hbox);
 
     //Base GUI
 
@@ -297,11 +333,13 @@ TextureViewerEditor::TextureViewerEditor(){
 
     hsplit->set_anchor(MARGIN_RIGHT, ANCHOR_END);
     hsplit->set_anchor(MARGIN_BOTTOM, ANCHOR_END);
+    //This causes it to not block when moving the seperator, but it's necessary
+    //to make the atlas rectangle drawing work
     hsplit->set_stop_mouse(false);
     hsplit->set_h_size_flags(SIZE_FILL);
     hsplit->set_v_size_flags(SIZE_EXPAND_FILL);
 
-    base->add_child(hsplit);
+    add_child(hsplit);
 
     //Info base
 
@@ -311,10 +349,7 @@ TextureViewerEditor::TextureViewerEditor(){
 
     hsplit->add_child(info_base);
 
-    info_base->hide();
-
     //Texture view
-
 
     texture_preview = memnew(TextureFrame);
     texture_preview->set_expand(false);
@@ -323,7 +358,6 @@ TextureViewerEditor::TextureViewerEditor(){
     texture_preview->set_stop_mouse(false);
     texture_preview->set_ignore_mouse(false);
     texture_preview->set_draw_behind_parent(true);
-
 
     texture_scroll = memnew(ScrollContainer);
     texture_scroll->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -334,6 +368,7 @@ TextureViewerEditor::TextureViewerEditor(){
 
     hsplit->add_child(texture_scroll);
 
+    switch_mode(VIEW_IMAGE);
 }
 
 
@@ -344,9 +379,9 @@ void TextureViewEditorPlugin::edit(Object *p_node){
 
     Texture *tex = p_node->cast_to<Texture>();
 
-    if (!tex) return;
+    if (!tex){ return;}
 
-     tex_view->load_texture(tex);
+    tex_view->load_texture(tex);
 }
 
 bool TextureViewEditorPlugin::handles(Object *p_node) const {
