@@ -356,6 +356,10 @@ Error EditorNode::load_resource(const String& p_scene) {
 }
 
 
+void EditorNode::add_resource(const Ref<Resource>& p_resource){
+	resources_dock->add_resource(p_resource);
+}
+
 void EditorNode::edit_resource(const Ref<Resource>& p_resource) {
 
 	_resource_selected(p_resource,"");

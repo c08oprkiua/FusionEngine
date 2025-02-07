@@ -6,6 +6,7 @@
 #include "scene/gui/box_container.h"
 #include "scene/gui/split_container.h"
 #include "scene/gui/scroll_container.h"
+#include "scene/gui/button_array.h"
 #include "scene/gui/dialogs.h"
 
 class TextureViewerEditor;
@@ -23,16 +24,18 @@ private:
     ScrollContainer *texture_scroll;
 
     PanelContainer *info_base;
+    OptionButton *view_mode;
+
+    UndoRedo *undo_redo;
 
     LineEdit *atlas_name;
     VBoxContainer *atlastex_list;
-    UndoRedo *undo_redo;
 
     Vector2 corner_a;
     Vector2 corner_b;
 
     ViewMode mode;
-    uint32_t preview_count;
+    bool block_opening;
     bool creating_atlas;
     bool panning;
 
@@ -53,7 +56,7 @@ public:
     void load_texture(Texture *p_texture);
 
     void delete_atlas(ObjectID p_to_delete);
-    void set_editing_atlas(AtlasTexture *p_editing);
+    void set_editing_atlas(ObjectID p_obj);
     uint32_t append_preview();
 
     void set_undo_redo(UndoRedo *p_undo_redo) {undo_redo=p_undo_redo; }
