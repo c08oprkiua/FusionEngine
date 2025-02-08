@@ -36,7 +36,7 @@ void CapsuleShape3D::_update_shape() {
 	Dictionary d;
 	d["radius"]=radius;
 	d["height"]=height;
-	PhysicsServer3D::get_singleton()->shape_set_data(get_shape(),d);
+	PHYSICS_3D(shape_set_data, get_shape(),d);
 }
 
 void CapsuleShape3D::set_radius(float p_radius) {
@@ -78,7 +78,7 @@ void CapsuleShape3D::_bind_methods() {
 
 }
 
-CapsuleShape3D::CapsuleShape3D() : Shape3D( PhysicsServer3D::get_singleton()->shape_create(PhysicsServer3D::SHAPE_CAPSULE)) {
+CapsuleShape3D::CapsuleShape3D() : Shape3D( PHYSICS_3D(shape_create, PhysicsServer3D::SHAPE_CAPSULE)) {
 
 	radius=1.0;
 	height=1.0;

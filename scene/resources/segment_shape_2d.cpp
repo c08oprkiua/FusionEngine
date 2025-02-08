@@ -35,7 +35,7 @@ void SegmentShape2D::_update_shape() {
 	Rect2 r;
 	r.pos=a;
 	r.size=b;
-	PhysicsServer2D::get_singleton()->shape_set_data(get_rid(),r);
+	PHYSICS_2D(shape_set_data, get_rid(),r);
 	emit_changed();
 
 }
@@ -76,7 +76,7 @@ void SegmentShape2D::_bind_methods() {
 
 }
 
-SegmentShape2D::SegmentShape2D() : Shape2D( PhysicsServer2D::get_singleton()->shape_create(PhysicsServer2D::SHAPE_SEGMENT)) {
+SegmentShape2D::SegmentShape2D() : Shape2D( PHYSICS_2D(shape_create, PhysicsServer2D::SHAPE_SEGMENT)) {
 
 	a=Vector2();
 	b=Vector2(0,10);
@@ -89,7 +89,7 @@ SegmentShape2D::SegmentShape2D() : Shape2D( PhysicsServer2D::get_singleton()->sh
 
 void RayShape2D::_update_shape() {
 
-	PhysicsServer2D::get_singleton()->shape_set_data(get_rid(),length);
+	PHYSICS_2D(shape_set_data, get_rid(),length);
 	emit_changed();
 
 }
@@ -115,7 +115,7 @@ real_t RayShape2D::get_length() const {
 
 }
 
-RayShape2D::RayShape2D()  : Shape2D( PhysicsServer2D::get_singleton()->shape_create(PhysicsServer2D::SHAPE_RAY)) {
+RayShape2D::RayShape2D()  : Shape2D( PHYSICS_2D(shape_create, PhysicsServer2D::SHAPE_RAY)) {
 
 	length=20;
 	_update_shape();

@@ -1256,12 +1256,11 @@ bool Main::iteration() {
 
 		uint64_t fixed_begin = OS::get_singleton()->get_ticks_usec();
 
-		PhysicsServer3D::get_singleton()->sync();
-		PhysicsServer3D::get_singleton()->flush_queries();
+		PHYSICS_3D(sync);
+		PHYSICS_3D(flush_queries);
 
-		PhysicsServer2D::get_singleton()->sync();
-		PhysicsServer2D::get_singleton()->flush_queries();
-
+		PHYSICS_2D(sync);
+		PHYSICS_2D(flush_queries);
 		if (OS::get_singleton()->get_main_loop()->iteration( frame_slice*time_scale )) {
 			exit=true;
 			break;
@@ -1269,13 +1268,11 @@ bool Main::iteration() {
 
 		message_queue->flush();
 
-		PhysicsServer3D::get_singleton()->step(frame_slice*time_scale);
-		PhysicsServer2D::get_singleton()->step(frame_slice*time_scale);
+		PHYSICS_3D(step, frame_slice * time_scale);
+		PHYSICS_2D(step, frame_slice*time_scale);
 
 		time_accum-=frame_slice;
 		message_queue->flush();
-		//if (AudioServer::get_singleton())
-		//	AudioServer::get_singleton()->update();
 
 		fixed_process_max=MAX(OS::get_singleton()->get_ticks_usec()-fixed_begin,fixed_process_max);
 		iters++;

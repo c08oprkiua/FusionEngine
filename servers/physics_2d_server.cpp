@@ -65,17 +65,6 @@ Object* Physics2DDirectBodyState::get_contact_collider_object(int p_contact_idx)
 	return obj;
 }
 
-PhysicsServer2D * PhysicsServer2D::get_singleton() {
-
-	return singleton;
-}
-
-void PhysicsServer2D::set_singleton(PhysicsServer2D *server){
-	if (!singleton){
-		singleton = server;
-	}
-}
-
 void Physics2DDirectBodyState::_bind_methods() {
 
 	ObjectTypeDB::bind_method(_MD("get_total_gravity"),&Physics2DDirectBodyState::get_total_gravity);
@@ -394,12 +383,19 @@ void Physics2DShapeQueryResult::_bind_methods() {
 
 }
 
-
-
-
-
-
 ///////////////////////////////////////
+
+// PhysicsServer2D * PhysicsServer2D::get_singleton() {
+//
+// 	return singleton;
+// }
+
+void PhysicsServer2D::set_singleton(PhysicsServer2D *server){
+	if (!singleton){
+		singleton = server;
+	}
+}
+
 
 void PhysicsServer2D::_bind_methods() {
 

@@ -28,6 +28,7 @@
 /*************************************************************************/
 #include "test_physics.h"
 
+#ifndef PHYSICS_3D_DISABLED
 
 #include "servers/visual_server.h"
 #include "servers/physics_3d_server.h"
@@ -660,3 +661,5 @@ MainLoop* test() {
 }
 
 }
+
+#endif

@@ -132,7 +132,7 @@ void RayCast3D::_notification(int p_what) {
 			Ref<World3D> w3d = get_world();
 			ERR_BREAK( w3d.is_null() );
 
-			Physics3DDirectSpaceState *dss = PhysicsServer3D::get_singleton()->space_get_direct_state(w3d->get_space());
+			Physics3DDirectSpaceState *dss = PHYSICS_3D(space_get_direct_state, w3d->get_space());
 			ERR_BREAK( !dss );
 
 			Transform3D gt = get_global_transform();

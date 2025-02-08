@@ -32,7 +32,7 @@
 
 void ConvexPolygonShape2D::_update_shape() {
 
-	PhysicsServer2D::get_singleton()->shape_set_data(get_rid(),points);
+	PHYSICS_2D(shape_set_data, get_rid(),points);
 
 }
 
@@ -66,7 +66,7 @@ void ConvexPolygonShape2D::_bind_methods() {
 
 }
 
-ConvexPolygonShape2D::ConvexPolygonShape2D() : Shape2D( PhysicsServer2D::get_singleton()->shape_create(PhysicsServer2D::SHAPE_CONVEX_POLYGON)) {
+ConvexPolygonShape2D::ConvexPolygonShape2D() : Shape2D( PHYSICS_2D(shape_create, PhysicsServer2D::SHAPE_CONVEX_POLYGON)) {
 
 
 	int pcount =3;

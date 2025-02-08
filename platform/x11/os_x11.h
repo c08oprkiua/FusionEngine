@@ -90,10 +90,16 @@ class OS_X11 : public OS_Unix {
 	unsigned int event_id;
 	uint32_t last_button_state;
 	
+#ifndef PHYSICS_3D_DISABLED
 	PhysicsServer3D *physics_server;
+#endif
+#ifndef PHYSICS_2D_DISABLED
+	PhysicsServer2D *physics_2d_server;
+#endif
 	unsigned int get_mouse_button_state(unsigned int p_x11_state);
 	InputModifierState get_key_modifier_state(unsigned int p_x11_state);
-	PhysicsServer2D *physics_2d_server;
+
+
 
 	MouseMode mouse_mode;
 	Point2i center;

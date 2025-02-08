@@ -321,11 +321,11 @@ void World3D::_bind_methods() {
 
 World3D::World3D() {
 
-	space = PhysicsServer3D::get_singleton()->space_create();
+	space = PHYSICS_3D(space_create);
 	scenario = VisualServer::get_singleton()->scenario_create();
 	sound_space = SpatialSoundServer::get_singleton()->space_create();
 
-	PhysicsServer3D::get_singleton()->space_set_active(space,true);
+	PHYSICS_3D(space_set_active, space,true);
 
 #ifdef NODE_3D_DISABLED
 	indexer = NULL;
@@ -336,7 +336,7 @@ World3D::World3D() {
 
 World3D::~World3D() {
 
-	PhysicsServer3D::get_singleton()->free(space);
+	PHYSICS_3D(free, space);
 	VisualServer::get_singleton()->free(scenario);
 	SpatialSoundServer::get_singleton()->free(sound_space);
 

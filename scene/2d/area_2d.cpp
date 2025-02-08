@@ -26,13 +26,14 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #include "area_2d.h"
 #include "scene/scene_string_names.h"
 #include "servers/physics_2d_server.h"
 void Area2D::set_space_override_mode(SpaceOverride p_mode) {
 
 	space_override=p_mode;
-	PhysicsServer2D::get_singleton()->area_set_space_override_mode(get_rid(),PhysicsServer2D::AreaSpaceOverrideMode(p_mode));
+	PHYSICS_2D(area_set_space_override_mode, get_rid(),PhysicsServer2D::AreaSpaceOverrideMode(p_mode));
 
 
 }
@@ -44,7 +45,7 @@ Area2D::SpaceOverride Area2D::get_space_override_mode() const{
 void Area2D::set_gravity_is_point(bool p_enabled){
 
 	gravity_is_point=p_enabled;
-	PhysicsServer2D::get_singleton()->area_set_param(get_rid(),PhysicsServer2D::AREA_PARAM_GRAVITY_IS_POINT,p_enabled);
+	PHYSICS_2D(area_set_param, get_rid(),PhysicsServer2D::AREA_PARAM_GRAVITY_IS_POINT,p_enabled);
 
 }
 bool Area2D::is_gravity_a_point() const{
@@ -55,7 +56,7 @@ bool Area2D::is_gravity_a_point() const{
 void Area2D::set_gravity_vector(const Vector2& p_vec){
 
 	gravity_vec=p_vec;
-	PhysicsServer2D::get_singleton()->area_set_param(get_rid(),PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR,p_vec);
+	PHYSICS_2D(area_set_param, get_rid(),PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR,p_vec);
 
 }
 Vector2 Area2D::get_gravity_vector() const{
@@ -66,7 +67,7 @@ Vector2 Area2D::get_gravity_vector() const{
 void Area2D::set_gravity(real_t p_gravity){
 
 	gravity=p_gravity;
-	PhysicsServer2D::get_singleton()->area_set_param(get_rid(),PhysicsServer2D::AREA_PARAM_GRAVITY,p_gravity);
+	PHYSICS_2D(area_set_param, get_rid(),PhysicsServer2D::AREA_PARAM_GRAVITY,p_gravity);
 }
 real_t Area2D::get_gravity() const{
 
@@ -76,7 +77,7 @@ real_t Area2D::get_gravity() const{
 void Area2D::set_density(real_t p_density){
 
 	density=p_density;
-	PhysicsServer2D::get_singleton()->area_set_param(get_rid(),PhysicsServer2D::AREA_PARAM_DENSITY,p_density);
+	PHYSICS_2D(area_set_param, get_rid(),PhysicsServer2D::AREA_PARAM_DENSITY,p_density);
 }
 real_t Area2D::get_density() const{
 
@@ -86,7 +87,7 @@ real_t Area2D::get_density() const{
 void Area2D::set_priority(real_t p_priority){
 
 	priority=p_priority;
-	PhysicsServer2D::get_singleton()->area_set_param(get_rid(),PhysicsServer2D::AREA_PARAM_PRIORITY,p_priority);
+	PHYSICS_2D(area_set_param, get_rid(),PhysicsServer2D::AREA_PARAM_PRIORITY,p_priority);
 }
 real_t Area2D::get_priority() const{
 
@@ -264,9 +265,9 @@ void Area2D::set_enable_monitoring(bool p_enable) {
 
 	if (monitoring) {
 
-		PhysicsServer2D::get_singleton()->area_set_monitor_callback(get_rid(),this,"_body_inout");
+		PHYSICS_2D(area_set_monitor_callback, get_rid(),this,"_body_inout");
 	} else {
-		PhysicsServer2D::get_singleton()->area_set_monitor_callback(get_rid(),NULL,StringName());
+		PHYSICS_2D(area_set_monitor_callback, get_rid(),NULL,StringName());
 		_clear_monitoring();
 
 	}
@@ -343,7 +344,7 @@ void Area2D::_bind_methods() {
 
 }
 
-Area2D::Area2D() : CollisionObject2D(PhysicsServer2D::get_singleton()->area_create(),true) {
+Area2D::Area2D() : CollisionObject2D(PHYSICS_2D(area_create), true) {
 
 	space_override=SPACE_OVERRIDE_DISABLED;
 	set_gravity(98);;

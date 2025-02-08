@@ -2,6 +2,8 @@
 
 #define ROLLING_INFLUENCE_FIX
 
+#ifndef PHYSICS_3D_DISABLED
+
 class btVehicleJacobianEntry
 {
 public:
@@ -251,30 +253,24 @@ void VehicleWheel3D::_bind_methods() {
 
 
 void VehicleWheel3D::set_use_as_traction(bool p_enable) {
-
 	engine_traction=p_enable;
 }
 
 bool VehicleWheel3D::is_used_as_traction() const{
-
 	return engine_traction;
 }
 
 
 void VehicleWheel3D::set_use_as_steering(bool p_enabled){
-
 	steers=p_enabled;
 }
 
 bool VehicleWheel3D::is_used_as_steering() const{
-
 	return steers;
 }
 
 
 VehicleWheel3D::VehicleWheel3D() {
-
-
 	steers=false;
 	engine_traction=false;
 
@@ -303,10 +299,10 @@ VehicleWheel3D::VehicleWheel3D() {
 }
 
 
-void VehicleBody3D::_update_wheel_transform(VehicleWheel3D& wheel ,Physics3DDirectBodyState *s) {
+void VehicleBody3D::_update_wheel_transform(VehicleWheel3D& wheel ,Physics3DDirectBodyState *s){
 
 	wheel.m_raycastInfo.m_isInContact = false;
-
+#ifndef PHYSICS_3D_DISABLED
 	Transform3D chassisTrans = s->get_transform();
 	//if (interpolatedTransform && (getRigidBody()->getMotionState()))
 	//{
@@ -317,6 +313,7 @@ void VehicleBody3D::_update_wheel_transform(VehicleWheel3D& wheel ,Physics3DDire
 	//wheel.m_raycastInfo.m_hardPointWS+=s->get_linear_velocity()*s->get_step();
 	wheel.m_raycastInfo.m_wheelDirectionWS = chassisTrans.get_basis().xform( wheel.m_wheelDirectionCS).normalized();
 	wheel.m_raycastInfo.m_wheelAxleWS = chassisTrans.get_basis().xform( wheel.m_wheelAxleCS ).normalized();
+#endif
 }
 
 void VehicleBody3D::_update_wheel(int p_idx,Physics3DDirectBodyState *s) {
@@ -380,7 +377,7 @@ real_t VehicleBody3D::_ray_cast(int p_idx,Physics3DDirectBodyState *s) {
 
 	Physics3DDirectSpaceState::RayResult rr;
 
-
+#ifndef PHYSICS_3D_DISABLED
 	Physics3DDirectSpaceState *ss=s->get_space_state();
 
 	bool col = ss->intersect_ray(source,target,rr,exclude);
@@ -454,12 +451,12 @@ real_t VehicleBody3D::_ray_cast(int p_idx,Physics3DDirectBodyState *s) {
 	}
 
 	return depth;
+#endif
 }
 
 
-void	VehicleBody3D::_update_suspension(Physics3DDirectBodyState *s)
-{
-
+void	VehicleBody3D::_update_suspension(Physics3DDirectBodyState *s){
+#ifndef PHYSICS_3D_DISABLED
 	real_t deltaTime = s->get_step();
 	real_t chassisMass = mass;
 
@@ -511,15 +508,13 @@ void	VehicleBody3D::_update_suspension(Physics3DDirectBodyState *s)
 			wheel_info.m_wheelsSuspensionForce = real_t(0.0);
 		}
 	}
-
+#endif
 }
 
 
 //bilateral constraint between two dynamic objects
-void VehicleBody3D::_resolve_single_bilateral(Physics3DDirectBodyState *s, const Vector3& pos1,
-		      PhysicsBody3D* body2, const Vector3& pos2, const Vector3& normal,real_t& impulse)
-{
-
+void VehicleBody3D::_resolve_single_bilateral(Physics3DDirectBodyState *s, const Vector3& pos1, PhysicsBody3D* body2, const Vector3& pos2, const Vector3& normal,real_t& impulse){
+#ifndef PHYSICS_3D_DISABLED
 	real_t normalLenSqr = normal.length_squared();
 	//ERR_FAIL_COND( normalLenSqr < real_t(1.1));
 
@@ -592,7 +587,7 @@ void VehicleBody3D::_resolve_single_bilateral(Physics3DDirectBodyState *s, const
 	real_t velocityImpulse = -contactDamping * rel_vel * jacDiagABInv;
 	impulse = velocityImpulse;
 #endif
-
+#endif
 }
 
 
@@ -604,6 +599,7 @@ VehicleBody3D::btVehicleWheelContactPoint::btVehicleWheelContactPoint(Physics3DD
 	m_frictionDirectionWorld(frictionDirectionWorld),
 	m_maxImpulse(maxImpulse)
 {
+#ifndef PHYSICS_3D_DISABLED
 	float denom0=0;
 	float denom1=0;
 
@@ -615,15 +611,13 @@ VehicleBody3D::btVehicleWheelContactPoint::btVehicleWheelContactPoint(Physics3DD
 	}
 
 	if (body1) {
-
 		Vector3 r0 = frictionPosWorld - body1->get_global_transform().origin;
 		Vector3 c0 = (r0).cross(frictionDirectionWorld);
 		Vector3 vec = s->get_inverse_inertia_tensor().xform_inv(c0).cross(r0);
 		//denom1= body1->get_inverse_mass() + frictionDirectionWorld.dot(vec);
 		denom1=0;
-
 	}
-
+#endif
 
 	real_t	relaxation = 1.f;
 	m_jacDiagABInv = relaxation/(denom0+denom1);
@@ -942,7 +936,7 @@ void VehicleBody3D::_direct_state_changed(Object *p_state) {
 void VehicleBody3D::set_mass(real_t p_mass) {
 
 	mass=p_mass;
-	PhysicsServer3D::get_singleton()->body_set_param(get_rid(),PhysicsServer3D::BODY_PARAM_MASS,mass);
+	PHYSICS_3D(body_set_param, get_rid(),PhysicsServer3D::BODY_PARAM_MASS,mass);
 }
 
 real_t VehicleBody3D::get_mass() const{
@@ -954,7 +948,7 @@ real_t VehicleBody3D::get_mass() const{
 void VehicleBody3D::set_friction(real_t p_friction) {
 
 	friction=p_friction;
-	PhysicsServer3D::get_singleton()->body_set_param(get_rid(),PhysicsServer3D::BODY_PARAM_FRICTION,friction);
+	PHYSICS_3D(body_set_param, get_rid(),PhysicsServer3D::BODY_PARAM_FRICTION,friction);
 }
 
 real_t VehicleBody3D::get_friction() const{
@@ -1038,8 +1032,10 @@ VehicleBody3D::VehicleBody3D() : PhysicsBody3D(PhysicsServer3D::BODY_MODE_RIGID)
 	ccd=false;
 
 	exclude.insert(get_rid());
-	PhysicsServer3D::get_singleton()->body_set_force_integration_callback(get_rid(),this,"_direct_state_changed");
+	PHYSICS_3D(body_set_force_integration_callback, get_rid(),this,"_direct_state_changed");
 
 	set_mass(40);
 }
+
+#endif //PHYSICS_3D_DISABLED
 

@@ -1,8 +1,8 @@
 #ifndef HINGE_JOINT_SW_H
 #define HINGE_JOINT_SW_H
 
-#include "servers/physics/joints_sw.h"
-#include "servers/physics/joints/jacobian_entry_sw.h"
+#include "modules/godot_physics_3d/joints_sw.h"
+#include "modules/godot_physics_3d/joints/jacobian_entry_sw.h"
 
 
 /*

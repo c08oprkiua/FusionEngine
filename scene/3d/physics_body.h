@@ -33,7 +33,6 @@
 #include "servers/physics_3d_server.h"
 #include "vset.h"
 
-
 class PhysicsBody3D : public CollisionObject3D {
 
 	OBJ_TYPE(PhysicsBody3D,CollisionObject3D);

@@ -281,8 +281,6 @@ void Viewport::_notification(int p_what) {
 	switch( p_what ) {
 		
 		case NOTIFICATION_ENTER_TREE: {
-
-
 			if (!render_target)
 				_vp_enter_tree();
 
@@ -290,10 +288,7 @@ void Viewport::_notification(int p_what) {
 			Node *parent=get_parent();
 
 			if (parent) {
-
-
 				while(parent && !(this->parent=parent->cast_to<Viewport>())) {
-
 					parent=parent->get_parent();
 				}
 			}
@@ -308,10 +303,10 @@ void Viewport::_notification(int p_what) {
 
 			if (world_2d.is_valid()) {
 				find_world_2d()->_register_viewport(this,Rect2());
-//best to defer this and not do it here, as it can annoy a lot of setup logic if user
-//adds a node and then moves it, will get enter/exit screen/viewport notifications
-//unnecesarily
-//				update_worlds();
+				//best to defer this and not do it here, as it can annoy a lot of setup logic if user
+				//adds a node and then moves it, will get enter/exit screen/viewport notifications
+				//unnecesarily
+				//update_worlds();
 			}
 
 			add_to_group("_viewports");
@@ -335,9 +330,6 @@ void Viewport::_notification(int p_what) {
 #endif
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
-
-
-
 			if (world_2d.is_valid())
 				world_2d->_remove_viewport(this);
 
@@ -351,7 +343,6 @@ void Viewport::_notification(int p_what) {
 
 		} break;
 		case NOTIFICATION_FIXED_PROCESS: {
-
 			if (physics_object_picking) {
 #ifndef NODE_3D_DISABLED
 				Vector2 last_pos(1e20,1e20);
@@ -425,23 +416,15 @@ void Viewport::_notification(int p_what) {
 								if (last_object->get_capture_input_on_drag() && ev.type==InputEvent::MOUSE_BUTTON && ev.mouse_button.button_index==1 && ev.mouse_button.pressed) {
 									physics_object_capture=last_id;
 								}
-
-
 							}
 						}
 					} else {
-
-
-
-
 						if (camera) {
-
 							Vector3 from = camera->project_ray_origin(pos);
 							Vector3 dir = camera->project_ray_normal(pos);
-
-							Physics3DDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
+#ifndef PHYSICS_3D_DISABLED
+							Physics3DDirectSpaceState *space = PHYSICS_3D(space_get_direct_state, find_world()->get_space());
 							if (space) {
-
 								bool col = space->intersect_ray(from,from+dir*10000,result,Set<RID>(),0xFFFFFFFF,0xFFFFFFFF);
 								ObjectID new_collider=0;
 								if (col) {
@@ -467,19 +450,19 @@ void Viewport::_notification(int p_what) {
 									_test_new_mouseover(new_collider);
 								}
 							}
-
+#endif
 							last_pos=pos;
 						}
 					}
 				}
 
 				if (!motion_tested && camera && physics_last_mousepos!=Vector2(1e20,1e20)) {
-
+#ifndef PHYSICS_3D_DISABLED
 					//test anyway for mouseenter/exit because objects might move
 					Vector3 from = camera->project_ray_origin(physics_last_mousepos);
 					Vector3 dir = camera->project_ray_normal(physics_last_mousepos);
 
-					Physics3DDirectSpaceState *space = PhysicsServer3D::get_singleton()->space_get_direct_state(find_world()->get_space());
+					Physics3DDirectSpaceState *space = PHYSICS_3D(space_get_direct_state, find_world()->get_space());
 					if (space) {
 
 						bool col = space->intersect_ray(from,from+dir*10000,result,Set<RID>(),0xFFFFFFFF,0xFFFFFFFF);
@@ -493,11 +476,9 @@ void Viewport::_notification(int p_what) {
 								}
 							}
 						}
-
 						_test_new_mouseover(new_collider);
-
 					}
-
+#endif
 				}
 #endif
 			}

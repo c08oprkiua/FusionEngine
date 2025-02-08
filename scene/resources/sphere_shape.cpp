@@ -32,7 +32,7 @@
 
 void SphereShape3D::_update_shape() {
 
-	PhysicsServer3D::get_singleton()->shape_set_data(get_shape(),radius);
+	PHYSICS_3D(shape_set_data, get_shape(),radius);
 }
 
 void SphereShape3D::set_radius(float p_radius) {
@@ -58,7 +58,7 @@ void SphereShape3D::_bind_methods() {
 
 }
 
-SphereShape3D::SphereShape3D() : Shape3D( PhysicsServer3D::get_singleton()->shape_create(PhysicsServer3D::SHAPE_SPHERE)) {
+SphereShape3D::SphereShape3D() : Shape3D( PHYSICS_3D(shape_create, PhysicsServer3D::SHAPE_SPHERE)) {
 
 	set_radius(1.0);
 }

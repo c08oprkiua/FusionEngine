@@ -34,7 +34,7 @@
 
 void RayShape3D::_update_shape() {
 
-	PhysicsServer3D::get_singleton()->shape_set_data(get_shape(),length);
+	PHYSICS_3D(shape_set_data, get_shape(),length);
 	emit_changed();
 }
 
@@ -60,7 +60,7 @@ void RayShape3D::_bind_methods() {
 
 }
 
-RayShape3D::RayShape3D() : Shape3D( PhysicsServer3D::get_singleton()->shape_create(PhysicsServer3D::SHAPE_RAY)) {
+RayShape3D::RayShape3D() : Shape3D( PHYSICS_3D(shape_create, PhysicsServer3D::SHAPE_RAY)) {
 
 	set_length(1.0);
 }

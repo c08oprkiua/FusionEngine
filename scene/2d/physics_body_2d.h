@@ -299,5 +299,4 @@ public:
 
 };
 
-
 #endif // PHYSICS_BODY_2D_H

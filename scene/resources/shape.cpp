@@ -47,5 +47,5 @@ Shape3D::Shape3D(RID p_shape) {
 
 Shape3D::~Shape3D() {
 
-	PhysicsServer3D::get_singleton()->free(shape);
+	PHYSICS_3D(free, shape);
 }

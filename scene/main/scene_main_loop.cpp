@@ -626,8 +626,9 @@ void SceneTree::set_pause(bool p_enabled) {
 	if (p_enabled==pause)
 		return;
 	pause=p_enabled;
-	PhysicsServer3D::get_singleton()->set_active(!p_enabled);
-	PhysicsServer2D::get_singleton()->set_active(!p_enabled);
+	PHYSICS_3D(set_active, !p_enabled);
+	PHYSICS_2D(set_active, !p_enabled);
+
 	if (get_root())
 		get_root()->propagate_notification(p_enabled ? Node::NOTIFICATION_PAUSED : Node::NOTIFICATION_UNPAUSED);
 }

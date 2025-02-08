@@ -26,6 +26,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+#ifndef PHYSICS_2D_DISABLED
 #include "test_physics_2d.h"
 #include "servers/visual_server.h"
 #include "servers/physics_2d_server.h"
@@ -465,3 +466,5 @@ MainLoop* test() {
 
 
 }
+
+#endif

@@ -369,9 +369,14 @@ void OS_X11::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 	visual_server->init();
 	//
 	//physics_server = memnew( PhysicsServer3DSW );
+#ifndef PHYSICS_3D_DISABLED
+	physics_server = memnew(PhysicsServer3D);
 	physics_server->init();
+#endif
+#ifndef PHYSICS_2D_DISABLED
 	//physics_2d_server = memnew( PhysicsServer2DSW );
 	physics_2d_server->init();
+#endif
 
 	input = memnew( InputDefault );
 
@@ -407,12 +412,15 @@ void OS_X11::finalize() {
 	visual_server->finish();
 	memdelete(visual_server);
 	memdelete(rasterizer);
-	
+
+#ifndef PHYSICS_3D_DISABLED
 	physics_server->finish();
 	memdelete(physics_server);
-
+#endif
+#ifndef PHYSICS_2D_DISABLED
 	physics_2d_server->finish();
 	memdelete(physics_2d_server);
+#endif
 
 	memdelete(input);
 
