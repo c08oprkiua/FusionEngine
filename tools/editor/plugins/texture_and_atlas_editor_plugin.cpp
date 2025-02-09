@@ -1,6 +1,8 @@
 #include "texture_and_atlas_editor_plugin.h"
 #include "tools/editor/editor_settings.h"
 
+#define INRANGE(p_num, p_min, p_max)(p_num > p_min ? (p_num < p_max ? true : false) : false)
+
 Rect2i create_rect_from_points(Point2i p_point_a, Point2i p_point_b){
     Rect2i rect;
 
@@ -31,23 +33,34 @@ Rect2i create_rect_from_points(Point2i p_point_a, Point2i p_point_b){
     return rect;
 }
 
+void TextureViewerEditor::draw_outline(Point2 p_corner_1, Point2 p_corner_3){
+    Color outline_color = EDITOR_DEF("texture_viewer/atlas_outline_color", Color::hex(0xFFFFFFFF));
+
+    Point2 corner_2 = Point2(p_corner_3.x, p_corner_1.y);
+    Point2 corner_4 = Point2(p_corner_1.x, p_corner_3.y);
+
+    draw_line(p_corner_1, corner_2, outline_color);
+    draw_line(corner_2, p_corner_3, outline_color);
+    draw_line(p_corner_3, corner_4, outline_color);
+    draw_line(corner_4, p_corner_1, outline_color);
+}
+
 void TextureViewerEditor::_notification(int p_what){
     if (p_what == NOTIFICATION_DRAW){
         if (creating_atlas and corner_b != Vector2(0,0)){
             Color rect_color = EDITOR_DEF("texture_viewer/atlas_rect_color", Color::hex(0x83'd3'FF'FF));
-            Color outline_color = EDITOR_DEF("texture_viewer/atlas_outline_color", Color::hex(0xFFFFFFFF));
-
-            Point2 corner_c = Point2(corner_b.x, corner_a.y);
-            Point2 corner_d = Point2(corner_a.x, corner_b.y);
-
 
             VisualServer::get_singleton()->canvas_item_set_on_top(get_canvas_item(), true);
 
             draw_rect(create_rect_from_points(corner_a, corner_b), rect_color);
-            draw_line(corner_a, corner_c, outline_color);
-            draw_line(corner_c, corner_b, outline_color);
-            draw_line(corner_b, corner_d, outline_color);
-            draw_line(corner_d, corner_a, outline_color);
+            draw_outline(corner_a, corner_b);
+        }
+
+        if (show_atlas_outlines->is_pressed()){
+            for (int i = 0; i < atlas_textures.size(); i++){
+                //TODO: Render box outlines of all AtlasTextures of the viewed atlas,
+                //Select an AtlasTexture to view by clicking its box outline
+            }
         }
     }
 }
@@ -66,13 +79,20 @@ void TextureViewerEditor::_input_event(const InputEvent p_event){
                     if (mode == VIEW_ATLASTEX_CREATOR){
                         Point2i mouse_pos = Point2i(p_event.mouse_button.global_x, p_event.mouse_button.global_y);
 
-                        corner_a = mouse_pos - get_global_transform().get_origin();
+                        corner_a = localize_pos(mouse_pos);
 
-                        if (corner_a.x > get_texture()->get_width() or corner_a.y > get_texture() ->get_height()){
+                        Vector2 tex_top_left = texture_preview->get_global_transform().get_origin();
+
+                        if (mouse_pos.x < tex_top_left.x or mouse_pos.y < tex_top_left.y){
+                            //out of bounds
+                            break;
+                        }
+
+                        if (INRANGE(corner_a.x, 0, get_texture()->get_width()) and INRANGE(corner_a.y, 0, get_texture()->get_height())){
+                            creating_atlas = true;
+                        } else {
                             creating_atlas = false;
                             corner_a = Vector2(0,0);
-                        } else {
-                            creating_atlas = true;
                         }
                     }
                     break;
@@ -150,10 +170,8 @@ Texture *TextureViewerEditor::get_texture(){
 }
 
 void TextureViewerEditor::load_texture(Texture *p_texture){
-    if (!p_texture){
-        return;
-    }
-    else if (block_opening and p_texture->is_type("AtlasTexture")){
+
+    if (not block_opening and p_texture->is_type("AtlasTexture")){
         AtlasTexture *p_atlas = p_texture->cast_to<AtlasTexture>();
         if (p_atlas->get_atlas()->get_instance_ID() == get_texture()->get_instance_ID()){
             block_opening = false;
@@ -161,13 +179,15 @@ void TextureViewerEditor::load_texture(Texture *p_texture){
         }
     }
     print_line("Loading Texture..." + p_texture->get_path() + " " + p_texture->get_name());
+    atlas_textures.clear();
 
     texture_preview->set_texture(p_texture);
 
-    view_mode->select(mode);
+    view_mode->select(VIEW_IMAGE);
 }
 
 void TextureViewerEditor::delete_atlas(ObjectID p_obj){
+
     HBoxContainer *hbox = ObjectDB::get_instance(p_obj)->cast_to<HBoxContainer>();
     if (hbox){
         memdelete(hbox);
@@ -177,9 +197,8 @@ void TextureViewerEditor::delete_atlas(ObjectID p_obj){
 void TextureViewerEditor::set_editing_atlas(ObjectID p_obj){
     Texture *atlas = ObjectDB::get_instance(p_obj)->cast_to<Texture>();
 
-    block_opening = false;
+    //block_opening = false;
 
-    view_mode->select(VIEW_IMAGE);
     EditorNode::get_singleton()->edit_resource(atlas);
 }
 
@@ -198,8 +217,7 @@ void TextureViewerEditor::switch_mode(ViewMode p_mode){
     }
 
     if (p_mode == VIEW_IMAGE){
-        grab_focus();
-        grab_click_focus();
+        //TODO: Figure out why this works when the user presses the button, but not when code does
         info_base->hide();
     }
 
@@ -244,6 +262,7 @@ void TextureViewerEditor::load_atlas_menu(){
     ScrollContainer *scroll = memnew(ScrollContainer);
     scroll->set_h_size_flags(SIZE_EXPAND_FILL);
     scroll->set_v_size_flags(SIZE_EXPAND_FILL);
+    scroll->set_enable_h_scroll(false);
 
     vbox->add_child(scroll);
 
@@ -275,6 +294,7 @@ void TextureViewerEditor::load_atlas_textures(EditorFileSystemDirectory *efsd){
                 Ref<AtlasTexture> tex = ResourceLoader::load(atlas_path);
                 //This kinda just assumes the file loads successfully, might be an issue but idk
                 if (tex.ptr()){
+                    atlas_textures.push_back(tex.ptr());
                     add_atlas_button(tex.ptr());
                 }
             }
@@ -300,6 +320,8 @@ void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
     select->set_v_size_flags(SIZE_EXPAND_FILL);
     hbox->add_child(select);
 
+    select->connect("pressed", this, "set_editing_atlas", bind_args);
+
     bind_args.clear();
     bind_args.push_back(hbox->get_instance_ID());
 
@@ -311,20 +333,14 @@ void TextureViewerEditor::add_atlas_button(AtlasTexture *p_atlas){
 
     hbox->add_child(del_button);
 
-    Vector2 current_size = atlastex_list->get_size();
 
-    if (current_size.x < hbox->get_size().x){
-        atlastex_list->set_size(Vector2(hbox->get_size().x, current_size.y));
-    }
+    hbox->set_custom_minimum_size(hbox->get_size());
 
     atlastex_list->add_child(hbox);
 
     Ref<Resource> res_atlas = p_atlas->cast_to<Resource>();
 
-    EditorNode::get_singleton()->add_resource(res_atlas);
-
     del_button->connect("pressed", this, "delete_atlas", bind_args);
-    select->connect("pressed", this, "set_editing_atlas", bind_args);
 }
 
 TextureViewerEditor::TextureViewerEditor(){
@@ -345,6 +361,11 @@ TextureViewerEditor::TextureViewerEditor(){
     view_mode->connect("item_selected", this, "switch_mode");
 
     hbox->add_child(view_mode);
+
+    show_atlas_outlines = memnew(CheckButton);
+    show_atlas_outlines->set_text("Show AtlasTexture Outlines");
+
+    hbox->add_child(show_atlas_outlines);
 
     add_child(hbox);
 

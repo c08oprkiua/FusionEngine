@@ -30,6 +30,9 @@ private:
 
     LineEdit *atlas_name;
     VBoxContainer *atlastex_list;
+    CheckButton *show_atlas_outlines;
+
+    Vector<AtlasTexture *> atlas_textures;
 
     Vector2 corner_a;
     Vector2 corner_b;
@@ -42,8 +45,12 @@ private:
     void load_atlas_menu();
     //void load_palette_menu();
 
+    _FORCE_INLINE_ Vector2 localize_pos(Vector2 p_pos){return p_pos - get_global_transform().get_origin();}
+
     void load_atlas_textures(EditorFileSystemDirectory *efsd);
     void add_atlas_button(AtlasTexture *p_atlas);
+
+    void draw_outline(Point2 p_corner_1, Point2 p_corner_2);
 
 protected:
     void _notification(int p_what);
