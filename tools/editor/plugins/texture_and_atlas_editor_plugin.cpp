@@ -79,20 +79,25 @@ void TextureViewerEditor::_input_event(const InputEvent p_event){
                     if (mode == VIEW_ATLASTEX_CREATOR){
                         Point2i mouse_pos = Point2i(p_event.mouse_button.global_x, p_event.mouse_button.global_y);
 
-                        corner_a = localize_pos(mouse_pos);
-
                         Vector2 tex_top_left = texture_preview->get_global_transform().get_origin();
+                        tex_top_left += Vector2(texture_scroll->get_h_scroll(), texture_scroll->get_v_scroll());
 
-                        if (mouse_pos.x < tex_top_left.x or mouse_pos.y < tex_top_left.y){
+                        Rect2 tex_rect = Rect2(tex_top_left, texture_preview->get_size());
+
+                        if (not tex_rect.has_point(mouse_pos)){
+                            print_line("Failed to create atlas because mouse started out-of-bounds!" + String::num(mouse_pos.x) + " " + String::num(mouse_pos.y));
                             //out of bounds
                             break;
                         }
+
+                        corner_a = localize_pos(mouse_pos);
 
                         if (INRANGE(corner_a.x, 0, get_texture()->get_width()) and INRANGE(corner_a.y, 0, get_texture()->get_height())){
                             creating_atlas = true;
                         } else {
                             creating_atlas = false;
                             corner_a = Vector2(0,0);
+                            break;
                         }
                     }
                     break;
@@ -214,14 +219,13 @@ void TextureViewerEditor::switch_mode(ViewMode p_mode){
             memdelete(child);
         }
         mode = p_mode;
-    }
 
-    if (p_mode == VIEW_IMAGE){
-        //TODO: Figure out why this works when the user presses the button, but not when code does
+        //Hide specific GUI elements by default
         info_base->hide();
+        show_atlas_outlines->hide();
     }
 
-    else if (p_mode == VIEW_ATLASTEX_CREATOR){
+    if (p_mode == VIEW_ATLASTEX_CREATOR){
         if (mode_switched){
             load_atlas_menu();
         }
@@ -242,6 +246,7 @@ void TextureViewerEditor::switch_mode(ViewMode p_mode){
 }
 
 void TextureViewerEditor::load_atlas_menu(){
+    show_atlas_outlines->show();
     info_base->show();
     info_base->set_tooltip("All the AtlasTextures using this texture as an atlas.");
 
@@ -364,6 +369,7 @@ TextureViewerEditor::TextureViewerEditor(){
 
     show_atlas_outlines = memnew(CheckButton);
     show_atlas_outlines->set_text("Show AtlasTexture Outlines");
+    show_atlas_outlines->hide();
 
     hbox->add_child(show_atlas_outlines);
 

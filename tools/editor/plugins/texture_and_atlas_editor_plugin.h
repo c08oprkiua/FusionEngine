@@ -45,7 +45,9 @@ private:
     void load_atlas_menu();
     //void load_palette_menu();
 
+    //for use with atlas texture coordinates
     _FORCE_INLINE_ Vector2 localize_pos(Vector2 p_pos){return p_pos - get_global_transform().get_origin();}
+    _FORCE_INLINE_ Vector2 globalize_pos(Vector2 p_pos){return p_pos + get_global_transform().get_origin();}
 
     void load_atlas_textures(EditorFileSystemDirectory *efsd);
     void add_atlas_button(AtlasTexture *p_atlas);
