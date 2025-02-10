@@ -21,6 +21,8 @@ Other Linux distros please refer to your package manager for an equivalent.
 
 Every console port uses their specific open source homebrew sdk.
 
+**IF YOU ARE COMPILING FOR WINDOWS, YOU MUST USE OUR CUSTOM TOOLCHAIN FOR IT, FOUND [HERE](https://fusionengine.org/#urn:uuid:e43557be-a278-11ef-b9f3-ca7548087f6a)**
+
 ### Making a game
 Make a game in the editor.
 The editor is unusual if you are familiar with godot, but you'll be able to notice it's very intuitive after learning it. 
