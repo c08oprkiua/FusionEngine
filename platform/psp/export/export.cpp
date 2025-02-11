@@ -93,7 +93,7 @@ String EditorExportPlatformPSP::get_name() const {
 }
 
 EditorExportPlatform::ImageCompression EditorExportPlatformPSP::get_image_compression() const{
-    return ImageCompression::IMAGE_COMPRESSION_NONE;
+    return IMAGE_COMPRESSION_NONE;
 }
 
 Ref<Texture> EditorExportPlatformPSP::get_logo() const {
