@@ -99,8 +99,8 @@ private:
 		uint32_t id;
 		int bone_idx;
 		Node *node;
-		Spatial* spatial;
-		Skeleton *skeleton;
+		Node3D* spatial;
+		Skeleton3D *skeleton;
 		StringName property;
 
 		Vector3 loc;

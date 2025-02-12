@@ -33,9 +33,8 @@
 #include "mikktspace.h"
 
 //272 -> 264
-class SurfaceTool : public Reference {
-
-	OBJ_TYPE(SurfaceTool, Reference );
+class SurfaceTool : public RefCounted {
+	OBJ_TYPE(SurfaceTool, RefCounted );
 public:
 	struct Vertex {
 
@@ -126,7 +125,7 @@ public:
 	List< Vertex > &get_vertex_array() { return vertex_array; }
 
 	void create_from(const Ref<Mesh>& p_existing, int p_surface);
-	void append_from(const Ref<Mesh>& p_existing, int p_surface,const Transform& p_xform);
+	void append_from(const Ref<Mesh>& p_existing, int p_surface,const Transform3D& p_xform);
 	Ref<Mesh> commit(const Ref<Mesh>& p_existing=Ref<Mesh>());
 
 	SurfaceTool();

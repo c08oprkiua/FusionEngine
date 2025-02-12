@@ -33,9 +33,9 @@
 #include "vset.h"
 
 //688 -> 680
-class Area : public CollisionObject {
+class Area3D : public CollisionObject3D {
 
-	OBJ_TYPE( Area, CollisionObject );
+	OBJ_TYPE( Area3D, CollisionObject3D );
 public:
 
 	enum SpaceOverride {
@@ -151,10 +151,10 @@ public:
 	bool overlaps_area(Node* p_area) const;
 	bool overlaps_body(Node* p_body) const;
 
-	Area();
-	~Area();
+	Area3D();
+	~Area3D();
 };
 
-VARIANT_ENUM_CAST(Area::SpaceOverride);
+VARIANT_ENUM_CAST(Area3D::SpaceOverride);
 
 #endif // AREA__H

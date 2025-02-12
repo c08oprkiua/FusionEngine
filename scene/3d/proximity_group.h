@@ -32,9 +32,10 @@
 #include "spatial.h"
 
 //616 -> 608
-class ProximityGroup : public Spatial {
 
-	OBJ_TYPE( ProximityGroup, Spatial );
+class ProximityGroup : public Node3D {
+
+	OBJ_TYPE( ProximityGroup, Node3D );
 	OBJ_CATEGORY("3D");
 
 public:

@@ -33,9 +33,9 @@
 #include "scene/resources/texture.h"
 
 //536 -> 528
-class Sprite : public Node2D {
+class Sprite2D : public Node2D {
 
-	OBJ_TYPE( Sprite, Node2D );
+	OBJ_TYPE( Sprite2D, Node2D );
 
 	Ref<Texture> texture;
 
@@ -101,7 +101,7 @@ public:
 
 	virtual Rect2 get_item_rect() const;
 
-	Sprite();
+	Sprite2D();
 };
 
 class ViewportSprite : public Node2D {
