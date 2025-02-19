@@ -1319,7 +1319,7 @@ void EditorNode::_edit_current() {
 	p->add_separator();
 	p->add_item("Make Resources Unique",OBJECT_UNIQUE_RESOURCES);
 	p->add_separator();
-	p->add_icon_item(gui_base->get_icon("Help","EditorIcons"),"Class RefCounted",OBJECT_REQUEST_HELP);
+	p->add_icon_item(gui_base->get_icon("Help","EditorIcons"),"Class Reference",OBJECT_REQUEST_HELP);
 	List<MethodInfo> methods;
 	current_obj->get_method_list(&methods);
 
