@@ -67,7 +67,7 @@ def configure(env):
 
         console_flags = [
             "-DNINTENDO_GAMECUBE",
-            "-DOGC_MACHINE='ogc'",
+            "-DOGC_MACHINE=ogc",
             "-D__GAMECUBE__",
             "-DHW_DOL"
         ]
@@ -80,12 +80,10 @@ def configure(env):
 
         console_flags = [
             "-DNINTENDO_WII",
-            "-DOGC_MACHINE='rvl'" #This could be formatted wrong for SCons (and the one for gamecube)
+            "-DOGC_MACHINE=rvl" #This could be formatted wrong for SCons (and the one for gamecube)
             "-DWII_ENABLED",
             "-D__WII__",
             "-DHW_RVL",
-
-            #"-DPOSIX_IP_ENABLED", #may or may not work on GC without issues, but for now...
         ]
 
         #Wii only libs
@@ -94,7 +92,6 @@ def configure(env):
     #Fusion flags
     env.Append(
         CCFLAGS=[
-            "-DGEKKO",
             #"-DGAMECUBE_WII",
             "-DBIG_ENDIAN_ENABLED",
 
@@ -106,11 +103,8 @@ def configure(env):
             "-DNO_SAFE_CAST",
             "-DNO_FCNTL",
 
-            #"-DGLEW_ENABLED",
-            #"-DGLES_OVER_GL", #will this be needed when we use GX?
             "-fno-exceptions",
             "-fno-rtti",
-
         ]
         + console_flags
         + arch
@@ -136,9 +130,10 @@ def configure(env):
     env.Append(
         LIBS=[
             #libogc2
+            "fat", #IMPORTANT! Put this *before* ogc
             "ogc",
             "aesnd",
-            "fat",
+
             "m",
         ]
     )
@@ -148,8 +143,10 @@ def configure(env):
     if env["target"] == "release":
         env.Append(CCFLAGS=["-O2", "-ffast-math"])
     elif env["target"] == "release_debug":
+        env.Append(LIBS=["db"])
         env.Append(CCFLAGS=["-g2", "-O2", "-ffast-math", "-DDEBUG_ENABLED"])
     elif env["target"] == "debug":
+        env.Append(LIBS=["db"])
         env.Append(
             CCFLAGS=["-O0", "-g2", "-Wall", "-DDEBUG_ENABLED", "-DDEBUG_MEMORY_ENABLED"]
         )
