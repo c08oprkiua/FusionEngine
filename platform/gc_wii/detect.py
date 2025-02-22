@@ -68,7 +68,7 @@ def configure(env):
         console_flags = [
             "-DNINTENDO_GAMECUBE",
             "-DOGC_MACHINE='ogc'",
-            "__GAMECUBE__",
+            "-D__GAMECUBE__",
             "-DHW_DOL"
         ]
     else:
@@ -135,11 +135,6 @@ def configure(env):
 
     env.Append(
         LIBS=[
-            #external ported libs
-            "opengx",
-            "SDLmain", #TODO: Remove SDL
-            "SDL", #TODO: Remove SDL
-
             #libogc2
             "ogc",
             "aesnd",
