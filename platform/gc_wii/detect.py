@@ -7,7 +7,7 @@ def is_active():
 
 
 def get_name():
-    return "wii"
+    return "gc_wii"
 
 
 def can_build():
@@ -19,7 +19,9 @@ def can_build():
 
 
 def get_opts():
-    return []
+    return [
+         ('gamecube','Compile gc_wii for GameCube instead of Wii','no')
+        ]
 
 
 def get_flags():
@@ -36,53 +38,95 @@ def configure(env):
 
     env["bits"] = "32"
     devkitpro_path = os.environ["DEVKITPRO"]
-    devkitarm_path = devkitpro_path + "/devkitPPC"
-    ogc_path = devkitpro_path + "/libogc"
+    devkitppc_path = devkitpro_path + "/devkitPPC"
+    ogc_path = devkitpro_path + "/libogc2"
 
-    env.Append(CPPPATH=["#platform/wii"])
-    env["CC"] = devkitarm_path + "/bin/powerpc-eabi-gcc"
-    env["CXX"] = devkitarm_path + "/bin/powerpc-eabi-g++"
-    env["LD"] = devkitarm_path + "/bin/powerpc-eabi-g++"
-    env["AR"] = devkitarm_path + "/bin/powerpc-eabi-ar"
-    env["RANLIB"] = devkitarm_path + "/bin/powerpc-eabi-ranlib"
-    env["AS"] = devkitarm_path + "/bin/powerpc-eabi-as"
+    env.Append(CPPPATH=["#platform/gc_wii"])
+    env["CC"] = devkitppc_path + "/bin/powerpc-eabi-gcc"
+    env["CXX"] = devkitppc_path + "/bin/powerpc-eabi-g++"
+    env["LD"] = devkitppc_path + "/bin/powerpc-eabi-g++"
+    env["AR"] = devkitppc_path + "/bin/powerpc-eabi-ar"
+    env["RANLIB"] = devkitppc_path + "/bin/powerpc-eabi-ranlib"
+    env["AS"] = devkitppc_path + "/bin/powerpc-eabi-as"
 
-    arch = ["-MMD", "-MP", "-mrvl", "-mcpu=750", "-meabi", "-mhard-float"]
+    #not sure where MD and P come from...
+    arch = ["-MMD", "-MP", "-DGEKKO", "-mcpu=750", "-meabi", "-mhard-float"]
+
+    portlib_include_path = ""
+    ogc_lib_path = ""
+    portlib_lib_path = ""
+
+    console_flags = []
+
+    if env["gamecube"] == 'yes':
+        portlib_include_path = "/portlibs/gamecube/include/"
+        ogc_lib_path = "/lib/cube/"
+        portlib_lib_path = "/portlibs/gamecube/lib/"
+
+        arch += ["-mogc"]
+
+        console_flags = [
+            "-DNINTENDO_GAMECUBE",
+            "-DOGC_MACHINE='ogc'",
+            "__GAMECUBE__",
+            "-DHW_DOL"
+        ]
+    else:
+        portlib_include_path = "/portlibs/wii/include/"
+        ogc_lib_path = "/lib/wii/"
+        portlib_lib_path = "/portlibs/wii/lib/"
+
+        arch += ["-mrvl"]
+
+        console_flags = [
+            "-DNINTENDO_WII",
+            "-DOGC_MACHINE='rvl'" #This could be formatted wrong for SCons (and the one for gamecube)
+            "-DWII_ENABLED",
+            "-D__WII__",
+            "-DHW_RVL",
+
+            "-DPOSIX_IP_ENABLED", #may or may not work on GC without issues, but for now...
+        ]
+
+        #Wii only libs
+        env.Append(LIBS=["wiiuse", "wiikeyboard", "bte"])
+
+    #Fusion flags
     env.Append(
         CCFLAGS=[
             "-DGEKKO",
-            "-DHW_RVL",
-            "-D__WII__",
-            "-DPOSIX_IP_ENABLED",
-            "-DWII_ENABLED",
-            "-DGAMECUBE_WII",
+            #"-DGAMECUBE_WII",
+            "-DBIG_ENDIAN_ENABLED",
+
             "-DNEED_LONG_INT",
             "-DLIBC_FILEIO_ENABLED",
             "-DNO_SAFE_CAST",
             "-DPTHREAD_NO_RENAME",
             "-DNO_THREADS",
-            "-DBIG_ENDIAN_ENABLED",
-            "-DGLEW_ENABLED",
-            "-DGLES_OVER_GL",
-            "-fno-exceptions",
             "-DNO_SAFE_CAST",
-            "-fno-rtti",
             "-DNO_FCNTL",
+
+            "-DGLEW_ENABLED",
+            "-DGLES_OVER_GL", #will this be needed when we use GX?
+            "-fno-exceptions",
+            "-fno-rtti",
+
         ]
+        + console_flags
         + arch
     )
 
     env.Append(
         CPPPATH=[
             ogc_path + "/include",
-            devkitpro_path + "/portlibs/wii/include/",
+            devkitpro_path + portlib_include_path,
             devkitpro_path + "/portlibs/ppc/include/",
         ]
     )
     env.Append(
         LIBPATH=[
-            ogc_path + "/lib/wii",
-            devkitpro_path + "/portlibs/wii/lib/",
+            ogc_path + ogc_lib_path,
+            devkitpro_path + portlib_lib_path,
             devkitpro_path + "/portlibs/ppc/lib/",
         ]
     )
@@ -91,16 +135,16 @@ def configure(env):
 
     env.Append(
         LIBS=[
+            #external ported libs
             "opengx",
-            "SDLmain",
-            "SDL",
+            "SDLmain", #TODO: Remove SDL
+            "SDL", #TODO: Remove SDL
+
+            #libogc2
+            "ogc",
             "aesnd",
             "fat",
-            "ogc",
-            "wiiuse",
-            "wiikeyboard",
             "m",
-            "bte",
         ]
     )
     env.Append(LIBS=["png", "z"])

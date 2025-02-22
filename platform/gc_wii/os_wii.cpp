@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  OS_WII.cpp                                                        */
+/*  OSGameCubeWii.cpp                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -50,16 +50,16 @@
 #include <sys/time.h>
 #include <sys/errno.h>
 
-int OS_WII::get_video_driver_count() const {
-
+int OSGameCubeWii::get_video_driver_count() const {
 	return 1;
 }
-const char * OS_WII::get_video_driver_name(int p_driver) const {
 
-	return "OpenGX";
+const char * OSGameCubeWii::get_video_driver_name(int p_driver) const {
+	//return "OpenGX";
+	return "GX";
 }
 
-OS::VideoMode OS_WII::get_default_video_mode() const {
+OS::VideoMode OSGameCubeWii::get_default_video_mode() const {
 
 	return OS::VideoMode(640,480,false);
 }
@@ -67,17 +67,17 @@ OS::VideoMode OS_WII::get_default_video_mode() const {
 static MemoryPoolStaticMalloc *mempool_static=NULL;
 static MemoryPoolDynamicStatic *mempool_dynamic=NULL;
 
-void OS_WII::initialize_core() {
-	SYS_STDIO_Report(true);
+void OSGameCubeWii::initialize_core() {
+//	SYS_STDIO_Report(true);
 
-	net_deinit();
-	int rv;
-	while ((rv = net_init()) == -EAGAIN) ;
-	if (rv < 0) {
-		printf("Error while initializing the network: %s\n", strerror(-rv));
-	} else {
-		printf("Net result: %d\n", rv);
-	}
+// 	net_deinit();
+// 	int rv;
+// 	while ((rv = net_init()) == -EAGAIN) ;
+// 	if (rv < 0) {
+// 		printf("Error while initializing the network: %s\n", strerror(-rv));
+// 	} else {
+// 		printf("Net result: %d\n", rv);
+// 	}
 
 	ThreadDummy::make_default();
 	SemaphoreDummy::make_default();
@@ -98,56 +98,60 @@ void OS_WII::initialize_core() {
 	ticks_start = 0;
 	ticks_start = get_ticks_usec();
 
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_FILESYSTEM);
-	//FileAccessBufferedFA<FileAccessUnix>::make_default();
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
+// 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
+// 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
+// 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_FILESYSTEM);
+// 	//FileAccessBufferedFA<FileAccessUnix>::make_default();
+// 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
+// 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
+// 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
+
 
 	TCPServerPosix::make_default();
 	StreamPeerTCPPosix::make_default();
 	IP_Unix::make_default();
-	
-	SDL_Init(SDL_INIT_VIDEO);
-	videoInfo = SDL_GetVideoInfo();
-	
-	videoFlags  = SDL_OPENGL;          /* Enable OpenGL in SDL */
-	videoFlags |= SDL_GL_DOUBLEBUFFER; /* Enable double buffering */
-	videoFlags |= SDL_HWPALETTE;       /* Store the palette in hardware */
-	videoFlags |= SDL_RESIZABLE;       /* Enable window resizing */
-	videoFlags |= SDL_FULLSCREEN;
 
-	if ( videoInfo->hw_available )
-		videoFlags |= SDL_HWSURFACE;
-	else
-		videoFlags |= SDL_SWSURFACE;
 
-	if ( videoInfo->blit_hw )
-		videoFlags |= SDL_HWACCEL;
+	VIDEO_INIT();
+	PAD_INIT();
 
-	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+// 	SDL_Init(SDL_INIT_VIDEO);
+// 	videoInfo = SDL_GetVideoInfo();
+//
+// 	videoFlags  = SDL_OPENGL;          /* Enable OpenGL in SDL */
+// 	videoFlags |= SDL_GL_DOUBLEBUFFER; /* Enable double buffering */
+// 	videoFlags |= SDL_HWPALETTE;       /* Store the palette in hardware */
+// 	videoFlags |= SDL_RESIZABLE;       /* Enable window resizing */
+// 	videoFlags |= SDL_FULLSCREEN;
+//
+// 	if ( videoInfo->hw_available )
+// 		videoFlags |= SDL_HWSURFACE;
+// 	else
+// 		videoFlags |= SDL_SWSURFACE;
+//
+// 	if ( videoInfo->blit_hw )
+// 		videoFlags |= SDL_HWACCEL;
+//
+// 	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 )
 
-	surface = SDL_SetVideoMode(640, 480, 32, videoFlags);
+
+// 	surface = SDL_SetVideoMode(640, 480, 32, videoFlags);
 
 	//gladLoadGLLoader(getprocaddr);
 	//printf("glEnableClientState => %p\n", glad_glEnableClientState);
 }
 
-void OS_WII::finalize_core() {
+void OSGameCubeWii::finalize_core() {
 	if (mempool_dynamic)
 		memdelete( mempool_dynamic );
 	delete mempool_static;
 }
 
-
-void OS_WII::initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver) {
+void OSGameCubeWii::initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver) {
 
 	args=OS::get_singleton()->get_cmdline_args();
 	current_videomode=p_desired;
 	main_loop=NULL;
-
 	
 	rasterizer = memnew( RasterizerGLES1 );
 
@@ -184,7 +188,7 @@ void OS_WII::initialize(const VideoMode& p_desired,int p_video_driver,int p_audi
 
 		
 }
-void OS_WII::finalize() {
+void OSGameCubeWii::finalize() {
 
 	if(main_loop)
 		memdelete(main_loop);
@@ -218,64 +222,64 @@ void OS_WII::finalize() {
 	args.clear();
 }
 
-void OS_WII::set_mouse_show(bool p_show) {
-
+void OSGameCubeWii::set_mouse_show(bool p_show) {
 
 }
-void OS_WII::set_mouse_grab(bool p_grab) {
+
+void OSGameCubeWii::set_mouse_grab(bool p_grab) {
 
 	grab=p_grab;
 }
-bool OS_WII::is_mouse_grab_enabled() const {
+
+bool OSGameCubeWii::is_mouse_grab_enabled() const {
 
 	return grab;
 }
 
-int OS_WII::get_mouse_button_state() const {
+int OSGameCubeWii::get_mouse_button_state() const {
 
 	return 0;
 }
 
-Point2 OS_WII::get_mouse_pos() const {
+Point2 OSGameCubeWii::get_mouse_pos() const {
 
 	return Point2();
 }
 
-void OS_WII::set_window_title(const String& p_title) {
+void OSGameCubeWii::set_window_title(const String& p_title) {
 
+}
+
+void OSGameCubeWii::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
 
 }
 
-void OS_WII::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
-
-
-}
-OS::VideoMode OS_WII::get_video_mode(int p_screen) const {
+OS::VideoMode OSGameCubeWii::get_video_mode(int p_screen) const {
 
 	return current_videomode;
 }
-void OS_WII::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {
 
+void OSGameCubeWii::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {
 
 }
 
 
-OS::Date OS_WII::get_date() const {
+OS::Date OSGameCubeWii::get_date() const {
 	Date ret;
 	return ret;
 }
 
-OS::Time OS_WII::get_time() const {
+OS::Time OSGameCubeWii::get_time() const {
 	Time ret;
 	return ret;
 }
 
 
-void OS_WII::delay_usec(uint32_t p_usec) const{
+void OSGameCubeWii::delay_usec(uint32_t p_usec) const{
 	usleep(p_usec);
 }
 
-uint64_t OS_WII::get_ticks_usec() const{
+uint64_t OSGameCubeWii::get_ticks_usec() const{
 	struct timeval tv_now;
 	gettimeofday(&tv_now, NULL);
 
@@ -285,51 +289,47 @@ uint64_t OS_WII::get_ticks_usec() const{
 	return longtime;
 }
 
-MainLoop *OS_WII::get_main_loop() const {
+MainLoop *OSGameCubeWii::get_main_loop() const {
 
 	return main_loop;
 }
 
-void OS_WII::delete_main_loop() {
+void OSGameCubeWii::delete_main_loop() {
 
 	if (main_loop)
 		memdelete(main_loop);
 	main_loop=NULL;
 }
 
-void OS_WII::set_main_loop( MainLoop * p_main_loop ) {
+void OSGameCubeWii::set_main_loop( MainLoop * p_main_loop ) {
 
 	main_loop=p_main_loop;
 	input->set_main_loop(p_main_loop);
 }
 
-bool OS_WII::can_draw() const {
+bool OSGameCubeWii::can_draw() const {
 
 	return true; //can never draw
 };
 
-
-String OS_WII::get_name() {
+String OSGameCubeWii::get_name() {
 
 	return "Wii";
 }
 
-
-
-void OS_WII::move_window_to_foreground() {
+void OSGameCubeWii::move_window_to_foreground() {
 
 }
 
-void OS_WII::set_cursor_shape(CursorShape p_shape) {
-
+void OSGameCubeWii::set_cursor_shape(CursorShape p_shape) {
 
 }
 
-void OS_WII::swap_buffers() {
+void OSGameCubeWii::swap_buffers() {
 	SDL_GL_SwapBuffers();
 }
 
-void OS_WII::process_input() {
+void OSGameCubeWii::process_input() {
 	
 	while ( SDL_PollEvent( &event ) )
 		{
@@ -346,7 +346,7 @@ void OS_WII::process_input() {
 	}
 }
 
-void OS_WII::run() {
+void OSGameCubeWii::run() {
 
 	force_quit = false;
 	
@@ -365,7 +365,7 @@ void OS_WII::run() {
 	main_loop->finish();
 }
 
-OS_WII::OS_WII() {
+OSGameCubeWii::OSGameCubeWii() {
 
 	AudioDriverManagerSW::add_driver(&driver_dummy);
 	//adriver here

@@ -26,26 +26,30 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#ifndef OS_WII_H
-#define OS_WII_H
+#ifndef OS_GC_WII_H
+#define OS_GC_WII_H
 
 
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"
 #include "servers/visual_server.h"
 #include "servers/visual/rasterizer.h"
-#include "servers/audio/audio_driver_dummy.h"
+#include "servers/audio_server.h"
 #include "servers/physics_server.h"
+
+#include "servers/audio/audio_driver_dummy.h"
 #include "servers/audio/audio_server_sw.h"
 #include "servers/audio/sample_manager_sw.h"
 #include "servers/spatial_sound/spatial_sound_server_sw.h"
 #include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
-#include <SDL/SDL.h>
-#include <gccore.h>
 
-class OS_WII : public OS {
+//#include <SDL/SDL.h>
+#include <ogcsys.h>
+
+
+class OSGameCubeWii : public OS {
 
 	Rasterizer *rasterizer;
 	VisualServer *visual_server;
@@ -63,9 +67,9 @@ class OS_WII : public OS {
 
 	virtual void delete_main_loop();
 	// IP_Unix *ip_unix;
-	const SDL_VideoInfo *videoInfo;
+	//const SDL_VideoInfo *videoInfo;
 	int videoFlags;
-	SDL_Surface* surface;
+	//SDL_Surface* surface;
 
 	AudioServerSW *audio_server;
 	SampleManagerMallocSW *sample_manager;
@@ -75,13 +79,13 @@ class OS_WII : public OS {
 	bool force_quit;
 
 	InputDefault *input;
-	SDL_Event event;
+	//SDL_Event event;
 
 
 protected:
 
 	virtual int get_video_driver_count() const;
-	virtual const char * get_video_driver_name(int p_driver) const;	
+	virtual const char * get_video_driver_name(int p_driver) const;
 	virtual VideoMode get_default_video_mode() const;
 	
 	virtual void initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver);	
@@ -136,7 +140,7 @@ public:
 	
 	void run();
 
-	OS_WII();
+	OSGameCubeWii();
 };
 
 #endif

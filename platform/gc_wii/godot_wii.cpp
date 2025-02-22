@@ -26,6 +26,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+#include "platform_config.h"
 #include "main/main.h"
 #include "os_wii.h"
 #include <gccore.h>
@@ -34,7 +35,7 @@
 int main(int argc, char* argv[]) {
 	fatInitDefault();
 
-	OS_WII os;
+	OSGameCubeWii os;
 	
 	char* args[] = {"-path", "./"};
 
