@@ -129,11 +129,9 @@ def configure(env):
 
     env.Append(
         LIBS=[
-            #libogc2
             "fat", #IMPORTANT! Put this *before* ogc
             "ogc",
             "aesnd",
-
             "m",
         ]
     )
