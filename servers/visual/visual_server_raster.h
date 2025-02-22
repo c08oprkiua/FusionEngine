@@ -39,6 +39,23 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
+/*
+	VisualServerRaster is an abstraction over VisualServer that handles the following
+	APIs of VisualServer:
+	* Fixed Material
+	* (most of) Viewport
+	* Scenario
+	* Instancing
+	* Black bars
+	* Custom Shading
+
+	The remaining APIs are passed onto a Rasterizer object for the usual per-platform
+	API implementations. Some things passed to Rasterizer are also therein simplified
+	before passing, so overall Rasterizer is a somewhat simpler solution if the
+	platform target does not require deeper rendering optimizations/specializations.
+
+	- c08oprkiua
+*/
 
 class VisualServerRaster : public VisualServer {
 

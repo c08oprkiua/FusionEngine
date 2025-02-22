@@ -92,7 +92,9 @@ friend class Main;
 	virtual int get_audio_driver_count() const=0;
 	virtual const char * get_audio_driver_name(int p_driver) const=0;
 	
+	//This initalizes before everything in the engine except RID owners
 	virtual void initialize_core()=0;
+	//This initalizes much later once mostly everything "core" has been set up
 	virtual void initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver)=0;
 	
 	virtual void set_main_loop( MainLoop * p_main_loop )=0;    

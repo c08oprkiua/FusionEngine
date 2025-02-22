@@ -81,6 +81,8 @@ Error EditorExportPlatformWii::export_project(const String& p_path,bool p_debug,
     return OK;
 };
 
+//////////////////////////////////
+
 String EditorExportPlatformGameCube::get_name() const {
 	return "Nintendo GameCube";
 };
@@ -108,10 +110,18 @@ String EditorExportPlatformGameCube::get_binary_extension() const {
     return "gcm";
 };
 
+
+/*
+	GCM is the disc container for GameCube games, similar in equivalency to formats like ISO.
+	Loaders like Swiss can support up to ~4GiB-sized containers, and the theoretical max is 16GiB,
+	according to Extrems. Of course, that is much larger than the 1.5GB of real estate on a GC disc,
+	so if you want your game to be burnable onto a disc you'll have to make it fit into that!
+
+	A GCM that exceeds 4GiB will have to use the "Wii variant" of FST.
+*/
 Error EditorExportPlatformGameCube::export_project(const String& p_path,bool p_debug,bool p_dumb){
     return OK;
 };
-
 
 void register_gc_wii_exporter(){
     Ref<EditorExportPlatformWii> exporter = Ref<EditorExportPlatformWii>(memnew(EditorExportPlatformWii));
