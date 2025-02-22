@@ -26,7 +26,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#if defined(GLES1_ENABLED) || defined(__psp2__) || defined(__WII__)
+#if defined(GLES1_ENABLED) || defined(__psp2__)
 
 #include "rasterizer_gles1.h"
 #include "os/os.h"

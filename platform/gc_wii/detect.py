@@ -85,7 +85,7 @@ def configure(env):
             "-D__WII__",
             "-DHW_RVL",
 
-            "-DPOSIX_IP_ENABLED", #may or may not work on GC without issues, but for now...
+            #"-DPOSIX_IP_ENABLED", #may or may not work on GC without issues, but for now...
         ]
 
         #Wii only libs
@@ -106,8 +106,8 @@ def configure(env):
             "-DNO_SAFE_CAST",
             "-DNO_FCNTL",
 
-            "-DGLEW_ENABLED",
-            "-DGLES_OVER_GL", #will this be needed when we use GX?
+            #"-DGLEW_ENABLED",
+            #"-DGLES_OVER_GL", #will this be needed when we use GX?
             "-fno-exceptions",
             "-fno-rtti",
 

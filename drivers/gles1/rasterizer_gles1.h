@@ -31,7 +31,7 @@
 
 #include "servers/visual/rasterizer.h"
 
-#if defined(GLES1_ENABLED) || defined(__psp2__) || defined(__WII__)
+#if defined(GLES1_ENABLED) || defined(__psp2__)
 
 #include "image.h"
 #include "rid.h"

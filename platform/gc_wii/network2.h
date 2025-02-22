@@ -19,8 +19,8 @@ inline s32 recvfrom(s32 s,void *mem,s32 len,u32 flags,struct sockaddr *from,sock
 inline s32 read(s32 s,void *mem,s32 len) { return net_read(s, mem, len); }
 inline s32 close(s32 s) { return net_close(s); }
 inline s32 select(s32 maxfdp1,fd_set *readset,fd_set *writeset,fd_set *exceptset,struct timeval *timeout) { return net_select(maxfdp1, readset, writeset, exceptset, timeout); }
-inline s32 getsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optlen) { return net_getsockopt(s, level, optname, optval, optlen); }
-inline s32 setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optlen) { return net_setsockopt(s, level, optname, optval, optlen); }
+inline s32 getsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optlen) { return net_getsockopt(s, level, optname, (void *) optval, (u32 *) optlen); }
+inline s32 setsockopt(s32 s,u32 level,u32 optname,const void *optval,socklen_t optlen) { return net_setsockopt(s, level, optname, (void *) optval, optlen); }
 inline s32 getsockname(s32 s, struct sockaddr *addr, socklen_t *addrlen) { return net_getsockname(s, addr, addrlen); }
 inline s32 ioctl(s32 s, u32 cmd, void *argp) { return net_ioctl(s, cmd, argp); }
 inline s32 fcntl(s32 s, u32 cmd, u32 flags) { return net_fcntl(s, cmd, flags); }

@@ -1,5 +1,10 @@
 Import('env')
 
+#TODO: Reorganize this system in general so that drivers are a lot more modular.
+#Some things to implement for that:
+# * Platforms disabling drivers, which makes the driver's folder COMPLETELY IGNORED, skipping compilation
+# * Drivers have a detect.py that allows compile options for the driver and/or disabling from command line
+
 env.drivers_sources=[]
 #env.add_source_files(env.drivers_sources,"*.cpp")
 env.Append(CPPPATH=["vorbis"])
@@ -13,7 +18,6 @@ if env["platform"] in ("x11", "vita", "javascript"):
 	SConscript('gles2/SCsub');
 if env["platform"] not in ("x11soft", "windows", "psp"):
 	SConscript('gles1/SCsub');
-#if env["platform"] in ("x11soft", "windows")
 elif env["platform"] not in ("psp", "wii"):
 	SConscript('gl11/SCsub');
 elif env["platform"] != "vita":

@@ -27,12 +27,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "servers/visual/visual_server_raster.h"
-#include "drivers/gles1/rasterizer_gles1.h"
-//#include "rasterizer_gx.h"
+#include "rasterizer_gx.h"
 #include "drivers/unix/tcp_server_posix.h"
 #include "drivers/unix/stream_peer_tcp_posix.h"
 #include "drivers/unix/ip_unix.h"
-#include "os_wii.h"
+#include "os_gc_wii.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "print_string.h"
@@ -49,6 +48,10 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/errno.h>
+
+#ifdef DEBUG_ENABLED
+#include <debug.h>
+#endif
 
 int OSGameCubeWii::get_video_driver_count() const {
 	return 1;
@@ -106,14 +109,14 @@ void OSGameCubeWii::initialize_core() {
 // 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
 // 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
 
-
+#ifdef POSIX_IP_ENABLED
 	TCPServerPosix::make_default();
 	StreamPeerTCPPosix::make_default();
 	IP_Unix::make_default();
+#endif
 
-
-	VIDEO_INIT();
-	PAD_INIT();
+	VIDEO_Init();
+	PAD_Init();
 
 // 	SDL_Init(SDL_INIT_VIDEO);
 // 	videoInfo = SDL_GetVideoInfo();
@@ -136,9 +139,16 @@ void OSGameCubeWii::initialize_core() {
 
 
 // 	surface = SDL_SetVideoMode(640, 480, 32, videoFlags);
+	gx_video_info = VIDEO_GetPreferredMode(NULL);
 
 	//gladLoadGLLoader(getprocaddr);
 	//printf("glEnableClientState => %p\n", glad_glEnableClientState);
+
+
+#ifdef DEBUG_ENABLED
+	//TODO: Make this configurable
+	DEBUG_Init(GDBSTUB_DEVICE_USB,1);
+#endif
 }
 
 void OSGameCubeWii::finalize_core() {
@@ -153,7 +163,7 @@ void OSGameCubeWii::initialize(const VideoMode& p_desired,int p_video_driver,int
 	current_videomode=p_desired;
 	main_loop=NULL;
 	
-	rasterizer = memnew( RasterizerGLES1 );
+	rasterizer = memnew( RasterizerGX );
 
 	visual_server = memnew( VisualServerRaster(rasterizer) );
 
@@ -226,43 +236,32 @@ void OSGameCubeWii::set_mouse_show(bool p_show) {
 
 }
 
-void OSGameCubeWii::set_mouse_grab(bool p_grab) {
+void OSGameCubeWii::set_mouse_grab(bool p_grab) { grab=p_grab; }
 
-	grab=p_grab;
-}
-
-bool OSGameCubeWii::is_mouse_grab_enabled() const {
-
-	return grab;
-}
+bool OSGameCubeWii::is_mouse_grab_enabled() const { return grab; }
 
 int OSGameCubeWii::get_mouse_button_state() const {
-
 	return 0;
 }
 
 Point2 OSGameCubeWii::get_mouse_pos() const {
-
 	return Point2();
 }
 
-void OSGameCubeWii::set_window_title(const String& p_title) {
-
-}
+void OSGameCubeWii::set_window_title(const String& p_title) {}
 
 void OSGameCubeWii::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
+	//TODO: Print a warning about accessing a screen that isn't screen 0
 
 }
 
 OS::VideoMode OSGameCubeWii::get_video_mode(int p_screen) const {
-
 	return current_videomode;
 }
 
 void OSGameCubeWii::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {
 
 }
-
 
 OS::Date OSGameCubeWii::get_date() const {
 	Date ret;
@@ -273,7 +272,6 @@ OS::Time OSGameCubeWii::get_time() const {
 	Time ret;
 	return ret;
 }
-
 
 void OSGameCubeWii::delay_usec(uint32_t p_usec) const{
 	usleep(p_usec);
@@ -290,59 +288,49 @@ uint64_t OSGameCubeWii::get_ticks_usec() const{
 }
 
 MainLoop *OSGameCubeWii::get_main_loop() const {
-
 	return main_loop;
 }
 
 void OSGameCubeWii::delete_main_loop() {
-
 	if (main_loop)
 		memdelete(main_loop);
 	main_loop=NULL;
 }
 
 void OSGameCubeWii::set_main_loop( MainLoop * p_main_loop ) {
-
 	main_loop=p_main_loop;
 	input->set_main_loop(p_main_loop);
 }
 
 bool OSGameCubeWii::can_draw() const {
 
-	return true; //can never draw
+	return true;
 };
 
 String OSGameCubeWii::get_name() {
-
+#if defined(__WII__)
 	return "Wii";
+#else
+	return "GameCube";
+#endif
 }
 
-void OSGameCubeWii::move_window_to_foreground() {
+void OSGameCubeWii::move_window_to_foreground() {}
 
-}
-
-void OSGameCubeWii::set_cursor_shape(CursorShape p_shape) {
-
-}
+void OSGameCubeWii::set_cursor_shape(CursorShape p_shape) {}
 
 void OSGameCubeWii::swap_buffers() {
-	SDL_GL_SwapBuffers();
+	//SDL_GL_SwapBuffers();
 }
 
 void OSGameCubeWii::process_input() {
-	
-	while ( SDL_PollEvent( &event ) )
-		{
-		switch( event.type )
-		{
 
-		case SDL_QUIT:
-			/* handle quit requests */
-			force_quit = true;
-			break;
-		default:
-			break;
-		}
+	PAD_ScanPads();
+
+	int buttonsDown = PAD_ButtonsDown(0);
+
+	if (buttonsDown){
+		force_quit = true;
 	}
 }
 
@@ -370,5 +358,4 @@ OSGameCubeWii::OSGameCubeWii() {
 	AudioDriverManagerSW::add_driver(&driver_dummy);
 	//adriver here
 	grab=false;
-
 };

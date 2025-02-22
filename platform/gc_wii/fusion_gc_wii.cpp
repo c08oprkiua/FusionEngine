@@ -28,7 +28,7 @@
 /*************************************************************************/
 #include "platform_config.h"
 #include "main/main.h"
-#include "os_wii.h"
+#include "os_gc_wii.h"
 #include <gccore.h>
 #include <fat.h>
 
@@ -42,11 +42,12 @@ int main(int argc, char* argv[]) {
 	Error err = Main::setup("wii", 2, args, true);
 	if (err!=OK)
 		return 255;
-		
+
 	if (Main::start()) {
-		SYS_Report("game running\n");
+		//SYS_Report("game running\n");
 		os.run(); // it is actually the OS that decides how to run
 	}
+
 	Main::cleanup();
 	
 	return 0;

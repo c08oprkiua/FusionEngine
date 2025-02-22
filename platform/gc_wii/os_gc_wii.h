@@ -70,6 +70,7 @@ class OSGameCubeWii : public OS {
 	//const SDL_VideoInfo *videoInfo;
 	int videoFlags;
 	//SDL_Surface* surface;
+	GXRModeObj *gx_video_info;
 
 	AudioServerSW *audio_server;
 	SampleManagerMallocSW *sample_manager;
