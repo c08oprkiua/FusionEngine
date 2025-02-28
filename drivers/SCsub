@@ -30,6 +30,10 @@ if (env['minizip'] == 'yes'):
 if (env['small_pck'] == 'yes'):
     SConscript('s_pck/SCsub');
 
+SConscript("res_binary/SCsub")
+SConscript("res_xml/SCsub")
+
+
 if (env["png"]=="yes"):
 	SConscript("png/SCsub");
 if (env["jpg"]=="yes"):

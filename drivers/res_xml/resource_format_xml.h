@@ -29,11 +29,9 @@
 #ifndef RESOURCE_FORMAT_XML_H
 #define RESOURCE_FORMAT_XML_H
 
-#include "io/resource_loader.h"
-#include "io/resource_saver.h"
-#include "os/file_access.h"
-
-
+#include "core/io/resource_loader.h"
+#include "core/io/resource_saver.h"
+#include "core/os/file_access.h"
 
 class ResourceInteractiveLoaderXML : public ResourceInteractiveLoader {
 
@@ -142,7 +140,6 @@ class ResourceFormatSaverXMLInstance  {
 public:
 
 	Error save(const String &p_path,const RES& p_resource,uint32_t p_flags=0);
-
 
 };
 

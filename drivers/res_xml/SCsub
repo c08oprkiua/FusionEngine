@@ -1,0 +1,11 @@
+Import('env')
+
+
+xml_sources = [
+	"res_xml/resource_format_xml.cpp"
+	]
+
+env.drivers_sources+=xml_sources
+
+#env.add_source_files(env.drivers_sources, xml_sources)
+

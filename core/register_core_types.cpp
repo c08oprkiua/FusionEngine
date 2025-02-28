@@ -42,8 +42,6 @@
 #include "translation.h"
 #include "compressed_translation.h"
 #include "io/translation_loader_po.h"
-#include "io/resource_format_xml.h"
-#include "io/resource_format_binary.h"
 #include "io/stream_peer_ssl.h"
 #include "os/input.h"
 #include "core/io/xml_parser.h"
@@ -51,14 +49,6 @@
 #include "packed_data_container.h"
 #include "func_ref.h"
 #include "input_map.h"
-
-#ifdef XML_ENABLED
-static ResourceFormatSaverXML *resource_saver_xml=NULL;
-static ResourceFormatLoaderXML *resource_loader_xml=NULL;
-#endif
-static ResourceFormatSaverBinary *resource_saver_binary=NULL;
-static ResourceFormatLoaderBinary *resource_loader_binary=NULL;
-
 
 static _ResourceLoader *_resource_loader=NULL;
 static _ResourceSaver *_resource_saver=NULL;
@@ -94,17 +84,6 @@ void register_core_types() {
 	
 	resource_format_po = memnew( TranslationLoaderPO );
 	ResourceLoader::add_resource_format_loader( resource_format_po );
-
-
-	resource_saver_binary = memnew( ResourceFormatSaverBinary );
-	ResourceSaver::add_resource_format_saver(resource_saver_binary);
-	resource_loader_binary = memnew( ResourceFormatLoaderBinary );
-	ResourceLoader::add_resource_format_loader(resource_loader_binary);
-
-	resource_saver_xml = memnew( ResourceFormatSaverXML );
-	ResourceSaver::add_resource_format_saver(resource_saver_xml);
-	resource_loader_xml = memnew( ResourceFormatLoaderXML );
-	ResourceLoader::add_resource_format_loader(resource_loader_xml);
 
 	REGISTER_OBJECT(Object);
 
@@ -188,18 +167,6 @@ void unregister_core_types() {
 	memdelete( _marshalls );
 
 	memdelete( _geometry );
-#ifdef XML_ENABLED
-	if (resource_saver_xml)
-		memdelete(resource_saver_xml);
-	if (resource_loader_xml)
-		memdelete(resource_loader_xml);
-#endif
-
-	if (resource_saver_binary)
-		memdelete(resource_saver_binary);
-	if (resource_loader_binary)
-		memdelete(resource_loader_binary);
-
 
 	memdelete( resource_format_po );
 

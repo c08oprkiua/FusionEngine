@@ -19,7 +19,8 @@
 #include "pvr/texture_loader_pvr.h"
 #include "etc1/image_etc.h"
 #include "chibi/event_stream_chibi.h"
-
+#include "res_xml/resource_format_xml.h"
+#include "res_binary/resource_format_binary.h"
 
 #ifdef TOOLS_ENABLED
 #include "squish/image_compress_squish.h"
@@ -36,7 +37,6 @@
 #ifdef VORBIS_ENABLED
 #include "vorbis/audio_stream_ogg_vorbis.h"
 #endif
-
 
 #ifdef SPEEX_ENABLED
 #include "speex/audio_stream_speex.h"
@@ -70,7 +70,6 @@ static ImageLoaderJPG *image_loader_jpg=NULL;
 #ifdef DDS_ENABLED
 static ResourceFormatDDS *resource_loader_dds=NULL;
 #endif
-
 
 #ifdef PVR_ENABLED
 static ResourceFormatPVR *resource_loader_pvr=NULL;
@@ -109,6 +108,14 @@ static ResourceFormatLoaderAudioStreamMPC * mpc_stream_loader=NULL;
 #include "zip_pack/zip_archive.h"
 #endif
 
+static ResourceFormatSaverBinary *resource_saver_binary=NULL;
+static ResourceFormatLoaderBinary *resource_loader_binary=NULL;
+
+#ifdef XML_ENABLED
+static ResourceFormatSaverXML *resource_saver_xml=NULL;
+static ResourceFormatLoaderXML *resource_loader_xml=NULL;
+#endif
+
 void register_core_driver_types() {
 
 #ifdef PCK_ENABLED
@@ -117,6 +124,18 @@ void register_core_driver_types() {
 
 #if MINIZIP_ENABLED
 	PackedData::get_singleton()->add_pack_source(ZipArchive::get_singleton());
+#endif
+
+	resource_saver_binary = memnew( ResourceFormatSaverBinary );
+	ResourceSaver::add_resource_format_saver(resource_saver_binary);
+	resource_loader_binary = memnew( ResourceFormatLoaderBinary );
+	ResourceLoader::add_resource_format_loader(resource_loader_binary);
+
+#ifdef XML_ENABLED
+	resource_saver_xml = memnew( ResourceFormatSaverXML );
+	ResourceSaver::add_resource_format_saver(resource_saver_xml);
+	resource_loader_xml = memnew( ResourceFormatLoaderXML );
+	ResourceLoader::add_resource_format_loader(resource_loader_xml);
 #endif
 
 #ifdef PNG_ENABLED
@@ -147,6 +166,18 @@ void register_core_driver_types() {
 }
 
 void unregister_core_driver_types() {
+
+#ifdef XML_ENABLED
+	if (resource_saver_xml)
+		memdelete(resource_saver_xml);
+	if (resource_loader_xml)
+		memdelete(resource_loader_xml);
+#endif
+
+	if (resource_saver_binary)
+		memdelete(resource_saver_binary);
+	if (resource_loader_binary)
+		memdelete(resource_loader_binary);
 
 #ifdef PNG_ENABLED
 	if (image_loader_png)
