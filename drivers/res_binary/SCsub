@@ -1,11 +1,4 @@
 Import('env')
 
-
-binary_sources = [
-	"res_binary/resource_format_binary.cpp"
-	]
-
-env.drivers_sources+=binary_sources
-
-#env.add_source_files(env.drivers_sources, binary_sources)
+env.drivers_sources+=["res_binary/resource_format_binary.cpp"]
 

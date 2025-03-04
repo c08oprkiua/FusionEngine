@@ -345,13 +345,6 @@ Error ResourceInteractiveLoaderXML::parse_property(Variant& r_v, String &r_name)
 	r_v=Variant();
 	r_name="";
 
-
-	//ERR_FAIL_COND_V(tag->name!="property",ERR_FILE_CORRUPT);
-	//ERR_FAIL_COND_V(!tag->args.has("name"),ERR_FILE_CORRUPT);
-//	ERR_FAIL_COND_V(!tag->args.has("type"),ERR_FILE_CORRUPT);
-
-	//String name=tag->args["name"];
-	//ERR_FAIL_COND_V(name=="",ERR_FILE_CORRUPT);
 	String type=tag->name;
 	String name=tag->args["name"];
 
@@ -1851,7 +1844,7 @@ void ResourceFormatSaverXMLInstance::escape(String& p_str) {
 	p_str=p_str.replace("\"","&quot;");
 	for (int i=1;i<32;i++) {
 
-		char chr[2]={i,0};
+		char chr[2]={(char) i, 0};
 		const char hexn[16]={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 		const char hex[8]={'&','#','0','0',hexn[i>>4],hexn[i&0xf],';',0};
 

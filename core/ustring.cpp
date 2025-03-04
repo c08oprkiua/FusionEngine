@@ -3030,6 +3030,15 @@ String String::c_escape() const {
 	return escaped;
 }
 
+String String::c_escape_multiline() const {
+
+	String escaped = *this;
+	escaped = escaped.replace("\\", "\\\\");
+	escaped = escaped.replace("\"", "\\\"");
+
+	return escaped;
+}
+
 String String::xml_escape(bool p_escape_quotes) const {
 
 	String str=*this;

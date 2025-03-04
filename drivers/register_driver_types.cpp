@@ -19,8 +19,10 @@
 #include "pvr/texture_loader_pvr.h"
 #include "etc1/image_etc.h"
 #include "chibi/event_stream_chibi.h"
+
 #include "res_xml/resource_format_xml.h"
 #include "res_binary/resource_format_binary.h"
+#include "res_text/resource_format_text.h"
 
 #ifdef TOOLS_ENABLED
 #include "squish/image_compress_squish.h"
@@ -111,6 +113,9 @@ static ResourceFormatLoaderAudioStreamMPC * mpc_stream_loader=NULL;
 static ResourceFormatSaverBinary *resource_saver_binary=NULL;
 static ResourceFormatLoaderBinary *resource_loader_binary=NULL;
 
+static ResourceFormatSaverText *resource_saver_text = NULL;
+static ResourceFormatLoaderText *resource_loader_text = NULL;
+
 #ifdef XML_ENABLED
 static ResourceFormatSaverXML *resource_saver_xml=NULL;
 static ResourceFormatLoaderXML *resource_loader_xml=NULL;
@@ -130,6 +135,11 @@ void register_core_driver_types() {
 	ResourceSaver::add_resource_format_saver(resource_saver_binary);
 	resource_loader_binary = memnew( ResourceFormatLoaderBinary );
 	ResourceLoader::add_resource_format_loader(resource_loader_binary);
+
+	resource_saver_text = memnew(ResourceFormatSaverText);
+	ResourceSaver::add_resource_format_saver(resource_saver_text);
+	resource_loader_text = memnew(ResourceFormatLoaderText);
+	ResourceLoader::add_resource_format_loader(resource_loader_text);
 
 #ifdef XML_ENABLED
 	resource_saver_xml = memnew( ResourceFormatSaverXML );
@@ -173,6 +183,11 @@ void unregister_core_driver_types() {
 	if (resource_loader_xml)
 		memdelete(resource_loader_xml);
 #endif
+
+	if (resource_saver_text)
+		memdelete(resource_saver_text);
+	if (resource_loader_text)
+		memdelete(resource_loader_text);
 
 	if (resource_saver_binary)
 		memdelete(resource_saver_binary);

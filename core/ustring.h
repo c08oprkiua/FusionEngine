@@ -230,6 +230,7 @@ public:
 	String xml_escape(bool p_escape_quotes=false) const;
 	String xml_unescape() const;
 	String c_escape() const;
+	String c_escape_multiline() const;
 	String c_unescape() const;
 
 	String percent_encode() const;

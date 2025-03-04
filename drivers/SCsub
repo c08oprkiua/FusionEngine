@@ -32,7 +32,7 @@ if (env['small_pck'] == 'yes'):
 
 SConscript("res_binary/SCsub")
 SConscript("res_xml/SCsub")
-
+SConscript("res_text/SCsub")
 
 if (env["png"]=="yes"):
 	SConscript("png/SCsub");
