@@ -112,6 +112,7 @@ def configure(env):
 
     env.Append(
         CPPPATH=[
+            devkitppc_path + "/powerpc-eabi/include/", #not strictly necessary but helps parsers like clangd
             ogc_path + "/include",
             devkitpro_path + portlib_include_path,
             devkitpro_path + "/portlibs/ppc/include/",

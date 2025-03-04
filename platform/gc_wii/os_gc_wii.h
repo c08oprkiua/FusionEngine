@@ -29,7 +29,6 @@
 #ifndef OS_GC_WII_H
 #define OS_GC_WII_H
 
-
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"
 #include "servers/visual_server.h"
@@ -45,33 +44,27 @@
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
 
-//#include <SDL/SDL.h>
 #include <ogcsys.h>
-
 
 class OSGameCubeWii : public OS {
 
-	Rasterizer *rasterizer;
-	VisualServer *visual_server;
-	VideoMode current_videomode;
 	List<String> args;
-	MainLoop *main_loop;	
+	MainLoop *main_loop;
 
-	AudioDriverDummy driver_dummy;
 	bool grab;
+
+	GXRModeObj *gx_vid_default;
 	
 	uint64_t ticks_start;
 	
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
 
-	virtual void delete_main_loop();
 	// IP_Unix *ip_unix;
-	//const SDL_VideoInfo *videoInfo;
-	int videoFlags;
-	//SDL_Surface* surface;
-	GXRModeObj *gx_video_info;
 
+	VisualServer *visual_server;
+
+	AudioDriverDummy driver_dummy;
 	AudioServerSW *audio_server;
 	SampleManagerMallocSW *sample_manager;
 	SpatialSoundServerSW *spatial_sound_server;
@@ -127,6 +120,7 @@ public:
 	virtual void set_window_title(const String& p_title);
 
 	virtual MainLoop *get_main_loop() const;
+	virtual void delete_main_loop();
 	
 	virtual bool can_draw() const;
 

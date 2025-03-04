@@ -53,26 +53,22 @@
 #include <debug.h>
 #endif
 
+static MemoryPoolStaticMalloc *mempool_static=NULL;
+static MemoryPoolDynamicStatic *mempool_dynamic=NULL;
+
 int OSGameCubeWii::get_video_driver_count() const {
 	return 1;
 }
 
 const char * OSGameCubeWii::get_video_driver_name(int p_driver) const {
-	//return "OpenGX";
 	return "GX";
 }
 
 OS::VideoMode OSGameCubeWii::get_default_video_mode() const {
-
-	return OS::VideoMode(640,480,false);
+	return VideoMode(gx_vid_default->viWidth, gx_vid_default->xfbHeight, false, false);
 }
 
-static MemoryPoolStaticMalloc *mempool_static=NULL;
-static MemoryPoolDynamicStatic *mempool_dynamic=NULL;
-
 void OSGameCubeWii::initialize_core() {
-//	SYS_STDIO_Report(true);
-
 // 	net_deinit();
 // 	int rv;
 // 	while ((rv = net_init()) == -EAGAIN) ;
@@ -139,7 +135,7 @@ void OSGameCubeWii::initialize_core() {
 
 
 // 	surface = SDL_SetVideoMode(640, 480, 32, videoFlags);
-	gx_video_info = VIDEO_GetPreferredMode(NULL);
+	gx_vid_default = VIDEO_GetPreferredMode(NULL);
 
 	//gladLoadGLLoader(getprocaddr);
 	//printf("glEnableClientState => %p\n", glad_glEnableClientState);
@@ -160,12 +156,10 @@ void OSGameCubeWii::finalize_core() {
 void OSGameCubeWii::initialize(const VideoMode& p_desired,int p_video_driver,int p_audio_driver) {
 
 	args=OS::get_singleton()->get_cmdline_args();
-	current_videomode=p_desired;
 	main_loop=NULL;
 	
-	rasterizer = memnew( RasterizerGX );
 
-	visual_server = memnew( VisualServerRaster(rasterizer) );
+	visual_server = (VisualServer *) memnew(VisualServerGX);
 
 	AudioDriverManagerSW::get_driver(p_audio_driver)->set_singleton();
 
@@ -185,11 +179,11 @@ void OSGameCubeWii::initialize(const VideoMode& p_desired,int p_video_driver,int
 	
 	ERR_FAIL_COND(!visual_server);
 
-	visual_server->init();
-	//
-	physics_server = memnew( PhysicsServerSW );
+	visual_server->init(); //also calls init on rasterizer
+
+	physics_server = (PhysicsServer *) memnew( PhysicsServerSW );
 	physics_server->init();
-	physics_2d_server = memnew( Physics2DServerSW );
+	physics_2d_server = (Physics2DServer *) memnew( Physics2DServerSW );
 	physics_2d_server->init();
 
 	input = memnew( InputDefault );
@@ -219,7 +213,6 @@ void OSGameCubeWii::finalize() {
 
 	visual_server->finish();
 	memdelete(visual_server);
-	memdelete(rasterizer);
 	
 	physics_server->finish();
 	memdelete(physics_server);
@@ -256,7 +249,7 @@ void OSGameCubeWii::set_video_mode(const VideoMode& p_video_mode,int p_screen) {
 }
 
 OS::VideoMode OSGameCubeWii::get_video_mode(int p_screen) const {
-	return current_videomode;
+	return VideoMode(gx_vid_default->viWidth, gx_vid_default->xfbHeight, false, false);
 }
 
 void OSGameCubeWii::get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen) const {

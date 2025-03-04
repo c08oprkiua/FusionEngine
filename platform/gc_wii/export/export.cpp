@@ -6,14 +6,10 @@
 #include "scene/resources/texture.h"
 
 
-class EditorExportPlatformWii : public EditorExportPlatform {
-    OBJ_TYPE(EditorExportPlatformWii, EditorExportPlatform);
-
+class EditorExportPlatformWii : public EditorExportPlatformConsole {
+    OBJ_TYPE(EditorExportPlatformWii, EditorExportPlatformConsole);
 public:
-
-	virtual String get_name() const;
 	virtual ImageCompression get_image_compression() const;
-	virtual Ref<Texture> get_logo() const;
 
 	virtual bool poll_devices() {return false;}
 	virtual int get_device_count() const {return 0;}
@@ -24,17 +20,13 @@ public:
 	virtual bool can_export(String *r_error=NULL) const;
 
 	virtual bool requires_password(bool p_debug) const {return false;}
-	virtual String get_binary_extension() const;
 	virtual Error export_project(const String& p_path,bool p_debug,bool p_dumb=false);
 };
 
-class EditorExportPlatformGameCube : public EditorExportPlatform {
-    OBJ_TYPE(EditorExportPlatformGameCube, EditorExportPlatform);
+class EditorExportPlatformGameCube : public EditorExportPlatformConsole {
+    OBJ_TYPE(EditorExportPlatformGameCube, EditorExportPlatformConsole);
 public:
-
-	virtual String get_name() const;
 	virtual ImageCompression get_image_compression() const;
-	virtual Ref<Texture> get_logo() const;
 
 	virtual bool poll_devices() {return false;}
 	virtual int get_device_count() const {return 0;}
@@ -45,25 +37,12 @@ public:
 	virtual bool can_export(String *r_error=NULL) const;
 
 	virtual bool requires_password(bool p_debug) const {return false;}
-	virtual String get_binary_extension() const;
 	virtual Error export_project(const String& p_path,bool p_debug,bool p_dumb=false);
-};
-
-
-String EditorExportPlatformWii::get_name() const {
-	return "Nintendo Wii";
 };
 
 EditorExportPlatform::ImageCompression EditorExportPlatformWii::get_image_compression() const{
     return IMAGE_COMPRESSION_NONE;
 };
-
-Ref<Texture> EditorExportPlatformWii::get_logo() const {
-	Image img(_gc_wii_logo);
-	Ref<ImageTexture> logo = memnew(ImageTexture);
-	logo->create_from_image(img);
-	return logo;
-}
 
 Error EditorExportPlatformWii::run(int p_device,bool p_dumb){
     return OK;
@@ -73,30 +52,15 @@ bool EditorExportPlatformWii::can_export(String *r_error) const {
     return false;
 };
 
-String EditorExportPlatformWii::get_binary_extension() const {
-    return "dol";
-};
-
 Error EditorExportPlatformWii::export_project(const String& p_path,bool p_debug,bool p_dumb){
     return OK;
 };
 
 //////////////////////////////////
 
-String EditorExportPlatformGameCube::get_name() const {
-	return "Nintendo GameCube";
-};
-
 EditorExportPlatform::ImageCompression EditorExportPlatformGameCube::get_image_compression() const{
     return IMAGE_COMPRESSION_NONE;
 };
-
-Ref<Texture> EditorExportPlatformGameCube::get_logo() const {
-	Image img(_gc_logo);
-	Ref<ImageTexture> logo = memnew(ImageTexture);
-	logo->create_from_image(img);
-	return logo;
-}
 
 Error EditorExportPlatformGameCube::run(int p_device,bool p_dumb){
     return OK;
@@ -105,11 +69,6 @@ Error EditorExportPlatformGameCube::run(int p_device,bool p_dumb){
 bool EditorExportPlatformGameCube::can_export(String *r_error) const {
     return false;
 };
-
-String EditorExportPlatformGameCube::get_binary_extension() const {
-    return "gcm";
-};
-
 
 /*
 	GCM is the disc container for GameCube games, similar in equivalency to formats like ISO.
@@ -124,9 +83,29 @@ Error EditorExportPlatformGameCube::export_project(const String& p_path,bool p_d
 };
 
 void register_gc_wii_exporter(){
-    Ref<EditorExportPlatformWii> exporter = Ref<EditorExportPlatformWii>(memnew(EditorExportPlatformWii));
-	EditorImportExport::get_singleton()->add_export_platform(exporter);
+	Image img(_gc_wii_logo);
+
+    Ref<EditorExportPlatformWii> exporter_wii = Ref<EditorExportPlatformWii>(memnew(EditorExportPlatformWii));
+
+	exporter_wii->set_name("Nintendo Wii");
+	exporter_wii->set_binary_extension("dol");
+
+	Ref<ImageTexture> wii_logo = memnew(ImageTexture);
+	wii_logo->create_from_image(img);
+	exporter_wii->set_logo(wii_logo);
+
+	EditorImportExport::get_singleton()->add_export_platform(exporter_wii);
 
 	Ref<EditorExportPlatformGameCube> exporter_gc = Ref<EditorExportPlatformGameCube>(memnew(EditorExportPlatformGameCube));
+
+	exporter_gc->set_name("Nintendo GameCube");
+	exporter_gc->set_binary_extension("gcm");
+
+	img = Image(_gc_logo);
+
+	Ref<ImageTexture> gc_logo = memnew(ImageTexture);
+	gc_logo->create_from_image(img);
+	exporter_gc->set_logo(gc_logo);
+
 	EditorImportExport::get_singleton()->add_export_platform(exporter_gc);
 } 

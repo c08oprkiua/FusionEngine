@@ -10,11 +10,11 @@ common_wii = [
 dol_name = ""
 
 if env["gamecube"] == 'yes':
-    dol_name = "bin/fe_gc.dol"
+    dol_name = "bin/fusion_engine_gc.dol"
 else:
-    dol_name = "bin/fe_wii.dol"
+    dol_name = "bin/fusion_engine_wii.dol"
 
-prog = env.Program("#bin/fe_wiii", ["fusion_gc_wii.cpp"] + common_wii)
+prog = env.Program("#bin/fusion", ["fusion_gc_wii.cpp"] + common_wii)
 env.Command(
     "#bin/fe_wii.dol",
     prog,
