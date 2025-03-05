@@ -1341,7 +1341,6 @@ RID VisualServerGX::make_sphere_mesh(int p_lats,int p_lons,float p_radius){
 
 }
 
-
 void VisualServerGX::mesh_add_surface_from_mesh_data( RID p_mesh, const Geometry::MeshData& p_mesh_data){
 
 }
@@ -1355,7 +1354,16 @@ void VisualServerGX::set_boot_image(const Image& p_image, const Color& p_color){
 }
 
 void VisualServerGX::set_default_clear_color(const Color& p_color){
+	uint32_t u32_color = p_color.to_ARGB32();
 
+	GXColor gx_color;
+
+	gx_color.a = u32_color & 0xFF'00'00'00;
+	gx_color.r = u32_color & 0x00'FF'00'00;
+	gx_color.g = u32_color & 0x00'00'FF'00;
+	gx_color.b = u32_color & 0x00'00'00'FF;
+
+	GX_SetCopyClear(gx_color, GX_MAX_Z24);
 }
 
 bool VisualServerGX::has_feature(VS::Features p_feature) const {
