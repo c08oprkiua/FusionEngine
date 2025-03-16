@@ -38,8 +38,6 @@
 #include "servers/physics_2d_server.h"
 #include "scene/resources/packed_scene.h"
 #include "editor_settings.h"
-#include "io_plugins/editor_import_collada.h"
-#include "io_plugins/editor_scene_importer_fbxconv.h"
 #include "globals.h"
 #include <stdio.h>
 #include "object_type_db.h"
@@ -95,7 +93,10 @@
 #include "tools/editor/io_plugins/editor_font_import_plugin.h"
 #include "tools/editor/io_plugins/editor_sample_import_plugin.h"
 #include "tools/editor/io_plugins/editor_translation_import_plugin.h"
-#include "tools/editor/io_plugins/editor_mesh_import_plugin.h"
+
+#include "io_plugins/assimp/editor_import_collada.h"
+#include "io_plugins/editor_scene_importer_fbxconv.h"
+#include "io_plugins/assimp/editor_import_assimp.h"
 
 #include "tools/pck/pck_packer.h"
 
@@ -3985,13 +3986,15 @@ EditorNode::EditorNode() {
 	editor_import_export->add_import_plugin( Ref<EditorTextureImportPlugin>( memnew(EditorTextureImportPlugin(this,EditorTextureImportPlugin::MODE_TEXTURE_3D) )));
 	editor_import_export->add_import_plugin( Ref<EditorTextureImportPlugin>( memnew(EditorTextureImportPlugin(this,EditorTextureImportPlugin::MODE_ATLAS) )));
 	Ref<EditorSceneImportPlugin> _scene_import =  memnew(EditorSceneImportPlugin(this) );
-	Ref<EditorSceneImporterCollada> _collada_import = memnew( EditorSceneImporterCollada);
-	_scene_import->add_importer(_collada_import);
 //	Ref<EditorSceneImporterFBXConv> _fbxconv_import = memnew( EditorSceneImporterFBXConv);
 //	_scene_import->add_importer(_fbxconv_import);
 	editor_import_export->add_import_plugin( _scene_import);
 	editor_import_export->add_import_plugin( Ref<EditorSceneAnimationImportPlugin>( memnew(EditorSceneAnimationImportPlugin(this))));
+
+	Ref<EditorSceneImporterCollada> _collada_import = memnew( EditorSceneImporterCollada);
+	_scene_import->add_importer(_collada_import);
 	editor_import_export->add_import_plugin( Ref<EditorMeshImportPlugin>( memnew(EditorMeshImportPlugin(this))));
+
 	editor_import_export->add_import_plugin( Ref<EditorFontImportPlugin>( memnew(EditorFontImportPlugin(this))));
 	editor_import_export->add_import_plugin( Ref<EditorSampleImportPlugin>( memnew(EditorSampleImportPlugin(this))));
 	editor_import_export->add_import_plugin( Ref<EditorTranslationImportPlugin>( memnew(EditorTranslationImportPlugin(this))));

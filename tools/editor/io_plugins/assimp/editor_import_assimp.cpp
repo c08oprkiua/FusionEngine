@@ -1,4 +1,4 @@
-#include "editor_mesh_import_plugin.h"
+#include "editor_import_assimp.h"
 
 #include "scene/gui/file_dialog.h"
 #include "tools/editor/editor_dir_dialog.h"

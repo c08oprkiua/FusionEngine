@@ -1,5 +1,5 @@
-#ifndef EDITOR_MESH_IMPORT_PLUGIN_H
-#define EDITOR_MESH_IMPORT_PLUGIN_H
+#ifndef EDITOR_IMPORT_ASSIMP_H
+#define EDITOR_IMPORT_ASSIMP_H
 
 
 #include "tools/editor/editor_import_export.h"
@@ -26,4 +26,4 @@ public:
 	EditorMeshImportPlugin(EditorNode* p_editor);
 };
 
-#endif // EDITOR_MESH_IMPORT_PLUGIN_H
+#endif // EDITOR_IMPORT_ASSIMP_H

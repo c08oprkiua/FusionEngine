@@ -1,0 +1,9 @@
+Import('env')
+
+
+
+#TODO: Add detection for if assimp submodule has been successfully cloned, only compile if so
+
+env.Append(CPPPATH=['#tools/editor/io_plugins/assimp/include/assimp'])
+
+env.add_source_files(env.tool_sources, ["editor_import_collada.cpp", "editor_import_assimp.cpp"])
