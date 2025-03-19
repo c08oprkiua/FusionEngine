@@ -550,7 +550,7 @@ void convert_mesh(aiMesh *in_mesh, Ref<Mesh> out_mesh){
 
 	surf_tool->begin(Mesh::PRIMITIVE_TRIANGLES); //TODO: Some proper checking for this cause models can come in other formats
 
-	for (int i = 0; i < in_mesh->mNumVertices; i++){
+	for (uint32_t i = 0; i < in_mesh->mNumVertices; i++){
 		surf_tool->add_vertex(FE_VECTOR3(in_mesh->mVertices[i]));
 
 		if (in_mesh->HasNormals()){
@@ -598,7 +598,7 @@ Error EditorMeshImportPlugin::import_assimp(const String& p_path, const Ref<Reso
 	ERR_FAIL_COND_V(!scene->HasMeshes(), ERR_DOES_NOT_EXIST);
 
 	if (scene->HasTextures()){
-		for (int i = 0; i < scene->mNumTextures; i++){
+		for (uint32_t i = 0; i < scene->mNumTextures; i++){
 			Ref<ImageTexture> new_tex = memnew(ImageTexture);
 			aiTexture *imp_tex = scene->mTextures[i];
 
@@ -611,7 +611,7 @@ Error EditorMeshImportPlugin::import_assimp(const String& p_path, const Ref<Reso
 	if (scene->HasMaterials()){
 		materials.resize(scene->mNumMaterials);
 
-		for (int i = 0; i < scene->mNumMaterials; i++){
+		for (uint32_t i = 0; i < scene->mNumMaterials; i++){
 			Ref<Material> new_material = memnew(Material);
 			aiMaterial *imp_mat = scene->mMaterials[i];
 
@@ -623,7 +623,7 @@ Error EditorMeshImportPlugin::import_assimp(const String& p_path, const Ref<Reso
 
 	if (scene->HasMeshes()){
 
-		for (int i = 0; i < scene->mNumMeshes; i++){
+		for (uint32_t i = 0; i < scene->mNumMeshes; i++){
 			Ref<Mesh> new_mesh = memnew(Mesh);
 			aiMesh *imp_mesh = scene->mMeshes[i];
 
