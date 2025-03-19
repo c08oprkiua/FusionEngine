@@ -10,11 +10,13 @@
 #include "io/marshalls.h"
 #include "scene/resources/surface_tool.h"
 
-class _EditorMeshImportOptions : public Object {
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
+#include "assimp/scene.h"
 
+class _EditorMeshImportOptions : public Object {
 	OBJ_TYPE(_EditorMeshImportOptions,Object);
 public:
-
 
 	bool generate_tangents;
 	bool generate_normals;
@@ -25,9 +27,7 @@ public:
 	bool import_textures;
 	float weld_tolerance;
 
-
 	bool _set(const StringName& p_name, const Variant& p_value) {
-
 		String n = p_name;
 		if (n=="generate/tangents")
 			generate_tangents=p_value;
@@ -49,7 +49,6 @@ public:
 			return false;
 
 		return true;
-
 	}
 
 	bool _get(const StringName& p_name,Variant &r_ret) const{
@@ -75,8 +74,8 @@ public:
 			return false;
 
 		return true;
-
 	}
+
 	void _get_property_list( List<PropertyInfo> *p_list) const{
 
 		p_list->push_back(PropertyInfo(Variant::BOOL,"generate/tangents"));
@@ -90,20 +89,13 @@ public:
 		p_list->push_back(PropertyInfo(Variant::REAL,"force/weld_tolerance",PROPERTY_HINT_RANGE,"0.00001,16,0.00001"));
 		//p_list->push_back(PropertyInfo(Variant::BOOL,"compress/enable"));
 		//p_list->push_back(PropertyInfo(Variant::INT,"compress/bitrate",PROPERTY_HINT_ENUM,"64,96,128,192"));
-
-
 	}
 
-
 	static void _bind_methods() {
-
-
 		ADD_SIGNAL( MethodInfo("changed"));
 	}
 
-
 	_EditorMeshImportOptions() {
-
 		generate_tangents=true;
 		generate_normals=true;
 		flip_faces=false;
@@ -112,14 +104,10 @@ public:
 		weld_tolerance=0.0001;
 		import_material=false;
 		import_textures=false;
-
 	}
-
-
 };
 
 class EditorMeshImportDialog : public ConfirmationDialog {
-
 	OBJ_TYPE(EditorMeshImportDialog,ConfirmationDialog);
 
 	EditorMeshImportPlugin *plugin;
@@ -132,7 +120,6 @@ class EditorMeshImportDialog : public ConfirmationDialog {
 	PropertyEditor *option_editor;
 
 	_EditorMeshImportOptions *options;
-
 
 public:
 
@@ -154,27 +141,21 @@ public:
 				save_path->set_text(ipath.get_base_dir());
 		}*/
 		import_path->set_text(files);
-
 	}
-	void _choose_save_dir(const String& p_path) {
 
+	void _choose_save_dir(const String& p_path) {
 		save_path->set_text(p_path);
 	}
 
 	void _browse() {
-
 		file_select->popup_centered_ratio();
 	}
 
 	void _browse_target() {
-
 		save_select->popup_centered_ratio();
-
 	}
 
-
 	void popup_import(const String& p_path) {
-
 		popup_centered(Size2(400,400));
 		if (p_path!="") {
 
@@ -199,9 +180,7 @@ public:
 		}
 	}
 
-
 	void _import() {
-
 		Vector<String> meshes = import_path->get_text().split(",");
 
 		if (meshes.size()==0) {
@@ -238,22 +217,15 @@ public:
 		}
 
 		hide();
-
 	}
 
-
 	void _notification(int p_what) {
-
-
 		if (p_what==NOTIFICATION_ENTER_TREE) {
-
 			option_editor->edit(options);
 		}
 	}
 
 	static void _bind_methods() {
-
-
 		ObjectTypeDB::bind_method("_choose_files",&EditorMeshImportDialog::_choose_files);
 		ObjectTypeDB::bind_method("_choose_save_dir",&EditorMeshImportDialog::_choose_save_dir);
 		ObjectTypeDB::bind_method("_import",&EditorMeshImportDialog::_import);
@@ -263,9 +235,7 @@ public:
 	}
 
 	EditorMeshImportDialog(EditorMeshImportPlugin *p_plugin) {
-
 		plugin=p_plugin;
-
 
 		set_title("Single Mesh Import");
 
@@ -337,20 +307,22 @@ public:
 
 
 String EditorMeshImportPlugin::get_name() const {
-
 	return "mesh";
 }
-String EditorMeshImportPlugin::get_visible_name() const{
 
+String EditorMeshImportPlugin::get_visible_name() const{
 	return "3D Mesh";
 }
-void EditorMeshImportPlugin::import_dialog(const String& p_from){
 
+void EditorMeshImportPlugin::import_dialog(const String& p_from){
 	dialog->popup_import(p_from);
 }
+
 Error EditorMeshImportPlugin::import(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
+	return import_assimp(p_path, p_from);
+}
 
-
+Error EditorMeshImportPlugin::old_obj_import(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
 	ERR_FAIL_COND_V(p_from->get_source_count()!=1,ERR_INVALID_PARAMETER);
 
 	Ref<ResourceImportMetadata> from=p_from;
@@ -385,15 +357,16 @@ Error EditorMeshImportPlugin::import(const String& p_path, const Ref<ResourceImp
 	}
 
 	if (!mesh.is_valid())
-		mesh = Ref<Mesh>( memnew( Mesh ) );
+		mesh = Ref<Mesh>(memnew(Mesh));
 
 
-	bool generate_normals=from->get_option("generate/normals");
-	bool generate_tangents=from->get_option("generate/tangents");
-	bool flip_faces=from->get_option("force/flip_faces");
-	bool force_smooth=from->get_option("force/smooth_shading");
-	bool weld_vertices=from->get_option("force/weld_vertices");
-	float weld_tolerance=from->get_option("force/weld_tolerance");
+	generate_normals = from->get_option("generate/normals");
+	generate_tangents = from->get_option("generate/tangents");
+	flip_faces = from->get_option("force/flip_faces");
+	force_smooth = from->get_option("force/smooth_shading");
+	weld_vertices = from->get_option("force/weld_vertices");
+	weld_tolerance = from->get_option("force/weld_tolerance");
+
 	Vector<Vector3> vertices;
 	Vector<Vector3> normals;
 	Vector<Vector2> uvs;
@@ -406,8 +379,6 @@ Error EditorMeshImportPlugin::import(const String& p_path, const Ref<ResourceImp
 	int has_index_data=false;
 
 	while(true) {
-
-
 		String l = f->get_line().strip_edges();
 
 		if (l.begins_with("v ")) {
@@ -445,7 +416,6 @@ Error EditorMeshImportPlugin::import(const String& p_path, const Ref<ResourceImp
 			ERR_FAIL_COND_V(v.size()<4,ERR_INVALID_DATA);
 
 			//not very fast, could be sped up
-
 
 			Vector<String> face[3];
 			face[0] = v[1].split("/");
@@ -546,9 +516,140 @@ Error EditorMeshImportPlugin::import(const String& p_path, const Ref<ResourceImp
 	return err;
 }
 
+namespace AssimpToFE {
+
+#define FE_COLOR(in_color) Color(in_color.r, in_color.g, in_color.b, in_color.a)
+#define FE_VECTOR2(in_vector) Vector2(in_vector.x, in_vector.y)
+#define FE_VECTOR3(in_vector) Vector3(in_vector.x, in_vector.y, in_vector.z)
+
+void convert_texture(aiTexture *in_tex, Ref<Texture> out_tex){
+
+}
+
+void convert_material(aiMaterial *in_mat, Ref<FixedMaterial> out_mat){
+	out_mat->set_name(String(in_mat->GetName().C_Str()));
+
+	aiColor4D ai_color;
+
+	if (in_mat->Get(AI_MATKEY_COLOR_DIFFUSE, ai_color)){
+		out_mat->set_parameter(FixedMaterial::Parameter::PARAM_DIFFUSE, FE_COLOR(ai_color));
+	}
+	if (in_mat->Get(AI_MATKEY_COLOR_SPECULAR, ai_color)){
+		out_mat->set_parameter(FixedMaterial::Parameter::PARAM_SPECULAR, FE_COLOR(ai_color));
+	}
+	if (in_mat->Get(AI_MATKEY_COLOR_EMISSIVE, ai_color)){
+		out_mat->set_parameter(FixedMaterial::Parameter::PARAM_EMISSION, FE_COLOR(ai_color));
+	}
+}
+
+//this function may be a little slow due to a lack of variable caching, idk
+void convert_mesh(aiMesh *in_mesh, Ref<Mesh> out_mesh){
+	out_mesh->set_name(String(in_mesh->mName.C_Str()));
+
+	Ref<SurfaceTool> surf_tool = memnew(SurfaceTool);
+
+	surf_tool->begin(Mesh::PRIMITIVE_TRIANGLES); //TODO: Some proper checking for this cause models can come in other formats
+
+	for (int i = 0; i < in_mesh->mNumVertices; i++){
+		surf_tool->add_vertex(FE_VECTOR3(in_mesh->mVertices[i]));
+
+		if (in_mesh->HasNormals()){
+			surf_tool->add_normal(FE_VECTOR3(in_mesh->mNormals[i]));
+		}
+
+		if (in_mesh->HasTextureCoords(0)){
+			surf_tool->add_uv(FE_VECTOR2(in_mesh->mTextureCoords[0][i]));
+		}
+	}
+
+	out_mesh = surf_tool->commit(out_mesh);
+}
+
+}; //end namespace AssimpToFE
+
+Error EditorMeshImportPlugin::import_assimp(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
+	ERR_FAIL_COND_V(p_from->get_source_count() != 1, ERR_INVALID_PARAMETER);
+
+	Ref<ResourceImportMetadata> from=p_from;
+
+	uint32_t ai_flags = 0;
+	Assimp::Importer importer;
+
+	if (from->get_option("generate/tangents") or from->get_option("generate/normals")){
+		ai_flags |= aiProcess_RemoveComponent;
+	}
+
+	//TODO: More options, probably everything assimp itself supports
+
+	String src_path = EditorImportPlugin::expand_source_path(from->get_source_path(0));
+	FileAccessRef f = FileAccess::open(src_path,FileAccess::READ);
+	ERR_FAIL_COND_V(!f,ERR_CANT_OPEN);
+
+	Ref<Mesh> mesh;
+	Map<String,Ref<Material> > name_map;
+	Vector< Ref<Material> > materials;
+
+	const aiScene *scene = importer.ReadFile(p_path.ascii().ptr(), ai_flags);
+
+	ERR_EXPLAIN(String("Assimp failed to import the file: ") + importer.GetErrorString());
+	ERR_FAIL_COND_V(!scene, ERR_CANT_OPEN);
+
+	ERR_EXPLAIN("There aren't any meshes to import from the file!");
+	ERR_FAIL_COND_V(!scene->HasMeshes(), ERR_DOES_NOT_EXIST);
+
+	if (scene->HasTextures()){
+		for (int i = 0; i < scene->mNumTextures; i++){
+			Ref<ImageTexture> new_tex = memnew(ImageTexture);
+			aiTexture *imp_tex = scene->mTextures[i];
+
+			AssimpToFE::convert_texture(imp_tex, new_tex);
+
+			//TODO: Save texture
+		}
+	}
+
+	if (scene->HasMaterials()){
+		materials.resize(scene->mNumMaterials);
+
+		for (int i = 0; i < scene->mNumMaterials; i++){
+			Ref<Material> new_material = memnew(Material);
+			aiMaterial *imp_mat = scene->mMaterials[i];
+
+			AssimpToFE::convert_material(imp_mat, new_material);
+
+			materials.set(i, new_material);
+		}
+	}
+
+	if (scene->HasMeshes()){
+
+		for (int i = 0; i < scene->mNumMeshes; i++){
+			Ref<Mesh> new_mesh = memnew(Mesh);
+			aiMesh *imp_mesh = scene->mMeshes[i];
+
+			AssimpToFE::convert_mesh(imp_mesh, new_mesh);
+
+			//TODO: Save mesh
+		}
+	}
+
+	from->set_source_md5(0, FileAccess::get_md5(src_path));
+	from->set_editor(get_name());
+	mesh->set_import_metadata(from);
+
+	//re-apply materials if exist
+	for(int i = 0; i < mesh->get_surface_count(); i++) {
+		String n = mesh->surface_get_name(i);
+		if (name_map.has(n))
+			mesh->surface_set_material(i, name_map[n]);
+	}
+
+	Error err = ResourceSaver::save(p_path, mesh);
+
+	return err;
+}
 
 EditorMeshImportPlugin::EditorMeshImportPlugin(EditorNode* p_editor) {
-
 	dialog = memnew( EditorMeshImportDialog(this));
 	p_editor->get_gui_base()->add_child(dialog);
 }
