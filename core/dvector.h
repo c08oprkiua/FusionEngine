@@ -43,8 +43,7 @@ template<class T>
 class DVector {
 
 	mutable MID mem;
-		
-		
+
 	void copy_on_write() {
 		
 		if (!mem.is_valid())
@@ -52,10 +51,9 @@ class DVector {
 
 		if (dvector_lock)
 			dvector_lock->lock();
-					
+
 		MID_Lock lock( mem );
 		
-
 		if ( *(int*)lock.data()  == 1 ) {
 			// one reference, means no refcount changes
 			if (dvector_lock)
@@ -157,9 +155,7 @@ class DVector {
 			
 				t[i].~T();
 			}
-						
 		}
-			
 		
 		lock = MID_Lock();
 		

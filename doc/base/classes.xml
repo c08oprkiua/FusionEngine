@@ -442,7 +442,7 @@
 			<argument index="1" name="..." type="var">
 			</argument>
 			<description>
-			Convert one or more arguments to strings in the best way possible.
+			Convert one or more arguments to [String]s in the best way possible.
 			</description>
 		</method>
 		<method name="str"  >
@@ -453,7 +453,7 @@
 			<argument index="1" name="..." type="var">
 			</argument>
 			<description>
-			Convert one or more arguments to strings in the best way possible.
+			Convert one or more arguments to [String]s in the best way possible.
 			</description>
 		</method>
 		<method name="print"  >
@@ -475,6 +475,7 @@
 			<argument index="1" name="..." type="var">
 			</argument>
 			<description>
+			Print one or more arguments to strings in the best way possible to a console line, adding "\t" (tab) for spacing between arguments.
 			</description>
 		</method>
 		<method name="printerr"  >
@@ -5920,7 +5921,7 @@
 			<argument index="4" name="clip_w" type="int" default="-1">
 			</argument>
 			<description>
-			Draw a string using a custom font.
+			Draw a [String] using a custom font.
 			</description>
 		</method>
 		<method name="draw_char"  >
@@ -6706,7 +6707,7 @@
 			<argument index="0" name="with_alpha" type="bool" default="True">
 			</argument>
 			<description>
-			Return the HTML hexadecimal color string.
+			Return the HTML hexadecimal color [String].
 			</description>
 		</method>
 		<method name="Color"  >
@@ -25891,7 +25892,6 @@
 	<constants>
 	</constants>
 </class>
-<class name="Shape" inherits="Resource" category="Core">
 <class name="Shape3D" inherits="Resource" category="Core">
 	<brief_description>
 	</brief_description>
@@ -27891,44 +27891,49 @@
 			<return type="bool">
 			</return>
 			<description>
-			If the string is a path to a file or directory, return true if the path is absolute.
+			If the [String] is a path to a file or directory, return true if the path is absolute.
 			</description>
 		</method>
 		<method name="is_rel_path"  >
 			<return type="bool">
 			</return>
 			<description>
-			If the string is a path to a file or directory, return true if the path is relative.
+			If the [String] is a path to a file or directory, return true if the path is relative.
 			</description>
 		</method>
 		<method name="is_valid_float"  >
 			<return type="bool">
 			</return>
 			<description>
+			Returns true if this [String] is a valid floating point value.
 			</description>
 		</method>
 		<method name="is_valid_html_color"  >
 			<return type="bool">
 			</return>
 			<description>
+			Returns true if this [String] is a valid HTML color. It can start with #, and can be either 6 (no alpha) or 8 (with alpha) characters long after that.
 			</description>
 		</method>
 		<method name="is_valid_identifier"  >
 			<return type="bool">
 			</return>
 			<description>
+			Returns true if this [String] is a valid identifier. This means it only uses the characters a-z, A-Z, 0-9, and "_".
 			</description>
 		</method>
 		<method name="is_valid_integer"  >
 			<return type="bool">
 			</return>
 			<description>
+			Returns true if this [String] is a valid base 10 integer. It can also begin with a + or - and still be a valid integer.
 			</description>
 		</method>
 		<method name="is_valid_ip_address"  >
 			<return type="bool">
 			</return>
 			<description>
+			Returns if this [String] is a valid IPv4 address.
 			</description>
 		</method>
 		<method name="left"  >
@@ -27937,14 +27942,14 @@
 			<argument index="0" name="pos" type="int">
 			</argument>
 			<description>
-			Return an amount of characters from the left of the string.
+			Return an amount of characters from the left of the [String].
 			</description>
 		</method>
 		<method name="length"  >
 			<return type="int">
 			</return>
 			<description>
-			Return the length of the string in characters.
+			Return the length of the [String] in characters.
 			</description>
 		</method>
 		<method name="match"  >
@@ -27983,7 +27988,7 @@
 			<argument index="0" name="to" type="String">
 			</argument>
 			<description>
-			Perform a case-insensitive comparison to antoher string, return -1 if less, 0 if equal and +1 if greater.
+			Perform a case-insensitive comparison to antoher [String], return -1 if less, 0 if equal and +1 if greater.
 			</description>
 		</method>
 		<method name="ord_at"  >
@@ -28028,6 +28033,7 @@
 			<argument index="0" name="file" type="String">
 			</argument>
 			<description>
+			Appends file to the end of this [String], adding the neccessary forward slash (/) to create a valid file/folder path.
 			</description>
 		</method>
 		<method name="replace"  >
@@ -28038,7 +28044,7 @@
 			<argument index="1" name="forwhat" type="String">
 			</argument>
 			<description>
-			Replace occurrences of a substring for different ones inside the string.
+			Replace occurrences of a substring for different ones inside the [String].
 			</description>
 		</method>
 		<method name="replacen"  >
@@ -28049,7 +28055,7 @@
 			<argument index="1" name="forwhat" type="String">
 			</argument>
 			<description>
-			Replace occurrences of a substring for different ones inside the string, but search case-insensitive.
+			Replace occurrences of a substring for different ones inside the [String], but search case-insensitive.
 			</description>
 		</method>
 		<method name="rfind"  >
@@ -28060,7 +28066,7 @@
 			<argument index="1" name="from" type="int" default="-1">
 			</argument>
 			<description>
-			Perform a search for a substring, but start from the end of the string instead of the begining.
+			Perform a search for a substring, but start from the end of the [String] instead of the begining.
 			</description>
 		</method>
 		<method name="rfindn"  >
@@ -28071,7 +28077,7 @@
 			<argument index="1" name="from" type="int" default="-1">
 			</argument>
 			<description>
-			Perform a search for a substring, but start from the end of the string instead of the begining. Also search case-insensitive.
+			Perform a search for a substring, but start from the end of the [String] instead of the begining. Also search case-insensitive.
 			</description>
 		</method>
 		<method name="right"  >
@@ -28080,7 +28086,7 @@
 			<argument index="0" name="pos" type="int">
 			</argument>
 			<description>
-			Return the right side of the string from a given position.
+			Return the right side of the [String] from a given position.
 			</description>
 		</method>
 		<method name="split"  >
@@ -28091,7 +28097,7 @@
 			<argument index="1" name="allow_empty" type="bool" default="True">
 			</argument>
 			<description>
-			Split the string by a divisor string, return an array of the substrings. Example "One,Two,Three" will return ["One","Two","Three"] if split by ",".
+			Split the [String] by a divisor [String], return an array of the substrings. Example "One,Two,Three" will return ["One","Two","Three"] if split by ",".
 			</description>
 		</method>
 		<method name="split_floats"  >
@@ -28102,14 +28108,14 @@
 			<argument index="1" name="allow_empty" type="bool" default="True">
 			</argument>
 			<description>
-			Split the string in floats by using a divisor string, return an array of the substrings. Example "1,2.5,3" will return [1,2.5,3] if split by ",".
+			Splits the [String] in floats by using a divisor [String], return an array of the substrings. For example, "1,2.5,3" will return [1,2.5,3] if split by ",".
 			</description>
 		</method>
 		<method name="strip_edges"  >
 			<return type="String">
 			</return>
 			<description>
-			Return a copy of the string stripped of any non-printable character at the begining and the end.
+			Return a copy of this [String] stripped of any non-printable character at the begining and the end.
 			</description>
 		</method>
 		<method name="substr"  >
@@ -28120,6 +28126,7 @@
 			<argument index="1" name="len" type="int">
 			</argument>
 			<description>
+			Extract a substring out of this [String], starting at from and cutting out len amount of characters.
 			</description>
 		</method>
 		<method name="to_float"  >
@@ -28138,28 +28145,28 @@
 			<return type="String">
 			</return>
 			<description>
-			Return the string converted to lowercase.
+			Return the [String] converted to lowercase.
 			</description>
 		</method>
 		<method name="to_upper"  >
 			<return type="String">
 			</return>
 			<description>
-			Return the string converted to uppercase.
+			Return the [String] converted to uppercase.
 			</description>
 		</method>
 		<method name="xml_escape"  >
 			<return type="String">
 			</return>
 			<description>
-			Perform XML escaping on the string.
+			Perform XML escaping on the [String].
 			</description>
 		</method>
 		<method name="xml_unescape"  >
 			<return type="String">
 			</return>
 			<description>
-			Perform XML un-escaping of the string.
+			Perform XML un-escaping of the [String].
 			</description>
 		</method>
 	</methods>
@@ -28168,10 +28175,10 @@
 </class>
 <class name="PackedStringArray" category="Built-In Types">
 	<brief_description>
-	String Array .
+	[String] Array.
 	</brief_description>
 	<description>
-	String Array. Array of strings. Can only contain strings. Optimized for memory usage, cant fragment the memory.
+	An array of exclusively [String]s. Optimized for memory usage, it won't fragment the data in memory.
 	</description>
 	<methods>
 		<method name="get"  >
@@ -28180,12 +28187,14 @@
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
+				Get the [String] stored at idx.
 			</description>
 		</method>
 		<method name="push_back"  >
 			<argument index="0" name="string" type="String">
 			</argument>
 			<description>
+			Add a [String] to the end of this [PackedStringArray].
 			</description>
 		</method>
 		<method name="resize"  >
@@ -28200,12 +28209,14 @@
 			<argument index="1" name="string" type="String">
 			</argument>
 			<description>
+			Set the value at [idx] to [string].
 			</description>
 		</method>
 		<method name="size"  >
 			<return type="int">
 			</return>
 			<description>
+			Returns the size of this [PackedStringArray].
 			</description>
 		</method>
 		<method name="PackedStringArray"  >
@@ -30459,7 +30470,7 @@
 	3D Transformation.
 	</brief_description>
 	<description>
-	Transform3D is used to store transformations, including translations. It consists of a Basis "basis" and Vector3 "origin". Transform3D is used to represent transformations of any object in space. It is similar to a 4x3 matrix.
+	[Transform3D] is used to store transformations, including translations. It consists of a [Basis] "basis" and [Vector3] "origin". [Transform3D] is used to represent transformations of any object in space. It is similar to a 4x3 matrix.
 	</description>
 	<methods>
 		<method name="affine_inverse"  >
@@ -30588,7 +30599,7 @@
 	Language Translation.
 	</brief_description>
 	<description>
-	Translations are resources that can be loaded/unloaded on demand. They map a string to another string.
+	Translations are resources that can be loaded/unloaded on demand. They map a [String] to another [String].
 	</description>
 	<methods>
 		<method name="set_locale"  >
