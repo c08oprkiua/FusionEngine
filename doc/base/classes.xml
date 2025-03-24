@@ -574,39 +574,39 @@
 	<methods>
 	</methods>
 	<members>
-		<member name="Performance" type="Performance">
+		<member name="Performance" type="Performance"> The [Performance] singleton.
 		</member>
-		<member name="Globals" type="Globals">
+		<member name="Globals" type="Globals"> The [Globals] singleton.
 		</member>
-		<member name="IP" type="IP">
+		<member name="IP" type="IP"> The [IP] singleton.
 		</member>
-		<member name="Geometry" type="Geometry">
+		<member name="Geometry" type="Geometry"> The [Geometry] singleton.
 		</member>
-		<member name="ResourceLoader" type="ResourceLoader">
+		<member name="ResourceLoader" type="ResourceLoader"> The [ResourceLoader] singleton.
 		</member>
-		<member name="ResourceSaver" type="ResourceSaver">
+		<member name="ResourceSaver" type="ResourceSaver"> The [ResourceSaver] singleton.
 		</member>
-		<member name="PathRemap" type="PathRemap">
+		<member name="PathRemap" type="PathRemap"> The [PathRemap] singleton.
 		</member>
-		<member name="OS" type="OS">
+		<member name="OS" type="OS"> The [OS] singleton.
 		</member>
-		<member name="Marshalls" type="RefCounted">
+		<member name="Marshalls" type="RefCounted"> The [Marshalls] singleton.
 		</member>
-		<member name="TranslationServer" type="TranslationServer">
+		<member name="TranslationServer" type="TranslationServer"> The [TranslationServer] singleton.
 		</member>
-		<member name="TS" type="TranslationServer">
+		<member name="TS" type="TranslationServer"> Shorthand for the [TranslationServer] singleton.
 		</member>
-		<member name="Input" type="Input">
+		<member name="Input" type="Input"> The [Input] singleton.
 		</member>
-		<member name="InputMap" type="InputMap">
+		<member name="InputMap" type="InputMap"> The [InputMap] singleton.
 		</member>
-		<member name="VisualServer" type="VisualServer">
+		<member name="VisualServer" type="VisualServer"> The [VisualServer] singleton.
 		</member>
-		<member name="VS" type="VisualServer">
+		<member name="VS" type="VisualServer"> Shorthand for the [VisualServer] singleton.
 		</member>
-		<member name="AudioServer" type="AudioServer">
+		<member name="AudioServer" type="AudioServer">  The [AudioServer] singleton.
 		</member>
-		<member name="AS" type="AudioServer">
+		<member name="AS" type="AudioServer"> Shorthand for the [AudioServer] singleton.
 		</member>
 		<member name="PhysicsServer" type="PhysicsServer">
 		</member>
@@ -666,27 +666,34 @@
 			Scancodes with this bit applied are non printable.
 		</constant>
 		<constant name="KEY_ESCAPE" value="16777217">
-			Escape Key
+			Escape Key.
 		</constant>
 		<constant name="KEY_TAB" value="16777218">
-			Tab Key
+			Tab Key.
 		</constant>
 		<constant name="KEY_BACKTAB" value="16777219">
-			Shift-Tab key
+			Shift-Tab key.
 		</constant>
 		<constant name="KEY_BACKSPACE" value="16777220">
+			Backspace key.
 		</constant>
 		<constant name="KEY_RETURN" value="16777221">
+			Return key.
 		</constant>
 		<constant name="KEY_ENTER" value="16777222">
+			Enter key.
 		</constant>
 		<constant name="KEY_INSERT" value="16777223">
+			Insert key.
 		</constant>
 		<constant name="KEY_DELETE" value="16777224">
+			Delete key.
 		</constant>
 		<constant name="KEY_PAUSE" value="16777225">
+			Pause key.
 		</constant>
 		<constant name="KEY_PRINT" value="16777226">
+			Print key.
 		</constant>
 		<constant name="KEY_SYSREQ" value="16777227">
 		</constant>
@@ -1538,20 +1545,28 @@
 			Variable is fo type [Array].
 		</constant>
 		<constant name="TYPE_RAW_ARRAY" value="22">
+			Variable is fo type [PackedByteArray].
 		</constant>
 		<constant name="TYPE_INT_ARRAY" value="23">
+			Variable is fo type [PackedIntArray].
 		</constant>
 		<constant name="TYPE_REAL_ARRAY" value="24">
+			Variable is fo type [PackedFloatArray].
 		</constant>
 		<constant name="TYPE_STRING_ARRAY" value="25">
+			Variable is fo type [PackedStringArray].
 		</constant>
 		<constant name="TYPE_VECTOR2_ARRAY" value="26">
+			Variable is fo type [PackedVector2Array].
 		</constant>
 		<constant name="TYPE_VECTOR3_ARRAY" value="27">
+			Variable is fo type [PackedVector3Array].
 		</constant>
 		<constant name="TYPE_COLOR_ARRAY" value="28">
+			Variable is fo type [PackedColorArray].
 		</constant>
 		<constant name="TYPE_MAX" value="29">
+			The amount of types in the engine.
 		</constant>
 	</constants>
 </class>
@@ -1562,7 +1577,7 @@
 	<description>
 	AABB provides an 3D Axis-Aligned Bounding Box. It consists of a
 	position and a size, and several utility functions. It is typically
-	used for simple (fast) overlap tests.
+	used for simple (fast) overlap tests. For a 2D equivalent, see [Rect2].
 	</description>
 	<methods>
 		<method name="encloses"  >
@@ -1589,7 +1604,7 @@
 			<return type="float">
 			</return>
 			<description>
-			Get the area inside the [AABB]
+			Get the area inside the [AABB].
 			</description>
 		</method>
 		<method name="get_endpoint"  >
@@ -1605,7 +1620,7 @@
 			<return type="Vector3">
 			</return>
 			<description>
-			Return the normalized longest axis of the [AABB]
+			Return the normalized longest axis of the [AABB].
 			</description>
 		</method>
 		<method name="get_longest_axis_index"  >
@@ -1628,7 +1643,7 @@
 			<return type="Vector3">
 			</return>
 			<description>
-			Return the normalized shortest axis of the [AABB]
+			Return the normalized shortest axis of the [AABB].
 			</description>
 		</method>
 		<method name="get_shortest_axis_index"  >
@@ -1663,7 +1678,7 @@
 			<argument index="0" name="by" type="float">
 			</argument>
 			<description>
-			Return a copy of the AABB grown a given a mount of
+			Return a copy of the [AABB] grown a given a mount of
 			units towards all the sides.
 			</description>
 		</method>
@@ -1715,7 +1730,7 @@
 			<argument index="0" name="plane" type="Plane">
 			</argument>
 			<description>
-			Return true if the AABB is at both sides of a plane.
+			Return true if the [AABB] is at both sides of a plane.
 			</description>
 		</method>
 		<method name="intersects_segment"  >
@@ -1726,6 +1741,7 @@
 			<argument index="1" name="to" type="Vector3">
 			</argument>
 			<description>
+			Returns true if the [AABB] intersects the area between from and to.
 			</description>
 		</method>
 		<method name="merge"  >
@@ -1749,11 +1765,11 @@
 		</method>
 	</methods>
 	<members>
-		<member name="pos" type="Vector3">
+		<member name="pos" type="Vector3"> The position of the [AABB].
 		</member>
-		<member name="size" type="Vector3">
+		<member name="size" type="Vector3"> The size of the [AABB].
 		</member>
-		<member name="end" type="Vector3">
+		<member name="end" type="Vector3"> The endpoint of the [AABB], which is the position + size.
 		</member>
 	</members>
 	<constants>
@@ -3485,6 +3501,7 @@
 			<argument index="0" name="value" type="var">
 			</argument>
 			<description>
+			Append an element at the end of the array (alias of [method push_back]).
 			</description>
 		</method>
 		<method name="clear"  >
@@ -3503,6 +3520,7 @@
 			<argument index="0" name="value" type="var">
 			</argument>
 			<description>
+			Remove the first occurrence of a value from the array.
 			</description>
 		</method>
 		<method name="find"  >
@@ -3511,6 +3529,7 @@
 			<argument index="0" name="value" type="var">
 			</argument>
 			<description>
+			Searches the array for a value and returns its index or -1 if not found. Optionally, the initial search index can be passed.
 			</description>
 		</method>
 		<method name="hash"  >
@@ -3531,6 +3550,7 @@
 		</method>
 		<method name="invert"  >
 			<description>
+			Reverse the order of the elements in the array (so first element will now be the last).
 			</description>
 		</method>
 		<method name="push_back"  >
@@ -3563,6 +3583,7 @@
 		</method>
 		<method name="sort"  >
 			<description>
+			Sort the array using natural order.
 			</description>
 		</method>
 		<method name="sort_custom"  >
@@ -3571,6 +3592,7 @@
 			<argument index="1" name="func" type="String">
 			</argument>
 			<description>
+			Sort the array using a custom method. The arguments are an [Object] that holds the method and the name of such method. The custom method receives two arguments (a pair of elements from the array) and must return true if the first argument is less than the second, and return false otherwise.
 			</description>
 		</method>
 		<method name="Array"  >
@@ -3584,42 +3606,42 @@
 			<argument index="0" name="from" type="PackedIntArray">
 			</argument>
 			<description>
-			Construct an array from a [PackedByteArray].
+			Construct an array from a [PackedIntArray].
 			</description>
 		</method>
 		<method name="Array"  >
 			<argument index="0" name="from" type="PackedFloatArray">
 			</argument>
 			<description>
-			Construct an array from a [PackedByteArray].
+			Construct an array from a [PackedFloatArray].
 			</description>
 		</method>
 		<method name="Array"  >
 			<argument index="0" name="from" type="PackedStringArray">
 			</argument>
 			<description>
-			Construct an array from a [PackedByteArray].
+			Construct an array from a [PackedStringArray].
 			</description>
 		</method>
 		<method name="Array"  >
 			<argument index="0" name="from" type="PackedVector2Array">
 			</argument>
 			<description>
-			Construct an array from a [PackedByteArray].
+			Construct an array from a [PackedVector2Array].
 			</description>
 		</method>
 		<method name="Array"  >
 			<argument index="0" name="from" type="PackedVector3Array">
 			</argument>
 			<description>
-			Construct an array from a [PackedByteArray].
+			Construct an array from a [PackedVector3Array].
 			</description>
 		</method>
 		<method name="Array"  >
 			<argument index="0" name="from" type="PackedColorArray">
 			</argument>
 			<description>
-			Construct an array from a [PackedByteArray].
+			Construct an array from a [PackedColorArray].
 			</description>
 		</method>
 	</methods>
@@ -3628,32 +3650,38 @@
 </class>
 <class name="AtlasTexture" inherits="Texture" category="Core">
 	<brief_description>
+	A [Texture] that is drawn as a sub-section of a larger [Texture].
 	</brief_description>
 	<description>
+	At [Texture] that is drawn as a sub-section of a larger [Texture] used as an atlas. This is useful for using things like spritesheets, which in turn can reduce memory fragmentation and thus decrease RAM usage.
 	</description>
 	<methods>
 		<method name="set_atlas"  >
 			<argument index="0" name="atlas" type="Texture">
 			</argument>
 			<description>
+			Set the [Texture] to use as an atlas.
 			</description>
 		</method>
 		<method name="get_atlas" qualifiers="const" >
 			<return type="Texture">
 			</return>
 			<description>
+			Get the [Texture] being used as an atlas.
 			</description>
 		</method>
 		<method name="set_region"  >
 			<argument index="0" name="region" type="Rect2">
 			</argument>
 			<description>
+			Set the sub-area of the atlas for the [AtlasTexture] to render.
 			</description>
 		</method>
 		<method name="get_region" qualifiers="const" >
 			<return type="Rect2">
 			</return>
 			<description>
+				Get the sub-area being rendered of the atlas by this [AtlasTexture].
 			</description>
 		</method>
 		<method name="set_margin"  >
@@ -3690,7 +3718,7 @@
 			<argument index="2" name="length" type="int">
 			</argument>
 			<description>
-			Create an audio sample, return a [RID] referencing"#10;"#9;"#9;"#9;it. The sample will be created with a given format"#10;"#9;"#9;"#9;(from the SAMPLE_FORMAT_* enum), a total length (in"#10;"#9;"#9;"#9;frames, not samples or bytes), in either stereo or"#10;"#9;"#9;"#9;mono.
+			Create an audio sample, return a [RID] referencing it. The sample will be created with a given format (from the SAMPLE_FORMAT_* enum), a total length (in frames, not samples or bytes), in either stereo or mono.
 			</description>
 		</method>
 		<method name="sample_set_description"  >
@@ -3699,7 +3727,7 @@
 			<argument index="1" name="description" type="String">
 			</argument>
 			<description>
-			Set the description of an audio sample. Mainly used"#10;"#9;"#9;"#9;for organization.
+			Set the description of an audio sample. Mainly used for organization.
 			</description>
 		</method>
 		<method name="sample_get_description" qualifiers="const" >
@@ -3710,7 +3738,7 @@
 			<argument index="1" name="arg1" type="String">
 			</argument>
 			<description>
-			Return the description of an audio sample. Mainly"#10;"#9;"#9;"#9;used for organization.
+			Return the description of an audio sample. Mainly used for organization.
 			</description>
 		</method>
 		<method name="sample_get_format" qualifiers="const" >
@@ -3719,7 +3747,7 @@
 			<argument index="0" name="sample" type="RID">
 			</argument>
 			<description>
-			Return the format of the audio sample, in the form"#10;"#9;"#9;"#9;of the SAMPLE_FORMAT_* enum.
+			Return the format of the audio sample, in the form of the SAMPLE_FORMAT_* enum.
 			</description>
 		</method>
 		<method name="sample_is_stereo" qualifiers="const" >
@@ -3737,7 +3765,7 @@
 			<argument index="0" name="sample" type="RID">
 			</argument>
 			<description>
-			Return the length in frames of the audio sample (not"#10;"#9;"#9;"#9;samples or bytes).
+			Return the length in frames of the audio sample (not samples or bytes).
 			</description>
 		</method>
 		<method name="sample_set_signed_data"  >
@@ -3746,7 +3774,7 @@
 			<argument index="1" name="data" type="PackedFloatArray">
 			</argument>
 			<description>
-			Set the sample data for a given sample as an array"#10;"#9;"#9;"#9;of floats. The length must be equal to the sample"#10;"#9;"#9;"#9;lenght or an error will be produced.
+			Set the sample data for a given sample as an array of floats. The length must be equal to the sample lenght or an error will be produced.
 			</description>
 		</method>
 		<method name="sample_set_data"  >
@@ -3755,7 +3783,7 @@
 			<argument index="1" name="arg1" type="PackedByteArray">
 			</argument>
 			<description>
-			Set the sample data for a given sample as an array"#10;"#9;"#9;"#9;of bytes. The length must be equal to the sample"#10;"#9;"#9;"#9;lenght expected in bytes or an error will be produced.
+			Set the sample data for a given sample as an array of bytes. The length must be equal to the sample length expected in bytes or an error will be produced.
 			</description>
 		</method>
 		<method name="sample_get_data" qualifiers="const" >
@@ -3764,7 +3792,7 @@
 			<argument index="0" name="sample" type="RID">
 			</argument>
 			<description>
-			Return the sample data as an array of bytes. The"#10;"#9;"#9;"#9;length will be the expected length in bytes.
+			Return the sample data as an array of bytes. The length will be the expected length in bytes.
 			</description>
 		</method>
 		<method name="sample_set_mix_rate"  >
@@ -3791,7 +3819,7 @@
 			<argument index="1" name="loop_format" type="int">
 			</argument>
 			<description>
-			Set the loop format for a sample from the"#10;"#9;"#9;"#9;SAMPLE_LOOP_* enum. As a warning, Ping Pong loops"#10;"#9;"#9;"#9;may not be available on some hardware-mixing"#10;"#9;"#9;"#9;platforms.
+			Set the loop format for a sample from the SAMPLE_LOOP_* enum. As a warning, Ping Pong loops may not be available on some hardware-mixing platforms.
 			</description>
 		</method>
 		<method name="sample_get_loop_format" qualifiers="const" >
@@ -3800,7 +3828,7 @@
 			<argument index="0" name="sample" type="RID">
 			</argument>
 			<description>
-			Return the loop format for a sample, as a value from"#10;"#9;"#9;"#9;the SAMPLE_LOOP_* enum.
+			Return the loop format for a sample, as a value from the SAMPLE_LOOP_* enum.
 			</description>
 		</method>
 		<method name="sample_set_loop_begin"  >
@@ -3809,7 +3837,7 @@
 			<argument index="1" name="pos" type="int">
 			</argument>
 			<description>
-			Set the initial loop point of a sample. Only has"#10;"#9;"#9;"#9;effect if sample loop is enabled. See [method sample_set_loop_format].
+			Set the initial loop point of a sample. Only has effect if sample loop is enabled. See [method sample_set_loop_format].
 			</description>
 		</method>
 		<method name="sample_get_loop_begin" qualifiers="const" >
@@ -3818,7 +3846,7 @@
 			<argument index="0" name="sample" type="RID">
 			</argument>
 			<description>
-			Return the initial loop point of a sample. Only has"#10;"#9;"#9;"#9;effect if sample loop is enabled. See [method sample_set_loop_format].
+			Return the initial loop point of a sample. Only has effect if sample loop is enabled. See [method sample_set_loop_format].
 			</description>
 		</method>
 		<method name="sample_set_loop_end"  >
@@ -3827,7 +3855,7 @@
 			<argument index="1" name="pos" type="int">
 			</argument>
 			<description>
-			Set the final loop point of a sample. Only has"#10;"#9;"#9;"#9;effect if sample loop is enabled. See [method sample_set_loop_format].
+			Set the final loop point of a sample. Only has effect if sample loop is enabled. See [method sample_set_loop_format].
 			</description>
 		</method>
 		<method name="sample_get_loop_end" qualifiers="const" >
@@ -3836,14 +3864,14 @@
 			<argument index="0" name="sample" type="RID">
 			</argument>
 			<description>
-			Return the final loop point of a sample. Only has"#10;"#9;"#9;"#9;effect if sample loop is enabled. See [method sample_set_loop_format].
+			Return the final loop point of a sample. Only has effect if sample loop is enabled. See [method sample_set_loop_format].
 			</description>
 		</method>
 		<method name="voice_create"  >
 			<return type="RID">
 			</return>
 			<description>
-			Allocate a voice for playback. Voices are"#10;"#9;"#9;"#9;persistent. A voice can play a single sample at the"#10;"#9;"#9;"#9;same time. See [method sample_create].
+			Allocate a voice for playback. Voices are persistent. A voice can play a single sample at the same time. See [method sample_create].
 			</description>
 		</method>
 		<method name="voice_play"  >
@@ -3852,7 +3880,7 @@
 			<argument index="1" name="sample" type="RID">
 			</argument>
 			<description>
-			Start playback of a given voice using a given"#10;"#9;"#9;"#9;sample. If the voice was already playing it will be"#10;"#9;"#9;"#9;restarted.
+			Start playback of a given voice using a given sample. If the voice was already playing it will be restarted.
 			</description>
 		</method>
 		<method name="voice_set_volume"  >
@@ -3861,7 +3889,7 @@
 			<argument index="1" name="volume" type="float">
 			</argument>
 			<description>
-			Change the volume of a currently playing voice."#10;"#9;"#9;"#9;Volume is expressed as linear gain where 0.0 is mute"#10;"#9;"#9;"#9;and 1.0 is default.
+			Change the volume of a currently playing voice. Volume is expressed as linear gain where 0.0 is mute and 1.0 is default.
 			</description>
 		</method>
 		<method name="voice_set_pan"  >
@@ -3874,7 +3902,7 @@
 			<argument index="3" name="height" type="float" default="0">
 			</argument>
 			<description>
-			Change the pan of a currently playing voice and,"#10;"#9;"#9;"#9;optionally, the depth and height for a positional/3D"#10;"#9;"#9;"#9;sound. Panning values are expressed within the -1 to"#10;"#9;"#9;"#9;+1 range.
+			Change the pan of a currently playing voice and, optionally, the depth and height for a positional/3D sound. Panning values are expressed within the -1 to +1 range.
 			</description>
 		</method>
 		<method name="voice_set_filter"  >
@@ -3889,7 +3917,7 @@
 			<argument index="4" name="gain" type="float" default="0">
 			</argument>
 			<description>
-			Set a resonant filter post processing for the voice."#10;"#9;"#9;"#9;Filter type is a value from the FILTER_* enum.
+			Set a resonant filter post processing for the voice. Filter type is a value from the FILTER_* enum.
 			</description>
 		</method>
 		<method name="voice_set_chorus"  >
@@ -3898,7 +3926,7 @@
 			<argument index="1" name="chorus" type="float">
 			</argument>
 			<description>
-			Set chorus send post processing for the voice (from"#10;"#9;"#9;"#9;0 to 1).
+			Set chorus send post processing for the voice (from 0 to 1).
 			</description>
 		</method>
 		<method name="voice_set_reverb"  >
@@ -3909,7 +3937,7 @@
 			<argument index="2" name="reverb" type="float">
 			</argument>
 			<description>
-			Set the reverb send post processing for the voice (from"#10;"#9;"#9;"#9;0 to 1) and the reverb type, from the REVERB_* enum.
+			Set the reverb send post processing for the voice (from 0 to 1) and the reverb type, from the REVERB_* enum.
 			</description>
 		</method>
 		<method name="voice_set_mix_rate"  >
@@ -3918,7 +3946,7 @@
 			<argument index="1" name="rate" type="int">
 			</argument>
 			<description>
-			Set a different playback mix rate for the given"#10;"#9;"#9;"#9;voice.
+			Set a different playback mix rate for the given voice.
 			</description>
 		</method>
 		<method name="voice_set_positional"  >
@@ -3927,7 +3955,7 @@
 			<argument index="1" name="enabled" type="bool">
 			</argument>
 			<description>
-			Set wether a given voice is positional. This is only"#10;"#9;"#9;"#9;interpreted as a hint and used for backends that may"#10;"#9;"#9;"#9;support binaural encoding.
+			Set wether a given voice is positional. This is only interpreted as a hint and used for backends that may support binaural encoding.
 			</description>
 		</method>
 		<method name="voice_get_volume" qualifiers="const" >
@@ -3945,7 +3973,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current pan for a given voice (-1 to +1"#10;"#9;"#9;"#9;range).
+			Return the current pan for a given voice (-1 to +1 range).
 			</description>
 		</method>
 		<method name="voice_get_pan_height" qualifiers="const" >
@@ -3954,7 +3982,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current pan height for a given voice (-1 to +1"#10;"#9;"#9;"#9;range).
+			Return the current pan height for a given voice (-1 to +1 range).
 			</description>
 		</method>
 		<method name="voice_get_pan_depth" qualifiers="const" >
@@ -3963,7 +3991,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current pan depth for a given voice (-1 to +1"#10;"#9;"#9;"#9;range).
+			Return the current pan depth for a given voice (-1 to +1 range).
 			</description>
 		</method>
 		<method name="voice_get_filter_type" qualifiers="const" >
@@ -3972,7 +4000,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current selected filter type for a given"#10;"#9;"#9;"#9;voice, from the FILTER_* enum.
+			Return the current selected filter type for a given voice, from the FILTER_* enum.
 			</description>
 		</method>
 		<method name="voice_get_filter_cutoff" qualifiers="const" >
@@ -3981,7 +4009,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current filter cutoff (in hz) for a given"#10;"#9;"#9;"#9;voice.
+			Return the current filter cutoff (in hz) for a given voice.
 			</description>
 		</method>
 		<method name="voice_get_filter_resonance" qualifiers="const" >
@@ -3990,7 +4018,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current filter resonance for a given"#10;"#9;"#9;"#9;voice.
+			Return the current filter resonance for a given voice.
 			</description>
 		</method>
 		<method name="voice_get_chorus" qualifiers="const" >
@@ -3999,7 +4027,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current chorus send for a given"#10;"#9;"#9;"#9;voice (0 to 1).
+			Return the current chorus send for a given voice (0 to 1).
 			</description>
 		</method>
 		<method name="voice_get_reverb_type" qualifiers="const" >
@@ -4008,7 +4036,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current reverb type for a given voice"#10;"#9;"#9;"#9;from the REVERB_* enum.
+			Return the current reverb type for a given voice from the REVERB_* enum.
 			</description>
 		</method>
 		<method name="voice_get_reverb" qualifiers="const" >
@@ -4017,7 +4045,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return the current reverb send for a given voice"#10;"#9;"#9;"#9;(0 to 1).
+			Return the current reverb send for a given voice (0 to 1).
 			</description>
 		</method>
 		<method name="voice_get_mix_rate" qualifiers="const" >
@@ -4035,7 +4063,7 @@
 			<argument index="0" name="voice" type="RID">
 			</argument>
 			<description>
-			Return wether the current voice is positional. See"#10;"#9;"#9;"#9;[method voice_set_positional].
+			Return wether the current voice is positional. See [method voice_set_positional].
 			</description>
 		</method>
 		<method name="voice_stop"  >
@@ -4181,7 +4209,7 @@
 			<argument index="0" name="enabled" type="bool">
 			</argument>
 			<description>
-			Set the loop hint for the audio stream playback. if"#10;"#9;"#9;"#9;true, audio stream will attempt to loop (restart)"#10;"#9;"#9;"#9;when finished.
+			Set the loop hint for the audio stream playback. if true, audio stream will attempt to loop (restart) when finished.
 			</description>
 		</method>
 		<method name="has_loop" qualifiers="const" >
@@ -4195,28 +4223,28 @@
 			<return type="String">
 			</return>
 			<description>
-			Return the name of the audio stream. Often the song"#10;"#9;"#9;"#9;title when the stream is music.
+			Return the name of the audio stream. Often the song title when the stream is music.
 			</description>
 		</method>
 		<method name="get_loop_count" qualifiers="const" >
 			<return type="int">
 			</return>
 			<description>
-			Return the amount of times that the stream has"#10;"#9;"#9;"#9;looped (if loop is supported).
+			Return the amount of times that the stream has looped (if loop is supported).
 			</description>
 		</method>
 		<method name="seek_pos"  >
 			<argument index="0" name="pos" type="float">
 			</argument>
 			<description>
-			Seek to a certain position (in seconds) in an audio"#10;"#9;"#9;"#9;stream.
+			Seek to a certain position (in seconds) in an audio stream.
 			</description>
 		</method>
 		<method name="get_pos" qualifiers="const" >
 			<return type="float">
 			</return>
 			<description>
-			Return the current playing position (in seconds) of the audio"#10;"#9;"#9;"#9;stream (if supported). Since this value is updated"#10;"#9;"#9;"#9;internally, it may not be exact or updated"#10;"#9;"#9;"#9;continuosly. Accuracy depends on the sample buffer"#10;"#9;"#9;"#9;size of the audio driver.
+			Return the current playing position (in seconds) of the audio stream (if supported). Since this value is updated internally, it may not be exact or updated continuosly. Accuracy depends on the sample buffer size of the audio driver.
 			</description>
 		</method>
 		<method name="get_length" qualifiers="const" >
@@ -4229,12 +4257,12 @@
 			<return type="int">
 			</return>
 			<description>
-			Return the type of update that the stream uses. Some"#10;"#9;"#9;"#9;types of stream may need manual polling.
+			Return the type of update that the stream uses. Some types of stream may need manual polling.
 			</description>
 		</method>
 		<method name="update"  >
 			<description>
-			Manually poll the audio stream (if it is requested"#10;"#9;"#9;"#9;to).
+			Manually poll the audio stream (if it is requested to).
 			</description>
 		</method>
 	</methods>
@@ -5320,7 +5348,7 @@
 			<argument index="2" name="z_far" type="float">
 			</argument>
 			<description>
-			Set the camera projection to orthogonal mode, by specifying a"#10;"#9;"#9;"#9;width and the [i]near[/i] and [i]far[/i] clip planes in worldspace units. (As a hint, 2D games often use this projection, with values specified in pixels)
+			Set the camera projection to orthogonal mode, by specifying a width and the [i]near[/i] and [i]far[/i] clip planes in worldspace units. (As a hint, 2D games often use this projection, with values specified in pixels)
 			</description>
 		</method>
 		<method name="make_current"  >
@@ -13993,6 +14021,7 @@
 			<return type="Vector3">
 			</return>
 			<description>
+			Returns the length of each axis of this [Basis], as a [Vector3]. If the [Basis] is not sheared, this value is the scaling factor. It is not affected by rotation.
 			</description>
 		</method>
 		<method name="inverse"  >
@@ -14006,7 +14035,9 @@
 			<return type="Basis">
 			</return>
 			<description>
-			Return the orthonormalized version of the matrix (useful to call from time to time to avoid rounding error).
+			Returns the orthonormalized version of this basis. An orthonormal basis is both orthogonal (the axes are perpendicular to each other) and normalized (the axes have a length of 1.0), which also means it can only represent a rotation.
+
+			It is often useful to call this method to avoid rounding errors on a rotating basis.
 			</description>
 		</method>
 		<method name="rotated"  >
@@ -14122,10 +14153,14 @@
 </class>
 <class name="Transform2D" category="Built-In Types">
 	<brief_description>
-	3x2 Matrix for 2D transforms.
+	2x3 Matrix for 2D transformations.
 	</brief_description>
 	<description>
-	3x2 Matrix for 2D transforms.
+	The [Transform2D] built-in Variant type is a 2×3 matrix representing a transformation in 2D space. It contains three [Vector2] values: x, y, and origin. Together, they can represent translation, rotation, scale, and skew.
+
+	The x and y axes form a 2×2 matrix, known as the transform's basis. The length of each axis (Vector2.length()) influences the transform's scale, while the direction of all axes influence the rotation. Usually, both axes are perpendicular to one another. However, when you rotate one axis individually, the transform becomes skewed. Applying a skewed transform to a 2D sprite will make the sprite appear distorted.
+
+	Note: Unlike [Transform3D], there is no 2D equivalent to the [Basis] type. All mentions of "basis" refer to the x and y components of [Transform2D].
 	</description>
 	<methods>
 		<method name="affine_inverse"  >
@@ -14140,6 +14175,7 @@
 			<argument index="0" name="v" type="var">
 			</argument>
 			<description>
+			Returns a copy of the v vector, transformed (multiplied) by the transform basis's matrix. Unlike the multiplication operator (*), this method ignores the origin.
 			</description>
 		</method>
 		<method name="basis_xform_inv"  >
@@ -14148,6 +14184,7 @@
 			<argument index="0" name="v" type="var">
 			</argument>
 			<description>
+			Returns a copy of the v vector, transformed (multiplied) by the inverse transform basis's matrix (see [method inverse]). This method ignores the origin.
 			</description>
 		</method>
 		<method name="get_origin"  >
@@ -14171,17 +14208,19 @@
 		<method name="interpolate_with"  >
 			<return type="Transform2D">
 			</return>
-			<argument index="0" name="m" type="Transform2D">
+			<argument index="0" name="xform" type="Transform2D">
 			</argument>
-			<argument index="1" name="c" type="float">
+			<argument index="1" name="width" type="float">
 			</argument>
 			<description>
+			Returns the result of the linear interpolation between this transform and xform by the given weight.
 			</description>
 		</method>
 		<method name="inverse"  >
 			<return type="Transform2D">
 			</return>
 			<description>
+			Returns the inverted version of this transform.
 			</description>
 		</method>
 		<method name="orthonormalized"  >
@@ -14196,6 +14235,7 @@
 			<argument index="0" name="phi" type="float">
 			</argument>
 			<description>
+			Returns a copy of this transform rotated by the given angle (in radians).
 			</description>
 		</method>
 		<method name="scaled"  >
@@ -14204,6 +14244,7 @@
 			<argument index="0" name="scale" type="Vector2">
 			</argument>
 			<description>
+			Returns a copy of the transform scaled by the given scale factor.
 			</description>
 		</method>
 		<method name="translated"  >
@@ -14212,6 +14253,7 @@
 			<argument index="0" name="offset" type="Vector2">
 			</argument>
 			<description>
+			Returns a copy of the transform translated by the given offset.
 			</description>
 		</method>
 		<method name="xform"  >
@@ -14238,15 +14280,16 @@
 			<argument index="2" name="origin" type="Vector2">
 			</argument>
 			<description>
+			Constructs a Transform2D from 3 Vector2 values representing x, y, and the origin (the three matrix columns).
 			</description>
 		</method>
 	</methods>
 	<members>
-		<member name="x" type="float">
+		<member name="x" type="float"> The transform basis's X axis, and the column 0 of the matrix. Combined with y, this represents the transform's rotation, scale, and skew.
 		</member>
-		<member name="y" type="float">
+		<member name="y" type="float"> The transform basis's Y axis, and the column 1 of the matrix. Combined with x, this represents the transform's rotation, scale, and skew.
 		</member>
-		<member name="o" type="float">
+		<member name="o" type="float"> The translation offset of this transform, and the column 2 of the matrix. In 2D space, this can be seen as the position.
 		</member>
 	</members>
 	<constants>
@@ -14353,7 +14396,7 @@
 			<argument index="3" name="arg3" type="bool" default="Array()">
 			</argument>
 			<description>
-			Create a new surface ([method get_surface_count] will become surf_idx for this.[br]"#10;"#9;"#9;"#9;Surfaces are created to be rendered using a "primitive", which may be PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINE_STRIP, PRIMITIVE_LINE_LOOP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIANGLE_STRIP, PRIMITIVE_TRIANGLE_FAN. (As a note, when using indices, it is recommended to only use just points, lines or triangles).[br]"#10;"#9;"#9;"#9;The format of a surface determines which arrays it will allocate and hold, so "format" is a combination of ARRAY_FORMAT_* mask constants ORed together. ARRAY_FORMAT_VERTEX must be always present. "array_len" determines the amount of vertices in the array (not primitives!). if ARRAY_FORMAT_INDEX is in the format mask, then it means that an index array will be allocated and "index_array_len" must be passed.
+			Create a new surface ([method get_surface_count] will become surf_idx for this.[br] Surfaces are created to be rendered using a "primitive", which may be PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINE_STRIP, PRIMITIVE_LINE_LOOP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIANGLE_STRIP, PRIMITIVE_TRIANGLE_FAN. (As a note, when using indices, it is recommended to only use just points, lines or triangles).[br] The format of a surface determines which arrays it will allocate and hold, so "format" is a combination of ARRAY_FORMAT_* mask constants ORed together. ARRAY_FORMAT_VERTEX must be always present. "array_len" determines the amount of vertices in the array (not primitives!). if ARRAY_FORMAT_INDEX is in the format mask, then it means that an index array will be allocated and "index_array_len" must be passed.
 			</description>
 		</method>
 		<method name="get_surface_count" qualifiers="const" >
@@ -14545,8 +14588,10 @@
 </class>
 <class name="MeshDataTool" inherits="RefCounted" category="Core">
 	<brief_description>
+	An object for aiding in the generation of a [Mesh] with code at runtime.
 	</brief_description>
 	<description>
+	An object for aiding in the generation of a [Mesh] with code at runtime.
 	</description>
 	<methods>
 		<method name="clear"  >
@@ -14845,10 +14890,10 @@
 </class>
 <class name="MeshInstance3D" inherits="GeometryInstance3D" category="Core">
 	<brief_description>
-	Node that instances meshes into a [Scenario].
+	Node that instances meshes into a scene.
 	</brief_description>
 	<description>
-	MeshInstance3D is a [Node] that takes a [Mesh] resource and adds it to the current [Scenario] by creating an instance of it. This is the class most often used to get 3D geometry rendered and can be used to instance a sigle [Mesh] in many places. This allows to reuse geometry and save on resources. When a [Mesh] has to be instanced more than thousands of times at close proximity, consider using a [MultiMesh] in a [MultiMeshInstance3D] instead.
+	MeshInstance3D is a [Node] that takes a [Mesh] resource and adds it to the current scene by creating an instance of it. This is the class most often used to get 3D geometry rendered and can be used to instance a sigle [Mesh] in many places. This allows to reuse geometry and save on resources. When a [Mesh] has to be instanced more than thousands of times at close proximity, consider using a [MultiMesh] in a [MultiMeshInstance3D] instead.
 	</description>
 	<methods>
 		<method name="set_mesh"  >
@@ -15094,7 +15139,7 @@
 	Node that instances a [MultiMesh].
 	</brief_description>
 	<description>
-	MultiMeshInstance3D is a [Node] that takes a [MultiMesh] resource and adds it to the current [Scenario] by creating an instance of it (yes, this is an instance of instances).
+	MultiMeshInstance3D is a [Node] that takes a [MultiMesh] resource and adds it to the current scene by creating an instance of it (yes, this is an instance of instances).
 	</description>
 	<methods>
 		<method name="set_multimesh"  >
@@ -16648,7 +16693,7 @@
 	Base class for all non built-in types. Everything not a built-in type starts the inheritance chain from this class.
         Objects do not manage memory, if inheriting from one the object will most likely have to be deleted manually (call the [method free] function from the script or delete from C++).
         Some derivates add memory management, such as [RefCounted] (which keps a reference count and deletes itself automatically when no longer referenced) and [Node], which deletes the children tree when deleted.
-        Objects export properties, which are mainly useful for storage and editing, but not really so much in programming. Properties are exported in [method _get_property_list] and handled in [method _get] and [_set]. However, scripting languages and C++ have simper means to export them.
+        Objects export properties, which are mainly useful for storage and editing, but not really so much in programming. Properties are exported in [method _get_property_list] and handled in [method _get] and [method _set]. However, scripting languages and C++ have simper means to export them.
         Objects also receive notifications ([method _notification]). Notifications are a simple way to notify the object about simple events, so they can all be handled together.
 	</description>
 	<methods>
@@ -16668,6 +16713,7 @@
 		</method>
 		<method name="_init" qualifiers="virtual" >
 			<description>
+			Called by the engine when the object is being initialized in memory, akin to a constructor in C++. Not to be confused with the _ready() function for [Node]s.
 			</description>
 		</method>
 		<method name="_notification" qualifiers="virtual" >
@@ -16863,6 +16909,7 @@
 			<argument index="1" name="arg_array" type="Array">
 			</argument>
 			<description>
+			[method call()], but passing the argument list as an [Array].
 			</description>
 		</method>
 		<method name="has_method" qualifiers="const" >
@@ -16871,13 +16918,14 @@
 			<argument index="0" name="arg0" type="String">
 			</argument>
 			<description>
+			Returns true if the object contains the method given as a [String] argument.
 			</description>
 		</method>
 		<method name="get_signal_list" qualifiers="const" >
 			<return type="Array">
 			</return>
 			<description>
-			Return the list of signals as an array of dictionaries.
+			Return the list of signals as an [Array] of [Dictionary]s.
 			</description>
 		</method>
 		<method name="connect"  >
@@ -16976,6 +17024,7 @@
 	<signals>
 		<signal name="script_changed">
 			<description>
+			Emitted when the script attached to the object changes.
 			</description>
 		</signal>
 	</signals>
@@ -22907,6 +22956,7 @@
 </class>
 <class name="RayCast3D" inherits="Node3D" category="Core">
 	<brief_description>
+	A Node that checks for other physics Nodes intersecting at a specific coordinate.
 	</brief_description>
 	<description>
 	</description>
@@ -23100,7 +23150,7 @@
 	Ray 2D shape resource for physics.
 	</brief_description>
 	<description>
-	Ray 2D shape resource for physics. A ray is not really a collision body, isntead it tries to separate itself from wathever is touching it's far endpoint. It's often useful for ccharacters.
+	Ray 2D shape resource for physics. A ray is not really a collision body, instead it tries to separate itself from whatever is touching it's far endpoint. It's often useful for characters.
 	</description>
 	<methods>
 		<method name="set_length"  >
@@ -23121,10 +23171,10 @@
 </class>
 <class name="PackedFloatArray" category="Built-In Types">
 	<brief_description>
-	Real Array .
+	Float Array.
 	</brief_description>
 	<description>
-	Real Array. Array of floating point values. Can only contain floats. Optimized for memory usage, cant fragment the memory.
+	An array of exclusively [float]s. Optimized for memory usage, can't fragment the values in memory.
 	</description>
 	<methods>
 		<method name="get"  >
@@ -23133,18 +23183,21 @@
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
+			Get the [float] at the given index.
 			</description>
 		</method>
 		<method name="push_back"  >
 			<argument index="0" name="value" type="float">
 			</argument>
 			<description>
+			Append a [float] to the end of the array.
 			</description>
 		</method>
 		<method name="resize"  >
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
+			Increase or decrease the size of the array.
 			</description>
 		</method>
 		<method name="set"  >
@@ -23153,18 +23206,21 @@
 			<argument index="1" name="value" type="float">
 			</argument>
 			<description>
+			Set the [float] at the given index to value.
 			</description>
 		</method>
 		<method name="size"  >
 			<return type="int">
 			</return>
 			<description>
+			Returns the size of the array.
 			</description>
 		</method>
 		<method name="PackedFloatArray"  >
 			<argument index="0" name="from" type="Array">
 			</argument>
 			<description>
+			Create a [PackedFloatArray] from a normal [Array].
 			</description>
 		</method>
 	</methods>
@@ -23219,6 +23275,7 @@
 			<return type="bool">
 			</return>
 			<description>
+			Returns true if the [Rect2] has no area.
 			</description>
 		</method>
 		<method name="has_point"  >
@@ -23227,6 +23284,7 @@
 			<argument index="0" name="point" type="Vector2">
 			</argument>
 			<description>
+			Returns true if this [Rect2] covers the given point.
 			</description>
 		</method>
 		<method name="intersects"  >
@@ -23235,6 +23293,7 @@
 			<argument index="0" name="b" type="Rect2">
 			</argument>
 			<description>
+			Returns true if this [Rect2] intersects with the input [Rect2].
 			</description>
 		</method>
 		<method name="merge"  >
@@ -23251,6 +23310,7 @@
 			<argument index="1" name="size" type="Vector2">
 			</argument>
 			<description>
+			Create a [Rect2] from a position [Vector2] and a size [Vector2].
 			</description>
 		</method>
 		<method name="Rect2"  >
@@ -23263,15 +23323,16 @@
 			<argument index="3" name="height" type="float">
 			</argument>
 			<description>
+			Create a [Rect2] from direct coordinate values of x position, y position, width, and height.
 			</description>
 		</method>
 	</methods>
 	<members>
-		<member name="pos" type="Vector2">
+		<member name="pos" type="Vector2"> The position (offset) of the Rect2.
 		</member>
-		<member name="size" type="Vector2">
+		<member name="size" type="Vector2"> The size (area) of the Rect2.
 		</member>
-		<member name="end" type="Vector2">
+		<member name="end" type="Vector2"> The bottom-right point of the Rect2 (ie. pos + size).
 		</member>
 	</members>
 	<constants>
