@@ -551,8 +551,6 @@ void convert_mesh(aiMesh *in_mesh, Ref<Mesh> out_mesh){
 	surf_tool->begin(Mesh::PRIMITIVE_TRIANGLES); //TODO: Some proper checking for this cause models can come in other formats
 
 	for (uint32_t i = 0; i < in_mesh->mNumVertices; i++){
-		surf_tool->add_vertex(FE_VECTOR3(in_mesh->mVertices[i]));
-
 		if (in_mesh->HasNormals()){
 			surf_tool->add_normal(FE_VECTOR3(in_mesh->mNormals[i]));
 		}
@@ -560,6 +558,8 @@ void convert_mesh(aiMesh *in_mesh, Ref<Mesh> out_mesh){
 		if (in_mesh->HasTextureCoords(0)){
 			surf_tool->add_uv(FE_VECTOR2(in_mesh->mTextureCoords[0][i]));
 		}
+
+		surf_tool->add_vertex(FE_VECTOR3(in_mesh->mVertices[i]));
 	}
 
 	out_mesh = surf_tool->commit(out_mesh);
