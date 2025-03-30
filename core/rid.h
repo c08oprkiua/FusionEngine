@@ -52,25 +52,25 @@ public:
 
 	_FORCE_INLINE_ ID get_id() const { return _id; }
 	bool operator==(const RID& p_rid) const {
-	
 		return _id==p_rid._id;
 	}
+
 	_FORCE_INLINE_ bool operator<(const RID& p_rid) const {
-	
 		return _id < p_rid._id;
 	}
-	_FORCE_INLINE_ bool operator<=(const RID& p_rid) const {
 
+	_FORCE_INLINE_ bool operator<=(const RID& p_rid) const {
 		return _id <= p_rid._id;
 	}
+
 	_FORCE_INLINE_ bool operator>(const RID& p_rid) const {
-	
 		return _id > p_rid._id;
 	}
+
 	bool operator!=(const RID& p_rid) const {
-	
 		return _id!=p_rid._id;
 	}
+
 	_FORCE_INLINE_ bool is_valid() const { return _id>0; }
 
 	operator const void*() const {

@@ -11,6 +11,9 @@ class VisualServerGX : public VisualServer {
 private:
 	void *gp_fifo;
 
+	static RID_Owner<GXTexObj> texture_owner;
+
+
 public:
 	virtual void set_mipmap_policy(MipMapPolicy p_policy);
 	virtual MipMapPolicy get_mipmap_policy() const;

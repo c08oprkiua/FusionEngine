@@ -7,47 +7,99 @@
 //A good bit of this code is based on the examples included with libogc2
 
 void VisualServerGX::set_mipmap_policy(MipMapPolicy p_policy){
-
+	WARN_PRINT("Changing mipmap policy on GX is not supported by hardware!");
 }
 
 VisualServer::MipMapPolicy VisualServerGX::get_mipmap_policy() const {
-	return MIPMAPS_DISABLED;
+	return MIPMAPS_ENABLED_FOR_PO2;
 }
-
 
 RID VisualServerGX::texture_create(){
-    return RID();
+    return texture_owner.make_rid(NULL);
 }
 
-void VisualServerGX::texture_allocate(RID p_texture,int p_width, int p_height,Image::Format p_format,uint32_t p_flags){
+void VisualServerGX::texture_allocate(RID p_texture, int p_width, int p_height, Image::Format p_format, uint32_t p_flags){
+	ERR_FAIL_COND(!texture_owner.owns(p_texture));
+
+	GXTexObj *tex = texture_owner.get(p_texture);
+
+	uint16_t w16 = p_width;
+	uint16_t h16 = p_height;
+
+	void *tex_data = malloc(w16 * h16);
+
+	uint8_t format;
+
+	uint8_t wrap = p_flags & TextureFlags::TEXTURE_FLAG_REPEAT ? GX_REPEAT : GX_CLAMP;
+
+	uint8_t mipmaps;
+
+	GX_InitTexObj(tex, tex_data, w16, h16, format, wrap, wrap, mipmaps);
+
 }
 
 void VisualServerGX::texture_set_data(RID p_texture,const Image& p_image,VS::CubeMapSide p_cube_side){
+	DVector<uint8_t> data = p_image.get_data();
+
 
 }
 
 Image VisualServerGX::texture_get_data(RID p_texture,VS::CubeMapSide p_cube_side) const {
-    return Image();
+	ERR_FAIL_COND_V(!texture_owner.owns(p_texture), Image());
+
+	GXTexObj *tex = texture_owner.get(p_texture);
+
+	void *raw_data = GX_GetTexObjData(tex);
+	uint16_t width = GX_GetTexObjWidth(tex);
+	uint16_t height = GX_GetTexObjHeight(tex);
+
+
+	//TODO: Bumpmap stuff here
+
+	Image new_img = Image(width, height, false, Image::FORMAT_RGBA);
+
+	DVector<uint8_t> data = new_img.get_data();
+
+	//(void *) data.write().ptr() = raw_data;
+
+    return new_img;
 }
 
 void VisualServerGX::texture_set_flags(RID p_texture,uint32_t p_flags){
 
 }
 
-uint32_t VisualServerGX::texture_get_flags(RID p_texture) const{
+uint32_t VisualServerGX::texture_get_flags(RID p_texture) const {
     return 0;
 }
 
 Image::Format VisualServerGX::texture_get_format(RID p_texture) const{
-    return Image::Format::FORMAT_CUSTOM;
+	ERR_FAIL_COND_V(!texture_owner.owns(p_texture), Image::FORMAT_MAX);
+
+	GXTexObj *tex = texture_owner.get(p_texture);
+
+	uint8_t tex_fmt = GX_GetTexObjFmt(tex);
+
+	switch (tex_fmt){
+		case GX_TF_RGBA8:
+			return Image::Format::FORMAT_RGBA;
+		default:
+			 return Image::Format::FORMAT_CUSTOM;
+	}
 }
 
 uint32_t VisualServerGX::texture_get_width(RID p_texture) const{
-    return 0;
+	ERR_FAIL_COND_V(!texture_owner.owns(p_texture), 0);
+	GXTexObj *tex = texture_owner.get(p_texture);
+
+    return GX_GetTexObjWidth(tex);
 }
 
 uint32_t VisualServerGX::texture_get_height(RID p_texture) const{
-    return 0;
+	ERR_FAIL_COND_V(!texture_owner.owns(p_texture), 0);
+	GXTexObj *tex = texture_owner.get(p_texture);
+
+	return GX_GetTexObjHeight(tex);
 }
 
 void VisualServerGX::texture_set_size_override(RID p_texture,int p_width, int p_height){
@@ -1285,7 +1337,7 @@ void VisualServerGX::custom_shade_model_set_param_info(int p_model, const List<P
 
 }
 
-void VisualServerGX::custom_shade_model_get_param_info(int p_model, List<PropertyInfo>* p_info) const{
+void VisualServerGX::custom_shade_model_get_param_info(int p_model, List<PropertyInfo>* p_info) const {
 
 }
 
@@ -1296,7 +1348,7 @@ void VisualServerGX::draw(){
 }
 
 void VisualServerGX::flush(){
-
+	GX_Flush();
 }
 
 bool VisualServerGX::has_changed() const {
