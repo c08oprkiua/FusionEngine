@@ -510,6 +510,6 @@ public:
 		ObjectTypeDB::register_virtual_type<m_class>();  \
 	}
 
-#include "core/disabled_object_types.gen.h"
+#include "disabled_object_types.gen.h"
 
 #endif

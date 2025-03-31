@@ -29,7 +29,7 @@
 #ifndef OS_PSP_H
 #define OS_PSP_H
 
-
+#include "audio_driver_psp.h"
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"
 #include "servers/visual_server.h"
@@ -55,7 +55,8 @@ class OS_PSP : public OS {
 	List<String> args;
 	MainLoop *main_loop;	
 
-	AudioDriverPSP driver_dummy;
+	AudioDriverPSP driver_psp;
+
 	bool grab;
 	uint64_t ticks_start;
 	

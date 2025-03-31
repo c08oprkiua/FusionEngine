@@ -109,10 +109,10 @@ void register_core_types() {
 	REGISTER_OBJECT(Object);
 
 
-	REGISTER_OBJECT(Reference);
+	REGISTER_OBJECT(RefCounted);
 	REGISTER_OBJECT(ResourceImportMetadata);
 	REGISTER_OBJECT(Resource);
-	REGISTER_OBJECT(FuncRef);
+	REGISTER_OBJECT(Callable);
 	REGISTER_VIRTUAL_OBJECT(StreamPeer);
 	ObjectTypeDB::register_create_type<StreamPeerTCP>();
 	ObjectTypeDB::register_create_type<TCP_Server>();
@@ -122,7 +122,7 @@ void register_core_types() {
 	REGISTER_VIRTUAL_OBJECT(PacketPeer);
 	REGISTER_OBJECT(PacketPeerStream);
 	REGISTER_OBJECT(MainLoop);
-//	REGISTER_OBJECT(OptimizedSaver>();
+//	REGISTER_OBJECT(OptimizedSaver);
 	REGISTER_OBJECT(Translation);
 	REGISTER_OBJECT(PHashTranslation);
 

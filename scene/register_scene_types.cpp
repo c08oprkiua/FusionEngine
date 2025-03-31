@@ -38,12 +38,15 @@
 #include "scene/main/canvas_layer.h"
 #include "scene/main/viewport.h"
 #include "scene/gui/control.h"
+
 #include "scene/gui/texture_progress.h"
 #include "scene/gui/empty_control.h"
 #include "scene/gui/button.h"
 #include "scene/gui/button_array.h"
 #include "scene/gui/button_group.h"
+// #endif
 #include "scene/gui/label.h"
+#ifndef ULTRA
 #include "scene/gui/line_edit.h"
 #include "scene/gui/scroll_bar.h"
 #include "scene/gui/progress_bar.h"
@@ -104,6 +107,7 @@
 
 #include "scene/2d/position_2d.h"
 #include "scene/2d/tile_map.h"
+#endif
 //#include "scene/2d/tile_map.h"
 #include "scene/resources/tile_set.h"
 
@@ -132,6 +136,7 @@
 #include "scene/resources/convex_polygon_shape.h"
 #include "scene/resources/concave_polygon_shape.h"
 
+#ifndef ULTRA
 #include "scene/resources/shape_line_2d.h"
 #include "scene/resources/circle_shape_2d.h"
 #include "scene/resources/segment_shape_2d.h"
@@ -139,7 +144,7 @@
 #include "scene/resources/capsule_shape_2d.h"
 #include "scene/resources/convex_polygon_shape_2d.h"
 #include "scene/resources/concave_polygon_shape_2d.h"
-
+#endif
 #include "scene/resources/mesh_library.h"
 
 
@@ -185,10 +190,12 @@
 #include "scene/3d/portal.h"
 #include "scene/resources/environment.h"
 #include "scene/3d/physics_body.h"
-
+#ifndef UlTRA
 #include "scene/3d/vehicle_body.h"
+#endif
 #include "scene/3d/body_shape.h"
 #include "scene/3d/area.h"
+#ifndef ULTRA
 #include "scene/3d/physics_joint.h"
 #include "scene/3d/multimesh_instance.h"
 #include "scene/3d/baked_light_instance.h"
@@ -200,6 +207,7 @@
 #include "scene/3d/proximity_group.h"
 #include "scene/3d/navigation_mesh.h"
 #include "scene/3d/navigation.h"
+#endif
 #include "scene/3d/collision_polygon.h"
 #endif
 
@@ -271,6 +279,7 @@ void register_scene_types() {
 	REGISTER_OBJECT(EmptyControl);
 	REGISTER_OBJECT(Button);
 	REGISTER_OBJECT(Label);
+#ifndef ULTRA
 	REGISTER_OBJECT(HScrollBar);
 	REGISTER_OBJECT(VScrollBar);
 	REGISTER_OBJECT(ProgressBar);
@@ -303,11 +312,12 @@ void register_scene_types() {
 	REGISTER_VIRTUAL_OBJECT(SplitContainer);
 	REGISTER_OBJECT(HSplitContainer);
 	REGISTER_OBJECT(VSplitContainer);
-
+#endif
 	OS::get_singleton()->yield(); //may take time to init
 
 
 	REGISTER_VIRTUAL_OBJECT(ButtonArray);
+#ifndef ULTRA
 	REGISTER_OBJECT(HButtonArray);
 	REGISTER_OBJECT(VButtonArray);
 	REGISTER_OBJECT(TextureProgress);
@@ -338,69 +348,79 @@ void register_scene_types() {
 	OS::get_singleton()->yield(); //may take time to init
 
 #endif
-
+#endif // ultra
 	/* REGISTER 3D */
 
-	REGISTER_OBJECT(Spatial);
-	REGISTER_OBJECT(Skeleton);
+	REGISTER_OBJECT(Node3D);
+	REGISTER_OBJECT(Skeleton3D);
 	REGISTER_OBJECT(AnimationPlayer);
 	REGISTER_OBJECT(Tween);
 
 	OS::get_singleton()->yield(); //may take time to init
 
 #ifndef _3D_DISABLED
-	REGISTER_OBJECT(BoneAttachment);
-	REGISTER_VIRTUAL_OBJECT(VisualInstance);
-	REGISTER_OBJECT(Camera);
+	REGISTER_OBJECT(BoneAttachment3D);
+	REGISTER_VIRTUAL_OBJECT(VisualInstance3D);
+	REGISTER_OBJECT(Camera3D);
 	REGISTER_OBJECT(InterpolatedCamera);
 	REGISTER_OBJECT(TestCube);
-	REGISTER_OBJECT(MeshInstance);
-	REGISTER_OBJECT(ImmediateGeometry);
+	REGISTER_OBJECT(MeshInstance3D);
+#ifndef ULTRA
+	REGISTER_OBJECT(ImmediateGeometry3D);
 	REGISTER_OBJECT(Sprite3D);
 	REGISTER_OBJECT(AnimatedSprite3D);
-	REGISTER_VIRTUAL_OBJECT(Light);
-	REGISTER_OBJECT(DirectionalLight);
-	REGISTER_OBJECT(OmniLight);
-	REGISTER_OBJECT(SpotLight);
+#endif
+	REGISTER_VIRTUAL_OBJECT(Light3D);
+	REGISTER_OBJECT(DirectionalLight3D);
+	REGISTER_OBJECT(OmniLight3D);
+	REGISTER_OBJECT(SpotLight3D);
 	REGISTER_OBJECT(AnimationTreePlayer);
+#ifndef ULTRA
 	REGISTER_OBJECT(Portal);
-	REGISTER_OBJECT(Particles);
+	REGISTER_OBJECT(Particles3D);
+#endif
+
 	REGISTER_OBJECT(Position3D);
+#ifndef ULTRA
 	REGISTER_OBJECT(Quad);
 	REGISTER_OBJECT(NavigationMeshInstance);
 	REGISTER_OBJECT(NavigationMesh);
 	REGISTER_OBJECT(Navigation);
-
+#endif
 	OS::get_singleton()->yield(); //may take time to init
 
-	REGISTER_VIRTUAL_OBJECT(CollisionObject);
-	REGISTER_OBJECT(StaticBody);
-	REGISTER_OBJECT(RigidBody);
-	REGISTER_OBJECT(KinematicBody);
+	REGISTER_VIRTUAL_OBJECT(CollisionObject3D);
+	REGISTER_OBJECT(StaticBody3D);
+	REGISTER_OBJECT(RigidBody3D);
+	REGISTER_OBJECT(CharacterBody3D);
 
-
-	REGISTER_OBJECT(VehicleBody);
-	REGISTER_OBJECT(VehicleWheel);
-	REGISTER_OBJECT(Area);
+#ifndef ULTRA
+	REGISTER_OBJECT(VehicleBody3D);
+	REGISTER_OBJECT(VehicleWheel3D);
+	REGISTER_OBJECT(Area3D);
 	REGISTER_OBJECT(ProximityGroup);
-	REGISTER_OBJECT(CollisionShape);
-	REGISTER_OBJECT(CollisionPolygon);
-	REGISTER_OBJECT(RayCast);
-	REGISTER_OBJECT(MultiMeshInstance);
+#endif
+	REGISTER_OBJECT(CollisionShape3D);
+	REGISTER_OBJECT(CollisionPolygon3D);
+#ifndef ULTRA
+	REGISTER_OBJECT(RayCast3D);
+	REGISTER_OBJECT(MultiMeshInstance3D);
 	REGISTER_OBJECT(Room);
 	REGISTER_OBJECT(Curve3D);
-	REGISTER_OBJECT(Path);
-	REGISTER_OBJECT(PathFollow);
-	REGISTER_OBJECT(VisibilityNotifier);
-	REGISTER_OBJECT(VisibilityEnabler);
+	REGISTER_OBJECT(Path3D);
+	REGISTER_OBJECT(PathFollow3D);
+	REGISTER_OBJECT(VisibilityNotifier3D);
+	REGISTER_OBJECT(VisibilityEnabler3D);
 	REGISTER_OBJECT(BakedLightInstance);
 	REGISTER_OBJECT(BakedLightSampler);
+#endif
 	REGISTER_OBJECT(WorldEnvironment);
 
-	REGISTER_VIRTUAL_OBJECT(Joint);
-	REGISTER_OBJECT(PinJoint);
-	REGISTER_OBJECT(HingeJoint);
-	REGISTER_OBJECT(SliderJoint);
+#ifndef ULTRA
+	REGISTER_VIRTUAL_OBJECT(Joint3D);
+	REGISTER_OBJECT(PinJoint3D);
+	REGISTER_OBJECT(HingeJoint3D);
+	REGISTER_OBJECT(SliderJoint3D);
 	REGISTER_OBJECT(ConeTwistJoint);
 	REGISTER_OBJECT(Generic6DOFJoint);
 
@@ -408,20 +428,21 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	REGISTER_OBJECT(SpatialSamplePlayer);
-	REGISTER_OBJECT(SpatialStreamPlayer);
+	REGISTER_OBJECT(SamplePlayer3D);
+	REGISTER_OBJECT(StreamPlayer3D);
 	REGISTER_OBJECT(SoundRoomParams);
 
-
+#endif
 #endif
 	REGISTER_OBJECT(MeshLibrary);
+#ifndef ULTRA
 	AcceptDialog::set_swap_ok_cancel( GLOBAL_DEF("display/swap_ok_cancel",bool(OS::get_singleton()->get_swap_ok_cancel())) );
-
+#endif
 	REGISTER_OBJECT(SamplePlayer);
 
 
-//	REGISTER_OBJECT(StaticBody);
-//	REGISTER_OBJECT(RigidBody);
+//	REGISTER_OBJECT(StaticBody3D);
+//	REGISTER_OBJECT(RigidBody3D);
 //	REGISTER_OBJECT(CharacterBody);
 //	REGISTER_OBJECT(BodyVolumeSphere);
 	//REGISTER_OBJECT(BodyVolumeBox);
@@ -437,27 +458,27 @@ void register_scene_types() {
 
 
 	/* disable types by default, only editors should enable them */
-	ObjectTypeDB::set_type_enabled("CollisionShape",false);
+	ObjectTypeDB::set_type_enabled("CollisionShape3D",false);
 	//ObjectTypeDB::set_type_enabled("BodyVolumeSphere",false);
 	//ObjectTypeDB::set_type_enabled("BodyVolumeBox",false);
 	//ObjectTypeDB::set_type_enabled("BodyVolumeCapsule",false);
 	//ObjectTypeDB::set_type_enabled("BodyVolumeCylinder",false);
 	//ObjectTypeDB::set_type_enabled("BodyVolumeConvexPolygon",false);
-
+#ifndef ULTRA
 	REGISTER_VIRTUAL_OBJECT(CanvasItem);
 	REGISTER_OBJECT(Node2D);
 	REGISTER_OBJECT(Particles2D);
 	REGISTER_OBJECT(ParticleAttractor2D);
-	REGISTER_OBJECT(Sprite);
+	REGISTER_OBJECT(Sprite2D);
 	REGISTER_OBJECT(ViewportSprite);
 	REGISTER_OBJECT(SpriteFrames);
-	REGISTER_OBJECT(AnimatedSprite);
+	REGISTER_OBJECT(AnimatedSprite2D);
 	REGISTER_OBJECT(Position2D);
 	REGISTER_VIRTUAL_OBJECT(CollisionObject2D);
 	REGISTER_VIRTUAL_OBJECT(PhysicsBody2D);
 	REGISTER_OBJECT(StaticBody2D);
 	REGISTER_OBJECT(RigidBody2D);
-	REGISTER_OBJECT(KinematicBody2D);
+	REGISTER_OBJECT(CharacterBody2D);
 	REGISTER_OBJECT(Area2D);
 	REGISTER_OBJECT(CollisionShape2D);
 	REGISTER_OBJECT(CollisionPolygon2D);
@@ -489,7 +510,7 @@ void register_scene_types() {
 	OS::get_singleton()->yield(); //may take time to init
 
 	/* REGISTER RESOURCES */
-
+#endif
 #ifndef _3D_DISABLED
 	REGISTER_OBJECT(Mesh);
 	REGISTER_VIRTUAL_OBJECT(Material);
@@ -499,27 +520,30 @@ void register_scene_types() {
 	REGISTER_OBJECT(ShaderMaterial);
 	REGISTER_OBJECT(RoomBounds);
 	REGISTER_OBJECT(Shader);
+#ifndef ULTRA
 	REGISTER_OBJECT(MultiMesh);
+#endif
 	REGISTER_OBJECT(MeshLibrary);
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	REGISTER_OBJECT(RayShape);
-	REGISTER_OBJECT(SphereShape);
-	REGISTER_OBJECT(BoxShape);
-	REGISTER_OBJECT(CapsuleShape);
-	REGISTER_OBJECT(PlaneShape);
-	REGISTER_OBJECT(ConvexPolygonShape);
-	REGISTER_OBJECT(ConcavePolygonShape);
+	REGISTER_OBJECT(RayShape3D);
+	REGISTER_OBJECT(SphereShape3D);
+	REGISTER_OBJECT(BoxShape3D);
+	REGISTER_OBJECT(CapsuleShape3D);
+	REGISTER_OBJECT(PlaneShape3D);
+	REGISTER_OBJECT(ConvexPolygonShape3D);
+	REGISTER_OBJECT(ConcavePolygonShape3D);
 
 	REGISTER_OBJECT(SurfaceTool);
 	REGISTER_OBJECT(MeshDataTool);
+#ifndef ULTRA
 	REGISTER_OBJECT(BakedLight);
-
+#endif
 	OS::get_singleton()->yield(); //may take time to init
 
 #endif
-	REGISTER_OBJECT(World);
+	REGISTER_OBJECT(World3D);
 	REGISTER_OBJECT(Environment);
 	REGISTER_OBJECT(World2D);
 	REGISTER_VIRTUAL_OBJECT(Texture);
@@ -545,10 +569,12 @@ void register_scene_types() {
 	REGISTER_OBJECT(SampleLibrary);
 	REGISTER_VIRTUAL_OBJECT(AudioStream);
 	REGISTER_OBJECT(AudioStreamGibberish);
+#ifndef ULTRA
 	REGISTER_VIRTUAL_OBJECT(VideoStream);
+#endif
 
 	OS::get_singleton()->yield(); //may take time to init
-
+#ifndef ULTRA
 	REGISTER_VIRTUAL_OBJECT(Shape2D);
 	REGISTER_OBJECT(LineShape2D);
 	REGISTER_OBJECT(SegmentShape2D);
@@ -563,7 +589,7 @@ void register_scene_types() {
 	REGISTER_OBJECT(PathFollow2D);
 
 	OS::get_singleton()->yield(); //may take time to init
-
+#endif
 	REGISTER_OBJECT(PackedScene);
 
 	REGISTER_OBJECT(SceneTree);

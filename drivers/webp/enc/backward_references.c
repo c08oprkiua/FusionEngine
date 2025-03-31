@@ -113,7 +113,7 @@ static WEBP_INLINE uint64_t GetPixPairHash64(const uint32_t* const argb) {
 
 static int HashChainInit(HashChain* const p, int size) {
   int i;
-  p->chain_ = (int*)WebPSafeMalloc((uint64_t)size, sizeof(*p->chain_));
+  p->chain_ = (int32_t *)WebPSafeMalloc((uint64_t)size, sizeof(*p->chain_));
   if (p->chain_ == NULL) {
     return 0;
   }
@@ -742,7 +742,7 @@ int VP8LGetBackwardReferences(int width, int height,
                                    &refs_lz77)) {
     goto End;
   }
-  // Backward Reference using RLE only.
+  // Backward RefCounted using RLE only.
   BackwardReferencesRle(width, height, argb, &refs_rle);
 
   {
