@@ -32,6 +32,7 @@
 #include "dvector.h"
 #include "color.h"
 #include "math_2d.h"
+
 /**
  *	@author Juan Linietsky <reduzio@gmail.com>
  *
@@ -64,6 +65,7 @@ public:
 		FORMAT_INDEXED_ALPHA, ///< index byte 0-256, and after image end, 256*4 bytes of palette (alpha)
 		FORMAT_YUV_422,
 		FORMAT_YUV_444,
+		//custom formats
 		FORMAT_BC1, // DXT1
 		FORMAT_BC2, // DXT3
 		FORMAT_BC3, // DXT5
@@ -197,12 +199,7 @@ private:
 	static int _get_dst_image_size(int p_width, int p_height, Format p_format,int &r_mipmaps,int p_mipmaps=-1);
 	bool _can_modify(Format p_format) const;
 
-
-
 public:
-
-
-
 	int get_width() const; ///< Get image width
 	int get_height() const; ///< Get image height
 	int get_mipmaps() const;
@@ -356,5 +353,56 @@ public:
 
 };
 
+class BaseImage {
+
+	enum {
+		MAX_WIDTH = 16384, // force a limit somehow
+		MAX_HEIGHT = 16384// force a limit somehow
+	};
+
+	virtual String get_image_format() = 0;
+	virtual String get_pixel_format() = 0;
+
+	virtual int get_width() const = 0; ///< Get image width
+	virtual int get_height() const = 0; ///< Get image height
+	virtual int get_mipmaps() const = 0;
+
+	/**
+	 * Get a pixel from the image. for grayscale or indexed formats, use Color::gray to obtain the actual
+	 * value.
+	 */
+	virtual Color get_pixel(int p_x, int p_y, int p_mipmap = 0) const = 0;
+	/**
+	 * Set a pixel into the image. for grayscale or indexed formats, a suitable Color constructor.
+	 */
+	virtual void put_pixel(int p_x, int p_y, const Color& p_color, int p_mipmap = 0) = 0; /* alpha and index are averaged */
+
+	virtual int get_mipmap_offset(int p_mipmap) const = 0; //get where the mipmap begins in data
+	virtual void get_mipmap_offset_and_size(int p_mipmap, int &r_ofs, int &r_size) const = 0; //get where the mipmap begins in data
+	virtual void get_mipmap_offset_and_size(int p_mipmap, int &r_ofs, int &r_size, int &r_w, int &r_h) const = 0; //get where the mipmap begins in data
+
+	/**
+	 * returns true when the image is empty (0,0) in size
+	 */
+	virtual bool empty() const = 0;
+};
+
+class RawImage : public BaseImage {
+
+};
+
+class PaletteImage : public BaseImage {
+public:
+
+	virtual uint32_t get_format_pixel_size()=0;
+
+	virtual uint32_t get_palette_entry_count()=0;
+	virtual Color get_palette_entry(uint32_t p_index)=0;
+
+	virtual uint32_t get_indexed_pixel(uint32_t p_xpos, uint32_t p_ypos);
+	virtual void set_indexed_pixel(uint32_t p_xpos, uint32_t p_ypos, uint32_t p_index);
+
+
+};
 
 #endif

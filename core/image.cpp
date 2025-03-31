@@ -301,17 +301,14 @@ void Image::set_pallete(const DVector<uint8_t>& p_data) {
 };
 
 int Image::get_width() const {
-
 	return width;
 }
-int Image::get_height() const{
 
+int Image::get_height() const{
 	return height;
 }
 
 int Image::get_mipmaps() const {
-
-
 	return mipmaps;
 }
 
