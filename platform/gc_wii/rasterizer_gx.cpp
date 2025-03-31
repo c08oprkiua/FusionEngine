@@ -372,28 +372,39 @@ void VisualServerGX::immediate_begin(RID p_immediate,VS::PrimitiveType p_rimitiv
 	//What we can do, however, is store a command queue and then execute that when immediate_end()
 	//is called
 
-
 }
 
 void VisualServerGX::immediate_vertex(RID p_immediate,const Vector3& p_vertex){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
+
 }
 
 void VisualServerGX::immediate_normal(RID p_immediate,const Vector3& p_normal){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
+
 }
 
 void VisualServerGX::immediate_tangent(RID p_immediate,const Plane& p_tangent){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
 }
 
 void VisualServerGX::immediate_color(RID p_immediate,const Color& p_color){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
+
 }
 
 void VisualServerGX::immediate_uv(RID p_immediate,const Vector2& tex_uv){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
+
 }
 
 void VisualServerGX::immediate_uv2(RID p_immediate,const Vector2& tex_uv){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
+
 }
 
 void VisualServerGX::immediate_end(RID p_immediate){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
 
 }
 
