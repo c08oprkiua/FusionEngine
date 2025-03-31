@@ -26,13 +26,13 @@ void VisualServerGX::texture_allocate(RID p_texture, int p_width, int p_height, 
 	uint16_t w16 = p_width;
 	uint16_t h16 = p_height;
 
-	void *tex_data = malloc(w16 * h16);
-
 	uint8_t format;
 
 	uint8_t wrap = p_flags & TextureFlags::TEXTURE_FLAG_REPEAT ? GX_REPEAT : GX_CLAMP;
 
 	uint8_t mipmaps;
+
+	void *tex_data = malloc(GX_GetTexBufferSize(w16, h16, format, mipmaps, 0));
 
 	GX_InitTexObj(tex, tex_data, w16, h16, format, wrap, wrap, mipmaps);
 
@@ -368,6 +368,11 @@ RID VisualServerGX::immediate_create(){
 }
 
 void VisualServerGX::immediate_begin(RID p_immediate,VS::PrimitiveType p_rimitive,RID p_texture){
+	//Because of API discrepencies, we unfortunately can't simply drop in GX_Begin here.
+	//What we can do, however, is store a command queue and then execute that when immediate_end()
+	//is called
+
+
 }
 
 void VisualServerGX::immediate_vertex(RID p_immediate,const Vector3& p_vertex){
@@ -389,9 +394,11 @@ void VisualServerGX::immediate_uv2(RID p_immediate,const Vector2& tex_uv){
 }
 
 void VisualServerGX::immediate_end(RID p_immediate){
+
 }
 
 void VisualServerGX::immediate_clear(RID p_immediate){
+	ERR_FAIL_COND(!immedeate_queues.owns(p_immediate));
 }
 
 void VisualServerGX::immediate_set_material(RID p_immediate,RID p_material){

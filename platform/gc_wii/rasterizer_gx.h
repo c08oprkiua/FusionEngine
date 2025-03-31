@@ -9,10 +9,25 @@
 
 class VisualServerGX : public VisualServer {
 private:
-	void *gp_fifo;
+
+	struct ImmedeateInstruction {
+		uint32_t instruction;
+
+		//params union of structs
+	};
+
+	struct ImmedeateQueue {
+		uint8_t prim_type;
+		uint8_t vert_format;
+		uint16_t vert_count;
+
+		Vector<ImmedeateInstruction> instructions;
+	};
 
 	static RID_Owner<GXTexObj> texture_owner;
+	static RID_Owner<ImmedeateQueue> immedeate_queues;
 
+	void *gp_fifo;
 
 public:
 	virtual void set_mipmap_policy(MipMapPolicy p_policy);
