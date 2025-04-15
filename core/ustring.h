@@ -42,7 +42,20 @@
 	@author red <red@killy>
 */
 
+#define COMPILE_TIME_HASH_STRINGS 1
 
+//Gotta use recursion to make this C++11 compliant, unfortunately.
+//IMPORTANT: Do NOT supply the last two args.
+//Well, ig you could change the last one cause it's just a seed, but
+constexpr uint32_t constexpr_hash(const char *p_cstr, int p_countup = 0, uint32_t p_ret_hash = 5381){
+	return p_cstr[p_countup] ?
+	constexpr_hash(p_cstr, p_countup + 1,
+				   (((p_ret_hash << 5) + p_ret_hash) + p_cstr[p_countup])
+				   )
+	:
+	p_ret_hash
+	;
+}
 
 class CharString : public Vector<char> {
 public:	
@@ -208,7 +221,20 @@ public:
 	static uint32_t hash(const CharType* p_str,int p_len); /* hash the string */
 	static uint32_t hash(const CharType* p_str); /* hash the string */
 	static uint32_t hash(const char* p_cstr,int p_len); /* hash the string */
-	static uint32_t hash(const char* p_cstr); /* hash the string */
+
+	constexpr static uint32_t hash(const char* p_cstr){
+#ifdef COMPILE_TIME_HASH_STRINGS
+	return constexpr_hash(p_cstr);
+#else
+	uint32_t hashv = 5381;
+	uint32_t c = 0;
+
+	while ((c = *p_cstr++))
+		hashv = ((hashv << 5) + hashv) + c; /* hash * 33 + c */
+
+	return hashv;
+#endif
+	} /* hash the string */
 	uint32_t hash() const; /* hash the string */
 	uint64_t hash64() const; /* hash the string */	
 	String md5_text() const;

@@ -2247,17 +2247,6 @@ String operator+(CharType p_chr, const String& p_str) {
 
 }
 
-uint32_t String::hash(const char* p_cstr) {
-		
-	uint32_t hashv = 5381;
-	uint32_t c;
-	
-	while ((c = *p_cstr++))
-		hashv = ((hashv << 5) + hashv) + c; /* hash * 33 + c */
-	
-	return hashv;	
-}
-
 uint32_t String::hash(const char* p_cstr,int p_len) {
 
 	uint32_t hashv = 5381;

@@ -113,8 +113,6 @@ struct PropertyInfo {
 	}
 };
 
-
-
 Array convert_property_list(const List<PropertyInfo> * p_list);
 
 struct MethodInfo {
@@ -134,7 +132,7 @@ struct MethodInfo {
 	MethodInfo(const String& p_name, const PropertyInfo& p_param1,const PropertyInfo& p_param2);
 	MethodInfo(const String& p_name, const PropertyInfo& p_param1,const PropertyInfo& p_param2,const PropertyInfo& p_param3);
 	MethodInfo(const String& p_name, const PropertyInfo& p_param1,const PropertyInfo& p_param2,const PropertyInfo& p_param3,const PropertyInfo& p_param4);
-	MethodInfo(const String& p_name, const PropertyInfo& p_param1,const PropertyInfo& p_param2,const PropertyInfo& p_param3,const PropertyInfo& p_param4,const PropertyInfo& p_param5);															
+	MethodInfo(const String& p_name, const PropertyInfo& p_param1,const PropertyInfo& p_param2,const PropertyInfo& p_param3,const PropertyInfo& p_param4,const PropertyInfo& p_param5);
 	MethodInfo(Variant::Type ret);
 	MethodInfo(Variant::Type ret,const String& p_name);
 	MethodInfo(Variant::Type ret,const String& p_name, const PropertyInfo& p_param1);
@@ -230,7 +228,7 @@ static void initialize_type() {\
 	m_inherits::initialize_type();\
 	ObjectTypeDB::_add_type<m_type>();\
 	if (m_type::_get_bind_methods() != m_inherits::_get_bind_methods())\
-		_bind_methods();\
+		m_type::_bind_methods();\
 	initialized=true;\
 }\
 protected:\
