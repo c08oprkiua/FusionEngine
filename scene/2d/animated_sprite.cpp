@@ -207,7 +207,7 @@ void AnimatedSprite2D::set_frame(int p_frame) {
 	frame=p_frame;
 	update();
 	_change_notify("frame");
-	emit_signal(SceneStringNames::get_singleton()->frame_changed);
+	emit_signal(SceneStringNames::frame_changed);
 
 }
 int AnimatedSprite2D::get_frame() const {

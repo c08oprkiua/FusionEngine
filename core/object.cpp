@@ -329,13 +329,13 @@ void Object::set(const StringName& p_name, const Variant& p_value, bool *r_valid
 	}
 
 
-	if (p_name==CoreStringNames::get_singleton()->_script) {
+	if (p_name==CoreStringNames::_script) {
 		set_script(p_value);
 		if (r_valid)
 			*r_valid=true;
 		return;
 
-	} else if (p_name==CoreStringNames::get_singleton()->_meta) {
+	} else if (p_name==CoreStringNames::_meta) {
 		//set_meta(p_name,p_value);
 		metadata=p_value;
 		if (r_valid)
@@ -380,13 +380,13 @@ Variant Object::get(const StringName& p_name, bool *r_valid) const{
 	}
 
 
-	if (p_name==CoreStringNames::get_singleton()->_script) {
+	if (p_name==CoreStringNames::_script) {
 		ret = get_script();
 		if (r_valid)
 			*r_valid=true;
 		return ret;
 
-	} else if (p_name==CoreStringNames::get_singleton()->_meta) {
+	} else if (p_name==CoreStringNames::_meta) {
 		ret = metadata;
 		if (r_valid)
 			*r_valid=true;
@@ -579,7 +579,7 @@ static bool _test_call_error(const StringName& p_func,const Variant::CallError& 
 void Object::call_multilevel(const StringName& p_method,const Variant** p_args,int p_argcount) {
 
 
-	if (p_method==CoreStringNames::get_singleton()->_free) {
+	if (p_method==CoreStringNames::_free) {
 #ifdef DEBUG_ENABLED
 		if (cast_to<RefCounted>()) {
 			ERR_EXPLAIN("Can't 'free' a reference.");
@@ -649,7 +649,7 @@ void Object::call_multilevel_reversed(const StringName& p_method,const Variant**
 
 bool Object::has_method(const StringName& p_method) const {
 
-	if (p_method==CoreStringNames::get_singleton()->_free) {
+	if (p_method==CoreStringNames::_free) {
 		return true;
 	}
 
@@ -704,7 +704,7 @@ Variant Object::callv(const StringName& p_method,const Array& p_args) {
 
 Variant Object::call(const StringName& p_name, VARIANT_ARG_DECLARE) {
 #if 0
-	if (p_name==CoreStringNames::get_singleton()->_free) {
+	if (p_name==CoreStringNames::_free) {
 #ifdef DEBUG_ENABLED
 		if (cast_to<RefCounted>()) {
 			ERR_EXPLAIN("Can't 'free' a reference.");
@@ -772,7 +772,7 @@ Variant Object::call(const StringName& p_name, VARIANT_ARG_DECLARE) {
 
 void Object::call_multilevel(const StringName& p_name, VARIANT_ARG_DECLARE) {
 #if 0
-	if (p_name==CoreStringNames::get_singleton()->_free) {
+	if (p_name==CoreStringNames::_free) {
 #ifdef DEBUG_ENABLED
 		if (cast_to<RefCounted>()) {
 			ERR_EXPLAIN("Can't 'free' a reference.");
@@ -833,7 +833,7 @@ void Object::call_multilevel(const StringName& p_name, VARIANT_ARG_DECLARE) {
 
 Variant Object::call(const StringName& p_method,const Variant** p_args,int p_argcount,Variant::CallError &r_error) {
 
-	if (p_method==CoreStringNames::get_singleton()->_free) {
+	if (p_method==CoreStringNames::_free) {
 		//free must be here, before anything, always ready
 #ifdef DEBUG_ENABLED
 		if (p_argcount!=0) {
@@ -951,7 +951,7 @@ void Object::set_script(const RefPtr& p_script) {
 	}
 
 	_change_notify("script/script");
-	emit_signal(CoreStringNames::get_singleton()->script_changed);
+	emit_signal(CoreStringNames::script_changed);
 
 }
 

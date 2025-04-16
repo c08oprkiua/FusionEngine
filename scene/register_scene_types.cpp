@@ -614,5 +614,5 @@ void unregister_scene_types() {
 
 	memdelete( resource_loader_theme );
 	memdelete( resource_loader_shader );
-	SceneStringNames::free();
+	//SceneStringNames::free();
 }

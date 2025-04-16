@@ -40,16 +40,14 @@
 struct StaticCString {
 
 	const char *ptr;
-	static StaticCString create(const char *p_ptr);
+
+	constexpr StaticCString(const char *p_ptr) : ptr(p_ptr) {}
+	constexpr static StaticCString create(const char *p_ptr){
+		return StaticCString(p_ptr);
+	}
 };
 
-struct HashedString {
-	uint32_t str_hash;
-	const char *str;
-
-	constexpr HashedString(const char *p_str): str_hash(String::hash(p_str)), str(p_str){}
-
-};
+//TODO: Make a compile-time StringName DB specifically for StaticCStrings
 
 class StringName {
 friend void register_core_types();
@@ -72,11 +70,6 @@ friend void unregister_core_types();
 		_Data *prev;
 		_Data *next;
 		_Data() { cname=NULL; next=prev=NULL; hash=0; }
-	};
-	
-	union _HashUnion {
-		_Data *ptr;
-		uint32_t hash;
 	};
 	
 	static _Data *_table[STRING_TABLE_LEN];

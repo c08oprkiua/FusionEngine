@@ -29,10 +29,6 @@
 #include "string_db.h"
 #include "print_string.h"
 
-StaticCString StaticCString::create(const char *p_ptr) {
-	StaticCString scs; scs.ptr=p_ptr; return scs;
-}
-
 StringName::_Data *StringName::_table[STRING_TABLE_LEN];
 bool StringName::configured=false;
 
