@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  string_db.h                                                          */
+/*  types/string_name.h                                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -29,8 +29,8 @@
 #ifndef STRING_DB_H
 #define STRING_DB_H
 
-#include "hash_map.h"
-#include "ustring.h"
+#include "core/hash_map.h"
+#include "types/ustring.h"
 #include "safe_refcount.h"
 
 /**
@@ -72,6 +72,9 @@ friend void unregister_core_types();
 		_Data() { cname=NULL; next=prev=NULL; hash=0; }
 	};
 	
+	constexpr static int compiled_count = 0;
+	//constexpr static StringName compiled_table[compiled_count] = {};
+
 	static _Data *_table[STRING_TABLE_LEN];
 	static bool configured;
 

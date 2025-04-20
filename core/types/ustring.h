@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  ustring.h                                                            */
+/*  types/ustring.h                                                            */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -286,10 +286,10 @@ public:
 };
 
 
-bool operator==(const char*p_chr, const String& p_str);
+bool operator==(const char *p_chr, const String &p_str);
 
-String operator+(const char*p_chr, const String& p_str);
-String operator+(CharType p_chr, const String& p_str);
+String operator+(const char *p_chr, const String &p_str);
+String operator+(CharType p_chr, const String &p_str);
 
 String itos(int64_t p_val);
 String rtos(double p_val);
@@ -298,7 +298,7 @@ String rtoss(double p_val); //scientific version
 
 struct NoCaseComparator {
 		
-	bool operator()(const String& p_a, const String& p_b) const {
+	bool operator()(const String &p_a, const String &p_b) const {
 		
 		return p_a.nocasecmp_to(p_b)<0;
 	}

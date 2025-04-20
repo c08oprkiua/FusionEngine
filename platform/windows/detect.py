@@ -182,8 +182,8 @@ def configure(env):
 		env['RANLIB'] = gcc_prefix+"ranlib.exe"
 		env['LD'] = gcc_prefix+"g++.exe"
 
-		env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-mwindows', '-D__MSVCRT_VERSION__=0x400', '-DWINDOWS_USE_MUTEX=1'])
-		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-DMINGW_ENABLED'])
+		env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-mwindows', '-D__MSVCRT_VERSION__=0x400', '-DWINDOWS_USE_MUTEX=1', '-std=c++11'])
+		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-DMINGW_ENABLED', '-std=c++11'])
 		env.Append(CCFLAGS=['-DGLES1_ENABLED', '-DOPENGL_ENABLED', '-DGLES_OVER_GL', '-DGLEW_ENABLED', '-DMINGW_ENABLED', '-DNO_SAFE_CAST', '-fno-rtti'])
 		env.Append(LIBS=['unicows', 'mingw32', 'opengl32', 'dsound', 'ole32', 'winmm', 'gdi32', 'iphlpapi', 'wsock32', 'kernel32', 'comctl32'])
 
@@ -192,7 +192,50 @@ def configure(env):
 		env.Append(CCFLAGS=['-march=pentium','-mtune=generic'])
 		env.Append(CPPFLAGS=['-march=pentium','-mtune=generic'])
 		env.Append(LINKFLAGS=['-march=pentium','-mtune=generic'])
-		
+	elif env['compiler'] == 'clang':
+		env["CC"] = "clang"
+		env["CXX"] = "clang++"
+		env["LINK"] = "lld-link"
+		env["AR"] = "llvm-lib"
+		#env['RANLIB'] = gcc_prefix+"ranlib.exe"
+		#env['LD'] = gcc_prefix+"g++.exe"
+
+		env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-D__MSVCRT_VERSION__=0x400', '-DWINDOWS_USE_MUTEX=1'])
+		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-DMINGW_ENABLED'])
+
+
+		if (env["target"]=="release"):
+			env.Append(CCFLAGS=['-O2','-ffast-math','-fomit-frame-pointer'])
+		elif (env["target"]=="release_debug"):
+			env.Append(CCFLAGS=['-O2', '-g','-ffast-math','-DDEBUG_ENABLED'])
+
+			if env["tools"]!="no":
+				env.Append(CCFLAGS=['-fno-omit-frame-pointer', '-fno-tree-vectorize'])
+		elif (env["target"]=="debug"):
+			env.Append(CCFLAGS=['-g', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
+
+		#env.Append(CCFLAGS=['-march=x86', '-mcpu=pentium'])
+		env.Append(CCFLAGS=['--target=i386-pc-none-gcc32'])
+		#env.Append(CPPFLAGS=['-march=x86', '-mcpu=pentium'])
+		env.Append(CPPFLAGS=['--target=i386-pc-none-gcc32'])
+
+		#HORRIBLE! DON'T PUSH THIS TO GIT!
+		base_toolchain_path = '/home/c08o/.wine/drive_c/FusionToolchain/'
+
+		env.Append(LIBPATH=[
+			base_toolchain_path + 'lib',
+			base_toolchain_path + 'lib/gcc/mingw32/4.7.1'
+		])
+
+		env.Append(CPPPATH=[
+			base_toolchain_path + 'include',
+			base_toolchain_path + 'lib/gcc/mingw32/4.7.1/include',
+			base_toolchain_path + 'lib/gcc/mingw32/4.7.1/include/c++',
+			base_toolchain_path + 'lib/gcc/mingw32/4.7.1/include/c++/mingw32'
+		])
+
+
+
 	# import methods
 	# env.Append( BUILDERS = { 'GLSL120' : env.Builder(action = methods.build_legacygl_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )
 	# env.Append( BUILDERS = { 'GLSL' : env.Builder(action = methods.build_glsl_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )

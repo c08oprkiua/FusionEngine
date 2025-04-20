@@ -29,7 +29,7 @@
 #ifndef CORE_STRING_NAMES_H
 #define CORE_STRING_NAMES_H
 
-#include "string_db.h"
+#include "types/string_name.h"
 
 namespace CoreStringNames {
 	void create();

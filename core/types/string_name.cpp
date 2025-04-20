@@ -26,7 +26,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "string_db.h"
+#include "types/string_name.h"
 #include "print_string.h"
 
 StringName::_Data *StringName::_table[STRING_TABLE_LEN];

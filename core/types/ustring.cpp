@@ -27,7 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include <wchar.h>
-#include "ustring.h"
+#include "types/ustring.h"
 #include "os/memory.h"
 #include "print_string.h"
 #include "math_funcs.h"

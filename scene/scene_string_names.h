@@ -29,7 +29,7 @@
 #ifndef SCENE_STRING_NAMES_H
 #define SCENE_STRING_NAMES_H
 
-#include "string_db.h"
+#include "types/string_name.h"
 
 namespace SceneStringNames {
 
