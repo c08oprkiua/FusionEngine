@@ -65,7 +65,7 @@ class AudioDriverPSP : public AudioDriverSW {
 public:
 
 	const char* get_name() const {
-		return "PSP Audio";
+		return "sndcore2";
 	};
 
 	virtual Error init();

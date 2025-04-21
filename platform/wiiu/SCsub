@@ -5,7 +5,7 @@ Import('env')
 
 common_server = [
     "os_wiiu.cpp",
-	# "audio_driver_psp.cpp",
+	# "audio_driver_wiiu.cpp",
 	"rasterizer_wiiu.cpp",
 	"mutex_wiiu.cpp",
 	"thread_wiiu.cpp"

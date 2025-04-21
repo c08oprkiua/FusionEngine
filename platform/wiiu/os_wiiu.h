@@ -31,8 +31,6 @@
 #ifndef OS_WIIU_H
 #define OS_WIIU_H
 
-
-
 #include "servers/audio/audio_driver_dummy.h"
 #include "os/input.h"
 #include "drivers/unix/os_unix.h"

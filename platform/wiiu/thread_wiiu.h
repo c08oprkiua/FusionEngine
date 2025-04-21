@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef THREAD_POSIX_H
+#ifndef THREAD_WIIU_H
 #define THREAD_WIIU_H
 
 /**
@@ -37,6 +37,7 @@
 
 #if !defined(__WIIU__)
 
+#include "core/ustring.h"
 #include "os/thread.h"
 #include <thread>
 #include <sys/types.h>
