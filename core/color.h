@@ -43,7 +43,7 @@ struct Color {
 			float g;
 			float b;
 			float a;
-		};		
+		};
 		float components[4];
 	};
 
@@ -64,7 +64,7 @@ struct Color {
 	_FORCE_INLINE_ const float& operator[](int idx) const { 
 		return components[idx];
 	}
-		
+
 	void invert();
 	void contrast();
 	Color inverted() const;

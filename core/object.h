@@ -196,7 +196,7 @@ static void get_inheritance_list_static(List<String>* p_inheritance_list) { \
 }\
 static String get_category_static() { \
 	String category = m_inherits::get_category_static();\
-	if (_get_category!=m_inherits::_get_category) {\
+	if (_get_category != m_inherits::_get_category) {\
 		if (category!="")\
 			category+="/";\
 		category+=_get_category();\

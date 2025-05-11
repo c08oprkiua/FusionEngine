@@ -39,6 +39,10 @@
 
 extern Mutex* dvector_lock;
 
+#define DVECTOR_MUTEX(func)\
+if (dvector_lock)\
+	dvector_lock->func();
+
 template<class T>
 class DVector {
 
@@ -50,9 +54,9 @@ class DVector {
 		if (!mem.is_valid())
 			return;
 
-		if (dvector_lock)
-			dvector_lock->lock();
-					
+		DVECTOR_MUTEX(lock);
+
+
 		MID_Lock lock( mem );
 		
 
@@ -96,10 +100,8 @@ class DVector {
 		lock=MID_Lock();
 		
 		mem=new_mem;
-				
-		if (dvector_lock)
-			dvector_lock->unlock();
-				
+
+		DVECTOR_MUTEX(unlock);
 	}
 	
 	void reference( const DVector& p_dvector ) {
@@ -110,10 +112,8 @@ class DVector {
 			dvector_lock->lock();
 		
 		if (!p_dvector.mem.is_valid()) {
-		
-			if (dvector_lock)
-				dvector_lock->unlock();
-			return;			
+			DVECTOR_MUTEX(unlock);
+			return;
 		}
 		
 		MID_Lock lock(p_dvector.mem);
@@ -123,23 +123,17 @@ class DVector {
 		
 		lock = MID_Lock();
 		mem=p_dvector.mem;
-			
-		if (dvector_lock)
-			dvector_lock->unlock();
-			
+
+		DVECTOR_MUTEX(unlock);
 	}
-	
 	
 	void unreference() {
 	
-		if (dvector_lock)
-			dvector_lock->lock();
+		DVECTOR_MUTEX(lock);
 		
 		if (!mem.is_valid()) {
-		
-			if (dvector_lock)
-				dvector_lock->unlock();
-			return;			
+			DVECTOR_MUTEX(unlock);
+			return;
 		}
 		
 		MID_Lock lock(mem);
@@ -157,7 +151,7 @@ class DVector {
 			
 				t[i].~T();
 			}
-						
+
 		}
 			
 		
@@ -165,9 +159,7 @@ class DVector {
 		
 		mem = MID ();
 		
-		if (dvector_lock)
-			dvector_lock->unlock();
-					
+		DVECTOR_MUTEX(unlock);
 	}
 	
 public:
@@ -290,10 +282,7 @@ T DVector<T>::get(int p_index) const {
 
 template<class T>
 void DVector<T>::set(int p_index, const T& p_val) {
-
-	if (p_index<0 || p_index>=size()) {		
-		ERR_FAIL_COND(p_index<0 || p_index>=size());
-	}
+	ERR_FAIL_INDEX(p_index, size());
 
 	Write w = write();
 	w[p_index]=p_val;
@@ -308,11 +297,7 @@ void DVector<T>::push_back(const T& p_val) {
 
 template<class T>
 const T DVector<T>::operator[](int p_index) const {
-
-	if (p_index<0 || p_index>=size()) {
-		T& aux=*((T*)0); //nullreturn
-		ERR_FAIL_COND_V(p_index<0 || p_index>=size(),aux);
-	}
+	ERR_FAIL_INDEX_V(p_index, size(), T());
 
 	Read r = read();
 	
@@ -323,13 +308,11 @@ const T DVector<T>::operator[](int p_index) const {
 template<class T>
 Error DVector<T>::resize(int p_size) {
 
-	if (dvector_lock)
-		dvector_lock->lock();
+	DVECTOR_MUTEX(lock);
 
 	bool same = p_size==size();
 	
-	if (dvector_lock)
-		dvector_lock->unlock();
+	DVECTOR_MUTEX(unlock);
 	// no further locking is necesary because we are supposed to own the only copy of this (using copy on write)	
 	
 	if (same)
@@ -407,6 +390,6 @@ Error DVector<T>::resize(int p_size) {
 	return OK;
 }
 
-
+#undef DVECTOR_MUTEX
 
 #endif

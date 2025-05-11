@@ -101,13 +101,13 @@ void Image::_get_mipmap_offset_and_size(int p_mipmap,int &r_offset, int &r_width
 	int minw,minh;
 	_get_format_min_data_size(format,minw,minh);
 
-	for(int i=0;i<p_mipmap;i++) {
-		int s = w*h;
-		s*=pixel_size;
-		s>>=pixel_rshift;
-		ofs+=s;
-		w=MAX(minw,w>>1);
-		h=MAX(minh,h>>1);
+	for(int i = 0; i < p_mipmap; i++) {
+		int s = w * h;
+		s *= pixel_size;
+		s >>= pixel_rshift;
+		ofs += s;
+		w = MAX(minw, w >> 1);
+		h = MAX(minh, h >> 1);
 	}
 
 	r_offset=ofs;
