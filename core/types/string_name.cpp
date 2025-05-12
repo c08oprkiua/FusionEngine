@@ -216,7 +216,9 @@ StringName::StringName(const StaticCString& p_static_string) {
 
 	_global_lock();
 
-	uint32_t hash = String::hash(p_static_string.ptr);
+	//uint32_t hash = String::hash(p_static_string.ptr);
+
+	uint32_t hash = p_static_string.hash;
 
 	uint32_t idx=hash&STRING_TABLE_MASK;
 
@@ -225,7 +227,7 @@ StringName::StringName(const StaticCString& p_static_string) {
 	while(_data) {
 
 		// compare hash first
-		if (_data->hash==hash && _data->get_name()==p_static_string.ptr)
+		if (_data->hash == hash && _data->get_name() == p_static_string.ptr)
 			break;
 		_data=_data->next;
 	}

@@ -40,8 +40,12 @@
 struct StaticCString {
 
 	const char *ptr;
+	uint32_t hash;
 
-	constexpr StaticCString(const char *p_ptr) : ptr(p_ptr) {}
+	constexpr StaticCString(const char *p_ptr):
+		ptr(p_ptr),
+		hash(String::constexpr_hash(p_ptr))
+	{}
 	constexpr static StaticCString create(const char *p_ptr){
 		return StaticCString(p_ptr);
 	}

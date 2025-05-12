@@ -58,7 +58,7 @@ class Vector {
  	
 		if (!_ptr)
  			return NULL;
-		return reinterpret_cast<int*>(((uint8_t*)(_ptr))+sizeof(SafeRefCount));
+		return reinterpret_cast<int*>( ((uint8_t*)(_ptr)) + sizeof(SafeRefCount));
  		
  	}
 	_FORCE_INLINE_ T* _get_data() const {
