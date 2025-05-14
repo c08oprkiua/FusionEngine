@@ -34,7 +34,7 @@
 */
 
 #include "aabb.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "vector3.h"
 #include "plane.h"
 #include "quat.h"

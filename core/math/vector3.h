@@ -36,7 +36,7 @@
 #include "typedefs.h"
 #include "math_defs.h"
 #include "math_funcs.h"
-#include "ustring.h"
+#include "types/ustring.h"
 
 struct Vector3 {
         
