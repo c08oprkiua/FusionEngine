@@ -29,33 +29,21 @@
 #ifndef CORE_STRING_NAMES_H
 #define CORE_STRING_NAMES_H
 
-#include "string_db.h"
+#include "types/string_name.h"
 
-class CoreStringNames {
+namespace CoreStringNames {
+	void create();
 
-friend void register_core_types();
-friend void unregister_core_types();
-
-	static CoreStringNames* singleton;
-
-	static void create() { singleton = memnew(CoreStringNames); }
-	static void free() { memdelete( singleton); singleton=NULL; }
-
-	CoreStringNames();
-public:
-	_FORCE_INLINE_ static CoreStringNames* get_singleton() { return singleton; }
-
-
-	StringName _free;
-	StringName changed;
-	StringName _meta;
-	StringName _script;
-	StringName script_changed;
-	StringName ___pdcdata;
-	StringName __getvar;
-	StringName _iter_init;
-	StringName _iter_next;
-	StringName _iter_get;
+	extern StringName _free;
+	extern StringName changed;
+	extern StringName _meta;
+	extern StringName _script;
+	extern StringName script_changed;
+	extern StringName ___pdcdata;
+	extern StringName __getvar;
+	extern StringName _iter_init;
+	extern StringName _iter_next;
+	extern StringName _iter_get;
 
 };
 

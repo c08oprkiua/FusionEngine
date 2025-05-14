@@ -68,7 +68,7 @@ void CanvasItem::_propagate_visibility_changed(bool p_visible) {
 	if (p_visible)
 		update(); //todo optimize
 	else
-		emit_signal(SceneStringNames::get_singleton()->hide);
+		emit_signal(SceneStringNames::hide);
 	_block();
 
 	for(int i=0;i<get_child_count();i++) {
@@ -162,10 +162,10 @@ void CanvasItem::_update_callback() {
 		}
 		drawing=true;
 		notification(NOTIFICATION_DRAW);
-		emit_signal(SceneStringNames::get_singleton()->draw);
+		emit_signal(SceneStringNames::draw);
 		if (get_script_instance()) {
 			Variant::CallError err;
-			get_script_instance()->call_multilevel_reversed(SceneStringNames::get_singleton()->_draw,NULL,0);
+			get_script_instance()->call_multilevel_reversed(SceneStringNames::_draw,NULL,0);
 		}
 		drawing=false;
 
@@ -358,7 +358,7 @@ void CanvasItem::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 
-			emit_signal(SceneStringNames::get_singleton()->visibility_changed);
+			emit_signal(SceneStringNames::visibility_changed);
 		} break;
 
 	}
@@ -463,7 +463,7 @@ CanvasItem::BlendMode CanvasItem::get_blend_mode() const {
 void CanvasItem::item_rect_changed() {
 
 	update();
-	emit_signal(SceneStringNames::get_singleton()->item_rect_changed);
+	emit_signal(SceneStringNames::item_rect_changed);
 }
 
 
