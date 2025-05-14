@@ -37,7 +37,7 @@ void Shader::set_mode(Mode p_mode) {
 
 	ERR_FAIL_INDEX(p_mode,2);
 	VisualServer::get_singleton()->shader_set_mode(shader,VisualServer::ShaderMode(p_mode));
-	emit_signal(SceneStringNames::get_singleton()->changed);
+	emit_signal(SceneStringNames::changed);
 }
 
 Shader::Mode Shader::get_mode() const {
@@ -49,7 +49,7 @@ void Shader::set_code( const String& p_vertex, const String& p_fragment, const S
 
 	VisualServer::get_singleton()->shader_set_code(shader,p_vertex,p_fragment,p_light,0,p_fragment_ofs,p_light_ofs);
 	params_cache_dirty=true;
-	emit_signal(SceneStringNames::get_singleton()->changed);
+	emit_signal(SceneStringNames::changed);
 }
 
 

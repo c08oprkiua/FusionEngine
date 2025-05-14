@@ -733,7 +733,7 @@ bool ObjectTypeDB::has_method(StringName p_type,StringName p_method,bool p_no_in
 MethodBind* ObjectTypeDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind , const MethodDefinition &method_name, const Variant **p_defs, int p_defcount) {
 	StringName mdname=method_name.name;
 #else
-MethodBind* ObjectTypeDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind , const char *method_name, const Variant **p_defs, int p_defcount) {
+MethodBind* ObjectTypeDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind, const char *method_name, const Variant **p_defs, int p_defcount) {
 	StringName mdname=StaticCString::create(method_name);
 #endif
 

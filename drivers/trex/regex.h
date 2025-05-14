@@ -12,7 +12,7 @@
 #ifndef REGEX_H
 #define REGEX_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "list.h"
 #include "core/reference.h"
 struct TRex;

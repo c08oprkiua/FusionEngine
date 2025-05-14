@@ -29,7 +29,7 @@
 #ifndef TEST_STRING_H
 #define TEST_STRING_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "os/main_loop.h"
 
 namespace TestString {
