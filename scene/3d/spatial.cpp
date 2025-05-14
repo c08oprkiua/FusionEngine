@@ -174,13 +174,13 @@ void Node3D::_notification(int p_what) {
 			if (get_script_instance()) {
 
 				Variant::CallError err;
-				get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_enter_world,NULL,0);
+				get_script_instance()->call_multilevel(SceneStringNames::_enter_world,NULL,0);
 			}
 #ifdef TOOLS_ENABLED
 			if (get_tree()->is_editor_hint()) {
 
-//				get_scene()->call_group(SceneMainLoop::GROUP_CALL_REALTIME,SceneStringNames::get_singleton()->_spatial_editor_group,SceneStringNames::get_singleton()->_request_gizmo,this);
-				get_tree()->call_group(0,SceneStringNames::get_singleton()->_spatial_editor_group,SceneStringNames::get_singleton()->_request_gizmo,this);
+//				get_scene()->call_group(SceneMainLoop::GROUP_CALL_REALTIME,SceneStringNames::_spatial_editor_group,SceneStringNames::_request_gizmo,this);
+				get_tree()->call_group(0,SceneStringNames::_spatial_editor_group,SceneStringNames::_request_gizmo,this);
 				if (!data.gizmo_disabled) {
 
 					if (data.gizmo.is_valid())
@@ -201,7 +201,7 @@ void Node3D::_notification(int p_what) {
 			if (get_script_instance()) {
 
 				Variant::CallError err;
-				get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_exit_world,NULL,0);
+				get_script_instance()->call_multilevel(SceneStringNames::_exit_world,NULL,0);
 			}
 
 			data.viewport=NULL;
@@ -513,7 +513,7 @@ Transform3D Node3D::get_import_transform() const {
 void Node3D::_propagate_visibility_changed() {
 
 	notification(NOTIFICATION_VISIBILITY_CHANGED);
-	emit_signal(SceneStringNames::get_singleton()->visibility_changed);
+	emit_signal(SceneStringNames::visibility_changed);
 	_change_notify("visibility/visible");
 #ifdef TOOLS_ENABLED
 	if (data.gizmo.is_valid())

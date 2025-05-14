@@ -32,7 +32,7 @@
 #include "os/file_access.h"
 
 #include "dvector.h"
-#include "ustring.h"
+#include "types/ustring.h"
 
 class FileAccessBuffered : public FileAccess {
 
