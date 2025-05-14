@@ -29,7 +29,7 @@
 #ifndef OS_H
 #define OS_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "list.h"
 #include "vector.h"
 #include "os/main_loop.h"

@@ -32,7 +32,7 @@
 
 #include "typedefs.h"
 #include "os/copymem.h"
-#include "ustring.h"
+#include "types/ustring.h"
 
 /**
 	@author Juan Linietsky <reduzio@gmail.com>

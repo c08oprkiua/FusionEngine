@@ -193,15 +193,15 @@ bool PathFollow3D::get_cubic_interpolation() const {
 
 bool PathFollow3D::_set(const StringName& p_name, const Variant& p_value) {
 
-	if (p_name==SceneStringNames::get_singleton()->offset) {
+	if (p_name==SceneStringNames::offset) {
 		set_offset(p_value);
-	} else if (p_name==SceneStringNames::get_singleton()->unit_offset) {
+	} else if (p_name==SceneStringNames::unit_offset) {
 		set_unit_offset(p_value);
-	} else if (p_name==SceneStringNames::get_singleton()->rotation_mode) {
+	} else if (p_name==SceneStringNames::rotation_mode) {
 		set_rotation_mode(RotationMode(p_value.operator int()));
-	} else if (p_name==SceneStringNames::get_singleton()->v_offset) {
+	} else if (p_name==SceneStringNames::v_offset) {
 		set_v_offset(p_value);
-	} else if (p_name==SceneStringNames::get_singleton()->h_offset) {
+	} else if (p_name==SceneStringNames::h_offset) {
 		set_h_offset(p_value);
 	} else if (String(p_name)=="cubic_interp") {
 		set_cubic_interpolation(p_value);
@@ -217,15 +217,15 @@ bool PathFollow3D::_set(const StringName& p_name, const Variant& p_value) {
 
 bool PathFollow3D::_get(const StringName& p_name,Variant &r_ret) const{
 
-	if (p_name==SceneStringNames::get_singleton()->offset) {
+	if (p_name==SceneStringNames::offset) {
 		r_ret=get_offset();
-	} else if (p_name==SceneStringNames::get_singleton()->unit_offset) {
+	} else if (p_name==SceneStringNames::unit_offset) {
 		r_ret=get_unit_offset();
-	} else if (p_name==SceneStringNames::get_singleton()->rotation_mode) {
+	} else if (p_name==SceneStringNames::rotation_mode) {
 		r_ret=get_rotation_mode();
-	} else if (p_name==SceneStringNames::get_singleton()->v_offset) {
+	} else if (p_name==SceneStringNames::v_offset) {
 		r_ret=get_v_offset();
-	} else if (p_name==SceneStringNames::get_singleton()->h_offset) {
+	} else if (p_name==SceneStringNames::h_offset) {
 		r_ret=get_h_offset();
 	} else if (String(p_name)=="cubic_interp") {
 		r_ret=cubic;

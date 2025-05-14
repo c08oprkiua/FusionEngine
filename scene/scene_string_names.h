@@ -29,144 +29,131 @@
 #ifndef SCENE_STRING_NAMES_H
 #define SCENE_STRING_NAMES_H
 
-#include "string_db.h"
+#include "types/string_name.h"
 
-class SceneStringNames {
+namespace SceneStringNames {
 
-friend void register_scene_types();
-friend void unregister_scene_types();
+	void create();
 
-	static SceneStringNames* singleton;
+	extern StringName resized;
+	extern StringName dot;
+	extern StringName doubledot;
+	extern StringName draw;
+	extern StringName hide;
+	extern StringName visibility_changed;
+	extern StringName input_event;
+	extern StringName _input_event;
+	extern StringName item_rect_changed;
+	extern StringName shader_shader;
+	extern StringName enter_tree;
+	extern StringName exit_tree;
+	extern StringName size_flags_changed;
+	extern StringName minimum_size_changed;
+	extern StringName idle;
+	extern StringName iteration;
+	extern StringName update;
 
-	static void create() { singleton = memnew(SceneStringNames); }
-	static void free() { memdelete( singleton); singleton=NULL; }
+	extern StringName line_separation;
 
-	SceneStringNames();
-public:
-	_FORCE_INLINE_ static SceneStringNames* get_singleton() { return singleton; }
+	extern StringName mouse_enter;
+	extern StringName mouse_exit;
+	extern StringName focus_enter;
+	extern StringName focus_exit;
 
+	extern StringName sort_children;
 
-	StringName resized;
-	StringName dot;
-	StringName doubledot;
-	StringName draw;
-	StringName hide;
-	StringName visibility_changed;
-	StringName input_event;
-	StringName _input_event;
-	StringName item_rect_changed;
-	StringName shader_shader;
-	StringName enter_tree;
-	StringName exit_tree;
-	StringName size_flags_changed;
-	StringName minimum_size_changed;
-	StringName idle;
-	StringName iteration;
-	StringName update;
+	extern StringName finished;
+	extern StringName animation_changed;
 
-	StringName line_separation;
+	extern StringName body_enter_shape;
+	extern StringName body_enter;
+	extern StringName body_exit_shape;
+	extern StringName body_exit;
 
-	StringName mouse_enter;
-	StringName mouse_exit;
-	StringName focus_enter;
-	StringName focus_exit;
-
-	StringName sort_children;
-
-	StringName finished;
-	StringName animation_changed;
-
-	StringName body_enter_shape;
-	StringName body_enter;
-	StringName body_exit_shape;
-	StringName body_exit;
-
-	StringName _area_enter_tree;
-	StringName _area_exit_tree;
+	extern StringName _area_enter_tree;
+	extern StringName _area_exit_tree;
 
 	
-	StringName area_enter_shape;
-	StringName area_exit_shape;
+	extern StringName area_enter_shape;
+	extern StringName area_exit_shape;
 	
-	StringName _get_gizmo_geometry;
-	StringName _can_gizmo_scale;
+	extern StringName _get_gizmo_geometry;
+	extern StringName _can_gizmo_scale;
 
-	StringName _fixed_process;
-	StringName _process;
-	StringName _enter_world;
-	StringName _exit_world;
-	StringName _enter_tree;
-	StringName _exit_tree;
-	StringName _draw;
-	StringName _input;
-	StringName _ready;
+	extern StringName _fixed_process;
+	extern StringName _process;
+	extern StringName _enter_world;
+	extern StringName _exit_world;
+	extern StringName _enter_tree;
+	extern StringName _exit_tree;
+	extern StringName _draw;
+	extern StringName _input;
+	extern StringName _ready;
 
-	StringName _pressed;
-	StringName _toggled;
+	extern StringName _pressed;
+	extern StringName _toggled;
 
-	StringName _update_scroll;
-	StringName _update_xform;
+	extern StringName _update_scroll;
+	extern StringName _update_xform;
 
-	StringName _proxgroup_add;
-	StringName _proxgroup_remove;
+	extern StringName _proxgroup_add;
+	extern StringName _proxgroup_remove;
 
-	StringName grouped;
-	StringName ungrouped;
+	extern StringName grouped;
+	extern StringName ungrouped;
 
-	StringName has_point;
-	StringName get_drag_data;
-	StringName can_drop_data;
-	StringName drop_data;
+	extern StringName has_point;
+	extern StringName get_drag_data;
+	extern StringName can_drop_data;
+	extern StringName drop_data;
 
-	StringName enter_screen;
-	StringName exit_screen;
-	StringName enter_viewport;
-	StringName exit_viewport;
-	StringName enter_camera;
-	StringName exit_camera;
+	extern StringName enter_screen;
+	extern StringName exit_screen;
+	extern StringName enter_viewport;
+	extern StringName exit_viewport;
+	extern StringName enter_camera;
+	extern StringName exit_camera;
 
-	StringName _body_enter_tree;
-	StringName _body_exit_tree;
+	extern StringName _body_enter_tree;
+	extern StringName _body_exit_tree;
 
-	StringName changed;
-	StringName _shader_changed;
+	extern StringName changed;
+	extern StringName _shader_changed;
 
-	StringName _spatial_editor_group;
-	StringName _request_gizmo;
+	extern StringName _spatial_editor_group;
+	extern StringName _request_gizmo;
 
-	StringName offset;
-	StringName unit_offset;
-	StringName rotation_mode;
-	StringName rotate;
-	StringName v_offset;
-	StringName h_offset;
+	extern StringName offset;
+	extern StringName unit_offset;
+	extern StringName rotation_mode;
+	extern StringName rotate;
+	extern StringName v_offset;
+	extern StringName h_offset;
 
-	StringName transform_pos;
-	StringName transform_rot;
-	StringName transform_scale;
+	extern StringName transform_pos;
+	extern StringName transform_rot;
+	extern StringName transform_scale;
 
-	StringName _update_remote;
-	StringName _update_pairs;
+	extern StringName _update_remote;
+	extern StringName _update_pairs;
 
-	StringName area_enter;
-	StringName area_exit;
+	extern StringName area_enter;
+	extern StringName area_exit;
 
-	StringName get_minimum_size;
+	extern StringName get_minimum_size;
 
-	StringName play_play;
+	extern StringName play_play;
 
-	StringName _im_update;
-	StringName _queue_update;
+	extern StringName _im_update;
+	extern StringName _queue_update;
 
-	StringName baked_light_changed;
-	StringName _baked_light_changed;
+	extern StringName baked_light_changed;
+	extern StringName _baked_light_changed;
 
-	StringName _mouse_enter;
-	StringName _mouse_exit;
+	extern StringName _mouse_enter;
+	extern StringName _mouse_exit;
 
-	StringName frame_changed;
-
-
+	extern StringName frame_changed;
 };
 
 
