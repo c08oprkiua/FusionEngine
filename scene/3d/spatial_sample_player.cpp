@@ -37,7 +37,7 @@ bool SamplePlayer3D::_set(const StringName& p_name, const Variant& p_value) {
 
 	String name=p_name;
 
-	if (name==SceneStringNames::get_singleton()->play_play) {
+	if (name==SceneStringNames::play_play) {
 		if (library.is_valid()) {
 
 			String what=p_value;
@@ -60,7 +60,7 @@ bool SamplePlayer3D::_get(const StringName& p_name,Variant &r_ret) const {
 
 	String name=p_name;
 
-	if (name==SceneStringNames::get_singleton()->play_play) {
+	if (name==SceneStringNames::play_play) {
 		r_ret=played_back;
 		return true;
 	}
