@@ -209,11 +209,11 @@ void RigidBody2D::_body_enter_tree(ObjectID p_id) {
 	ERR_FAIL_COND(E->get().in_scene);
 
 	E->get().in_scene=true;
-	emit_signal(SceneStringNames::get_singleton()->body_enter,node);
+	emit_signal(SceneStringNames::body_enter,node);
 
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_enter_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
+		emit_signal(SceneStringNames::body_enter_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
 	}
 
 }
@@ -227,10 +227,10 @@ void RigidBody2D::_body_exit_tree(ObjectID p_id) {
 	ERR_FAIL_COND(!E);
 	ERR_FAIL_COND(!E->get().in_scene);
 	E->get().in_scene=false;
-	emit_signal(SceneStringNames::get_singleton()->body_exit,node);
+	emit_signal(SceneStringNames::body_exit,node);
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_exit_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
+		emit_signal(SceneStringNames::body_exit_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].local_shape);
 	}
 }
 
@@ -253,10 +253,10 @@ void RigidBody2D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 //			E->get().rc=0;
 			E->get().in_scene=node && node->is_inside_tree();
 			if (node) {
-				node->connect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree,make_binds(objid));
-				node->connect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree,make_binds(objid));
+				node->connect(SceneStringNames::enter_tree,this,SceneStringNames::_body_enter_tree,make_binds(objid));
+				node->connect(SceneStringNames::exit_tree,this,SceneStringNames::_body_exit_tree,make_binds(objid));
 				if (E->get().in_scene) {
-					emit_signal(SceneStringNames::get_singleton()->body_enter,node);
+					emit_signal(SceneStringNames::body_enter,node);
 				}
 			}
 
@@ -268,7 +268,7 @@ void RigidBody2D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 
 
 		if (E->get().in_scene) {
-			emit_signal(SceneStringNames::get_singleton()->body_enter_shape,objid,node,p_body_shape,p_local_shape);
+			emit_signal(SceneStringNames::body_enter_shape,objid,node,p_body_shape,p_local_shape);
 		}
 
 	} else {
@@ -283,17 +283,17 @@ void RigidBody2D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 		if (E->get().shapes.empty()) {
 
 			if (node) {
-				node->disconnect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree);
-				node->disconnect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree);
+				node->disconnect(SceneStringNames::enter_tree,this,SceneStringNames::_body_enter_tree);
+				node->disconnect(SceneStringNames::exit_tree,this,SceneStringNames::_body_exit_tree);
 				if (in_scene)
-					emit_signal(SceneStringNames::get_singleton()->body_exit,obj);
+					emit_signal(SceneStringNames::body_exit,obj);
 
 			}
 
 			contact_monitor->body_map.erase(E);
 		}
 		if (node && in_scene) {
-			emit_signal(SceneStringNames::get_singleton()->body_exit_shape,objid,obj,p_body_shape,p_local_shape);
+			emit_signal(SceneStringNames::body_exit_shape,objid,obj,p_body_shape,p_local_shape);
 		}
 
 	}

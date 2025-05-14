@@ -774,8 +774,6 @@ void GridMap::_octant_bake(const OctantKey &p_key, const Ref<TriangleMesh>& p_tm
 						int lc = p_lights.size();
 						const BakeLight* bl = p_lights.ptr();
 						float ofs = cell_size*0.02;
-						float att = 0.2;
-
 
 						for(;V;V=V->next()) {
 
@@ -811,6 +809,12 @@ void GridMap::_octant_bake(const OctantKey &p_key, const Ref<TriangleMesh>& p_tm
 													max_l=1.0-dist;
 												}
 											}
+										} break;
+										case VS::LIGHT_OMNI: {
+
+										} break;
+										case VS::LIGHT_SPOT: {
+
 										} break;
 									}
 
@@ -902,7 +906,7 @@ void GridMap::_notification(int p_what) {
 			if (use_baked_light) {
 
 				if (baked_light_instance) {
-					baked_light_instance->disconnect(SceneStringNames::get_singleton()->baked_light_changed,this,SceneStringNames::get_singleton()->_baked_light_changed);
+					baked_light_instance->disconnect(SceneStringNames::baked_light_changed,this,SceneStringNames::_baked_light_changed);
 					baked_light_instance=NULL;
 				}
 				_baked_light_changed();
@@ -1557,7 +1561,7 @@ void GridMap::_find_baked_light() {
 		if (bl) {
 
 			baked_light_instance=bl;
-			baked_light_instance->connect(SceneStringNames::get_singleton()->baked_light_changed,this,SceneStringNames::get_singleton()->_baked_light_changed);
+			baked_light_instance->connect(SceneStringNames::baked_light_changed,this,SceneStringNames::_baked_light_changed);
 			_baked_light_changed();
 
 			return;
@@ -1618,7 +1622,7 @@ void GridMap::set_use_baked_light(bool p_use) {
 	if (is_inside_world()) {
 		if (!p_use) {
 			if (baked_light_instance) {
-				baked_light_instance->disconnect(SceneStringNames::get_singleton()->baked_light_changed,this,SceneStringNames::get_singleton()->_baked_light_changed);
+				baked_light_instance->disconnect(SceneStringNames::baked_light_changed,this,SceneStringNames::_baked_light_changed);
 				baked_light_instance=NULL;
 			}
 			_baked_light_changed();

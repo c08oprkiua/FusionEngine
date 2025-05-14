@@ -29,7 +29,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */

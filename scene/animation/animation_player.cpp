@@ -322,11 +322,11 @@ void AnimationPlayer::_generate_node_caches(AnimationData* p_anim) {
 				pa.special=SP_NONE;
 				if (false && p_anim->node_cache[i]->node_2d) {
 
-					if (pa.prop==SceneStringNames::get_singleton()->transform_pos)
+					if (pa.prop==SceneStringNames::transform_pos)
 						pa.special=SP_NODE2D_POS;
-					else if (pa.prop==SceneStringNames::get_singleton()->transform_rot)
+					else if (pa.prop==SceneStringNames::transform_rot)
 						pa.special=SP_NODE2D_ROT;
-					else if (pa.prop==SceneStringNames::get_singleton()->transform_scale)
+					else if (pa.prop==SceneStringNames::transform_scale)
 						pa.special=SP_NODE2D_SCALE;
 				}
 				p_anim->node_cache[i]->property_anim[property]=pa;
@@ -642,13 +642,13 @@ void AnimationPlayer::_animation_process(float p_delta) {
 				String new_name = playback.assigned;
 				queued.pop_front();
 				end_notify=false;
-				emit_signal(SceneStringNames::get_singleton()->animation_changed, old, new_name);
+				emit_signal(SceneStringNames::animation_changed, old, new_name);
 			} else {
                 //stop();
 				playing = false;
 				_set_process(false);
 				end_notify=false;
-				emit_signal(SceneStringNames::get_singleton()->finished);
+				emit_signal(SceneStringNames::finished);
 			}
 		}
 

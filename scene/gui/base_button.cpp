@@ -62,7 +62,7 @@ void BaseButton::_input_event(InputEvent p_event) {
 						pressed();
 						if (get_script_instance()) {
 							Variant::CallError ce;
-							get_script_instance()->call(SceneStringNames::get_singleton()->_pressed,NULL,0,ce);
+							get_script_instance()->call(SceneStringNames::_pressed,NULL,0,ce);
 						}
 
 						emit_signal("pressed");
@@ -73,7 +73,7 @@ void BaseButton::_input_event(InputEvent p_event) {
 						pressed();
 						if (get_script_instance()) {
 							Variant::CallError ce;
-							get_script_instance()->call(SceneStringNames::get_singleton()->_pressed,NULL,0,ce);
+							get_script_instance()->call(SceneStringNames::_pressed,NULL,0,ce);
 						}
 						emit_signal("pressed");
 
@@ -110,7 +110,7 @@ void BaseButton::_input_event(InputEvent p_event) {
 						pressed();
 						if (get_script_instance()) {
 							Variant::CallError ce;
-							get_script_instance()->call(SceneStringNames::get_singleton()->_pressed,NULL,0,ce);
+							get_script_instance()->call(SceneStringNames::_pressed,NULL,0,ce);
 						}
 
 						emit_signal("pressed");
@@ -125,7 +125,7 @@ void BaseButton::_input_event(InputEvent p_event) {
 						toggled(status.pressed);
 						emit_signal("toggled",status.pressed);
 						if (get_script_instance()) {
-							get_script_instance()->call(SceneStringNames::get_singleton()->_toggled,status.pressed);
+							get_script_instance()->call(SceneStringNames::_toggled,status.pressed);
 						}
 
 
@@ -196,7 +196,7 @@ void BaseButton::_input_event(InputEvent p_event) {
 						
 						toggled(status.pressed);
 						if (get_script_instance()) {
-							get_script_instance()->call(SceneStringNames::get_singleton()->_toggled,status.pressed);
+							get_script_instance()->call(SceneStringNames::_toggled,status.pressed);
 						}
 						emit_signal("toggled",status.pressed);
 					}

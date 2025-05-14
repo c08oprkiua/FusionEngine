@@ -208,7 +208,6 @@ void unregister_core_types() {
 
 	unregister_variant_methods();
 
-	CoreStringNames::free();
 	ObjectTypeDB::cleanup();
 	ResourceCache::clear();
 	ObjectDB::cleanup();

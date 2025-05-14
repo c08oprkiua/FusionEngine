@@ -104,12 +104,12 @@ void Sprite2D::set_texture(const Ref<Texture>& p_texture) {
 	if (p_texture==texture)
 		return;
 	if (texture.is_valid()) {
-		texture->disconnect(CoreStringNames::get_singleton()->changed,this,SceneStringNames::get_singleton()->update);
+		texture->disconnect(CoreStringNames::changed,this,SceneStringNames::update);
 	}
 	texture=p_texture;
 	if (texture.is_valid()) {
 		texture->set_flags(texture->get_flags()); //remove repeat from texture, it looks bad in sprites
-		texture->connect(CoreStringNames::get_singleton()->changed,this,SceneStringNames::get_singleton()->update);
+		texture->connect(CoreStringNames::changed,this,SceneStringNames::update);
 	}
 	update();
 	item_rect_changed();
@@ -202,7 +202,7 @@ void Sprite2D::set_frame(int p_frame) {
 
 	frame=p_frame;
 
-	emit_signal(SceneStringNames::get_singleton()->frame_changed);
+	emit_signal(SceneStringNames::frame_changed);
 }
 
 int Sprite2D::get_frame() const {
