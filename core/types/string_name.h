@@ -46,6 +46,7 @@ struct StaticCString {
 		ptr(p_ptr),
 		hash(String::constexpr_hash(p_ptr))
 	{}
+
 	constexpr static StaticCString create(const char *p_ptr){
 		return StaticCString(p_ptr);
 	}

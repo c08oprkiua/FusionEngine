@@ -42,6 +42,7 @@
 	@author red <red@killy>
 */
 
+
 //Gotta use recursion to make this C++11 compliant, unfortunately.
 //IMPORTANT: Do NOT supply the last two args.
 //Well, ig you could change the last one cause it's just a seed, but
@@ -94,7 +95,7 @@ public:
 
 	bool operator==(const String& p_str) const;
 	bool operator!=(const String& p_str) const;
-	String operator+(const String & p_str) const;
+	String operator+(const String& p_str) const;
 	//String operator+(CharType p_char) const;
 
 	String& operator+=(const String &);
@@ -219,14 +220,14 @@ public:
 	static uint32_t hash(const CharType* p_str,int p_len); /* hash the string */
 	static uint32_t hash(const CharType* p_str); /* hash the string */
 	static uint32_t hash(const char* p_cstr,int p_len); /* hash the string */
+	static uint32_t hash(const char* p_cstr); /* hash the string */
 
 	constexpr static uint32_t constexpr_hash(const char *p_cstr){
 		return g_constexpr_hash(p_cstr);
 	}
 
-	static uint32_t hash(const char* p_cstr); /* hash the string */
 	uint32_t hash() const; /* hash the string */
-	uint64_t hash64() const; /* hash the string */	
+	uint64_t hash64() const; /* hash the string */
 	String md5_text() const;
 	Vector<uint8_t> md5_buffer() const;
 
@@ -272,10 +273,9 @@ public:
 	String(const CharType *p_str,int p_clip_to_len=-1);
 	String(const StrRange& p_range);
 
-
 };
 
-
+bool operator==(const char *p_chr, const String &p_str);
 bool operator==(const char *p_chr, const String &p_str);
 
 String operator+(const char *p_chr, const String &p_str);
@@ -294,7 +294,7 @@ struct NoCaseComparator {
 	}
 };
 
- /* end of namespace */
+/* end of namespace */
 
 
 #endif
