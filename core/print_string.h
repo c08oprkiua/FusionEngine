@@ -29,7 +29,7 @@
 #ifndef PRINT_STRING_H
 #define PRINT_STRING_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 
 extern void (*_print_func)(String);
 

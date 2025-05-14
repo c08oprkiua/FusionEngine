@@ -464,7 +464,7 @@ FixedMaterial::~FixedMaterial() {
 
 bool ShaderMaterial::_set(const StringName& p_name, const Variant& p_value) {
 
-	if (p_name==SceneStringNames::get_singleton()->shader_shader) {
+	if (p_name==SceneStringNames::shader_shader) {
 		set_shader(p_value);
 		return true;
 	} else {
@@ -482,7 +482,7 @@ bool ShaderMaterial::_set(const StringName& p_name, const Variant& p_value) {
 bool ShaderMaterial::_get(const StringName& p_name,Variant &r_ret) const {
 
 
-	if (p_name==SceneStringNames::get_singleton()->shader_shader) {
+	if (p_name==SceneStringNames::shader_shader) {
 
 		r_ret=get_shader();
 		return true;
@@ -521,11 +521,11 @@ void ShaderMaterial::_shader_changed() {
 void ShaderMaterial::set_shader(const Ref<Shader>& p_shader) {
 
 	if (shader.is_valid())
-		shader->disconnect(SceneStringNames::get_singleton()->changed,this,SceneStringNames::get_singleton()->_shader_changed);
+		shader->disconnect(SceneStringNames::changed,this,SceneStringNames::_shader_changed);
 	shader=p_shader;
 	VS::get_singleton()->material_set_shader(material,shader->get_rid());
 	if (shader.is_valid()) {
-		shader->connect(SceneStringNames::get_singleton()->changed,this,SceneStringNames::get_singleton()->_shader_changed);
+		shader->connect(SceneStringNames::changed,this,SceneStringNames::_shader_changed);
 	}
 	_change_notify();
 

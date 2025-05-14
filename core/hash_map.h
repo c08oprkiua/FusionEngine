@@ -31,7 +31,7 @@
 
 #include "hashfuncs.h"
 #include "error_macros.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "os/memory.h"
 #include "list.h"
 

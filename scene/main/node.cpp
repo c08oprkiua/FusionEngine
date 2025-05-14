@@ -50,7 +50,7 @@ void Node::_notification(int p_notification) {
 				Variant time=get_process_delta_time();
 				const Variant*ptr[1]={&time};
 				Variant::CallError err;
-				get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_process,ptr,1);
+				get_script_instance()->call_multilevel(SceneStringNames::_process,ptr,1);
 			}
 		} break;
 		case NOTIFICATION_FIXED_PROCESS: {
@@ -60,7 +60,7 @@ void Node::_notification(int p_notification) {
 				Variant time=get_fixed_process_delta_time();
 				const Variant*ptr[1]={&time};
 				Variant::CallError err;
-				get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_fixed_process,ptr,1);
+				get_script_instance()->call_multilevel(SceneStringNames::_fixed_process,ptr,1);
 			}
 
 		} break;
@@ -102,9 +102,9 @@ void Node::_notification(int p_notification) {
 			if (get_script_instance()) {
 
 				Variant::CallError err;
-				get_script_instance()->call_multilevel_reversed(SceneStringNames::get_singleton()->_ready,NULL,0);
+				get_script_instance()->call_multilevel_reversed(SceneStringNames::_ready,NULL,0);
 			}
-			//emit_signal(SceneStringNames::get_singleton()->enter_tree);
+			//emit_signal(SceneStringNames::enter_tree);
 
 		} break;
 		case NOTIFICATION_POSTINITIALIZE: {
@@ -180,10 +180,10 @@ void Node::_propagate_enter_tree() {
 	if (get_script_instance()) {
 
 		Variant::CallError err;
-		get_script_instance()->call_multilevel_reversed(SceneStringNames::get_singleton()->_enter_tree,NULL,0);
+		get_script_instance()->call_multilevel_reversed(SceneStringNames::_enter_tree,NULL,0);
 	}
 
-	emit_signal(SceneStringNames::get_singleton()->enter_tree);
+	emit_signal(SceneStringNames::enter_tree);
 
 
 	data.blocked++;
@@ -217,9 +217,9 @@ void Node::_propagate_exit_tree() {
 	if (get_script_instance()) {
 
 		Variant::CallError err;
-		get_script_instance()->call_multilevel(SceneStringNames::get_singleton()->_exit_tree,NULL,0);
+		get_script_instance()->call_multilevel(SceneStringNames::_exit_tree,NULL,0);
 	}
-	emit_signal(SceneStringNames::get_singleton()->exit_tree);
+	emit_signal(SceneStringNames::exit_tree);
 
 	notification(NOTIFICATION_EXIT_TREE,true);
 	if (data.tree)
@@ -782,11 +782,11 @@ Node *Node::_get_node(const NodePath& p_path) const {
 		StringName name = p_path.get_name(i);		
 		Node *next = NULL;
 		
-		if (name==SceneStringNames::get_singleton()->dot) { // .
+		if (name==SceneStringNames::dot) { // .
 		
 			next=current;
 			
-		} else if (name==SceneStringNames::get_singleton()->doubledot) { // ..
+		} else if (name==SceneStringNames::doubledot) { // ..
 			
 			if (current==NULL || !current->data.parent)
 				return NULL;
