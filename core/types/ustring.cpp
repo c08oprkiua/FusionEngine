@@ -27,7 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include <wchar.h>
-#include "ustring.h"
+#include "types/ustring.h"
 #include "os/memory.h"
 #include "print_string.h"
 #include "math_funcs.h"
@@ -134,7 +134,7 @@ bool String::operator==(const String& p_str) const {
 		return false;
 	if (empty())
 		return true;
-		
+
 	int l=length();
 	
 	const CharType *src = c_str();
@@ -2247,17 +2247,6 @@ String operator+(CharType p_chr, const String& p_str) {
 
 }
 
-uint32_t String::hash(const char* p_cstr) {
-		
-	uint32_t hashv = 5381;
-	uint32_t c;
-	
-	while ((c = *p_cstr++))
-		hashv = ((hashv << 5) + hashv) + c; /* hash * 33 + c */
-	
-	return hashv;	
-}
-
 uint32_t String::hash(const char* p_cstr,int p_len) {
 
 	uint32_t hashv = 5381;
@@ -3454,7 +3443,7 @@ String String::percent_encode() const {
 		uint8_t c = cs[i];
 		if ( (c>='A' && c<='Z') || (c>='a' && c<='z') || (c>='0' && c<='9') || c=='-' || c=='_' || c=='~' || c=='.') {
 
-			char p[2]={c,0};
+			char p[2]={static_cast<char>(c),0};
 			encoded+=p;
 		} else {
 			char p[4]={'%',0,0,0};

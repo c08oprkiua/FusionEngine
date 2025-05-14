@@ -26,21 +26,16 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
-#include "string_db.h"
+#include "types/string_name.h"
 #include "print_string.h"
 
-StaticCString StaticCString::create(const char *p_ptr) {
-	StaticCString scs; scs.ptr=p_ptr; return scs;
-}
-
 StringName::_Data *StringName::_table[STRING_TABLE_LEN];
+bool StringName::configured=false;
 
 StringName _scs_create(const char *p_chr) {
 
 	return (p_chr[0]?StringName(StaticCString::create(p_chr)):StringName());
 }
-
-bool StringName::configured=false;
 
 void StringName::setup() {
 	
@@ -54,7 +49,7 @@ void StringName::setup() {
 
 void StringName::cleanup() {
 	
-	_global_lock();	
+	_global_lock();
 	for(int i=0;i<STRING_TABLE_LEN;i++) {
 		
 		while(_table[i]) {
@@ -93,7 +88,6 @@ void StringName::unref() {
 	}
 	
 	_data=NULL;
-	
 }
 
 bool StringName::operator==(const String& p_name) const {
@@ -121,8 +115,6 @@ bool StringName::operator!=(const String& p_name) const {
 	return !(operator==(p_name));
 }
 
-
-
 bool StringName::operator!=(const StringName& p_name) const {
 	
 	// the real magic of all this mess happens here. 
@@ -130,7 +122,6 @@ bool StringName::operator!=(const StringName& p_name) const {
 	return _data!=p_name._data;
 	
 }
-
 
 void StringName::operator=(const StringName& p_name) {
 	
@@ -267,7 +258,6 @@ StringName::StringName(const StaticCString& p_static_string) {
 
 }
 
-
 StringName::StringName(const String& p_name) {
 	
 	_data=NULL;
@@ -350,8 +340,6 @@ StringName StringName::search(const char *p_name) {
 
 	_global_unlock();
 	return StringName(); //does not exist
-
-
 }
 
 StringName StringName::search(const CharType *p_name) {
@@ -388,6 +376,7 @@ StringName StringName::search(const CharType *p_name) {
 	return StringName(); //does not exist
 
 }
+
 StringName StringName::search(const String &p_name) {
 
 	ERR_FAIL_COND_V( p_name=="", StringName() );
@@ -419,14 +408,11 @@ StringName StringName::search(const String &p_name) {
 
 }
 
-
 StringName::StringName() {
-	
 	_data=NULL;
 }
 
 StringName::~StringName() {
-	
 	unref();
 }
 

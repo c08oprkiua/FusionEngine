@@ -144,7 +144,7 @@ void SpatialIndexer::_request_update() {
 	if (pending_update)
 		return;
 	pending_update=true;
-	call_deferred(SceneStringNames::get_singleton()->_update_pairs);
+	call_deferred(SceneStringNames::_update_pairs);
 
 }
 
