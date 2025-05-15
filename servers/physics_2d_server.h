@@ -503,7 +503,6 @@ public:
 
 	virtual int get_process_info(ProcessInfo p_info)=0;
 
-	virtual void set_active()=0;
 #endif //PHYSICS_2D_DISABLED
 };
 

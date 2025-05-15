@@ -706,6 +706,7 @@ Error Main::setup(const char *execpath,int argc, char *argv[],bool p_second_phas
 Error Main::setup2() {
 
 
+
 	OS::get_singleton()->initialize(video_mode,video_driver_idx,audio_driver_idx);
 
 	register_core_singletons();
@@ -759,15 +760,15 @@ Error Main::setup2() {
 	MAIN_PRINT("Main: Load Scene Types");
 
 	register_scene_types();
-	register_server_types();
 
 #ifdef TOOLS_ENABLED
 	EditorNode::register_editor_types();
 #endif
 
-	MAIN_PRINT("Main: Load Scripts, Modules, Drivers");
+	MAIN_PRINT("Main: Load Scripts, Modules, Servers, Drivers");
 
 	register_module_types();
+	register_server_types();
 	register_driver_types();
 
 	ScriptServer::init_languages();
@@ -812,7 +813,7 @@ bool Main::start() {
 	String _import_script;
 	String dumpstrings;
 	bool noquit=false;
-	bool convert_old=false;
+	//bool convert_old=false;
 	bool export_debug=false;
 	List<String> args = OS::get_singleton()->get_cmdline_args();
 	for (int i=0;i<args.size();i++) {
@@ -868,7 +869,7 @@ bool Main::start() {
 		} else if (args[i]=="-editor" || args[i]=="-e") {
 			editor=true;
 		} else if (args[i]=="-convert_old") {
-			convert_old=true;
+			//convert_old=true;
 		} else if (args[i].length() && args[i][0] != '-' && game_path == "") {
 
 			game_path=args[i];
