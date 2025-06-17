@@ -24,6 +24,10 @@ private:
 		Vector<ImmedeateInstruction> instructions;
 	};
 
+	struct TextureChangeCache {
+		uint32_t flags;
+	};
+
 	static RID_Owner<GXTexObj> texture_owner;
 	static RID_Owner<ImmedeateQueue> immedeate_queues;
 
@@ -33,6 +37,16 @@ public:
 	virtual void set_mipmap_policy(MipMapPolicy p_policy);
 	virtual MipMapPolicy get_mipmap_policy() const;
 
+	/* EXPERIMENTAL COLOR PALETTE API */
+
+	virtual int clut_get_palette_count();
+	virtual void clut_set_palette_count(int p_count);
+
+	virtual int clut_get_palette_size(int p_idx);
+
+	virtual PackedColorArray clut_get_table(int p_idx);
+	virtual void clut_set_table(int p_idx, PackedColorArray p_palette);
+
 	/* TEXTURE API */
 
 	virtual RID texture_create();
@@ -40,7 +54,7 @@ public:
 	virtual void texture_allocate(RID p_texture,int p_width, int p_height,Image::Format p_format,uint32_t p_flags=TEXTURE_FLAGS_DEFAULT);
 	virtual void texture_set_data(RID p_texture,const Image& p_image,CubeMapSide p_cube_side=CUBEMAP_LEFT);
 	virtual Image texture_get_data(RID p_texture,CubeMapSide p_cube_side=CUBEMAP_LEFT) const;
-	virtual void texture_set_flags(RID p_texture,uint32_t p_flags) ;
+	virtual void texture_set_flags(RID p_texture,uint32_t p_flags);
 	virtual uint32_t texture_get_flags(RID p_texture) const;
 	virtual Image::Format texture_get_format(RID p_texture) const;
 	virtual uint32_t texture_get_width(RID p_texture) const;
@@ -48,6 +62,8 @@ public:
 	virtual void texture_set_size_override(RID p_texture,int p_width, int p_height);
 	virtual bool texture_can_stream(RID p_texture) const;
 	virtual void texture_set_reload_hook(RID p_texture,ObjectID p_owner,const StringName& p_function) const;
+	virtual int texture_get_clut_palette(RID p_texture) const;
+	virtual void texture_set_clut_palette(RID p_texture, int p_clut_idx);
 
 	/* SHADER API */
 

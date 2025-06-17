@@ -114,6 +114,9 @@ void OSGameCubeWii::initialize_core() {
 	VIDEO_Init();
 	PAD_Init();
 
+
+	gx_vid_default = VIDEO_GetPreferredMode(NULL);
+
 // 	SDL_Init(SDL_INIT_VIDEO);
 // 	videoInfo = SDL_GetVideoInfo();
 //
@@ -135,7 +138,6 @@ void OSGameCubeWii::initialize_core() {
 
 
 // 	surface = SDL_SetVideoMode(640, 480, 32, videoFlags);
-	gx_vid_default = VIDEO_GetPreferredMode(NULL);
 
 	//gladLoadGLLoader(getprocaddr);
 	//printf("glEnableClientState => %p\n", glad_glEnableClientState);

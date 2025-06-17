@@ -20,7 +20,7 @@ def can_build():
 
 def get_opts():
     return [
-         ('gamecube','Compile gc_wii for GameCube instead of Wii','no')
+         ('gamecube','Compile the gc_wii platform for GameCube instead of Wii', 'no')
         ]
 
 

@@ -53,7 +53,7 @@ class OSGameCubeWii : public OS {
 
 	bool grab;
 
-	GXRModeObj *gx_vid_default;
+	static GXRModeObj *gx_vid_default;
 	
 	uint64_t ticks_start;
 	

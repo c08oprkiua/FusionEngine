@@ -2,16 +2,31 @@
 
 #include <malloc.h>
 
-#define DEFAULT_FIFO_SIZE	(256*1024)
+#define DEFAULT_FIFO_SIZE (256*1024)
 
 //A good bit of this code is based on the examples included with libogc2
 
 void VisualServerGX::set_mipmap_policy(MipMapPolicy p_policy){
-	WARN_PRINT("Changing mipmap policy on GX is not supported by hardware!");
+	//Tbh, I don't think the engine calls this ever...?
 }
 
 VisualServer::MipMapPolicy VisualServerGX::get_mipmap_policy() const {
 	return MIPMAPS_ENABLED_FOR_PO2;
+}
+
+void GX_texture_set(GXTexObj &obj, int p_width, int p_height){
+	void *raw_data = GX_GetTexObjData(&obj);
+	uint16_t width, height;
+	u8 format, wrap_s, wrap_t, mipmaps;
+
+	GX_GetTexObjAll(&obj, &raw_data, &width, &height, &format, &wrap_s, &wrap_t, &mipmaps);
+}
+
+_FORCE_INLINE_ void gx_flag_conv(uint32_t p_flags, u8 *p_mipmaps, u8 *p_wrap_s, u8 *p_wrap_t){
+
+	*p_mipmaps = p_flags & VS::TEXTURE_FLAG_MIPMAPS ? 1 : 0;
+	*p_wrap_s = p_flags & VS::TEXTURE_FLAG_REPEAT ? GX_REPEAT : GX_CLAMP;
+	*p_wrap_t = p_flags & VS::TEXTURE_FLAG_REPEAT ? GX_REPEAT : GX_CLAMP;
 }
 
 RID VisualServerGX::texture_create(){
@@ -23,8 +38,7 @@ void VisualServerGX::texture_allocate(RID p_texture, int p_width, int p_height, 
 
 	GXTexObj *tex = texture_owner.get(p_texture);
 
-	uint16_t w16 = p_width;
-	uint16_t h16 = p_height;
+	uint16_t w16 = p_width, h16 = p_height;
 
 	uint8_t format;
 
@@ -32,9 +46,17 @@ void VisualServerGX::texture_allocate(RID p_texture, int p_width, int p_height, 
 
 	uint8_t mipmaps;
 
-	void *tex_data = malloc(GX_GetTexBufferSize(w16, h16, format, mipmaps, 0));
+	void *tex_data = malloc(GX_GetTexBufferSize(w16, h16, format, mipmaps, 0)); //TODO: Align this
 
-	GX_InitTexObj(tex, tex_data, w16, h16, format, wrap, wrap, mipmaps);
+	if (p_format == Image::FORMAT_INDEXED || p_format == Image::FORMAT_INDEXED_ALPHA){
+		//TODO: Determine if the image uses a palette that currently is loaded as one of the
+		//TLUTs, otherwise add it, and if that doesn't work, maybe convert it to direct color?
+		GX_InitTexObjCI(tex, tex_data, w16, h16, format, wrap, wrap, mipmaps, GX_TLUT0);
+	} else {
+		GX_InitTexObj(tex, tex_data, w16, h16, format, wrap, wrap, mipmaps);
+	}
+
+
 
 }
 
@@ -65,7 +87,19 @@ Image VisualServerGX::texture_get_data(RID p_texture,VS::CubeMapSide p_cube_side
     return new_img;
 }
 
-void VisualServerGX::texture_set_flags(RID p_texture,uint32_t p_flags){
+void VisualServerGX::texture_set_flags(RID p_texture, uint32_t p_flags){
+	ERR_FAIL_COND(!texture_owner.owns(p_texture));
+
+	GXTexObj *tex = texture_owner.get(p_texture);
+	uint16_t width, height;
+	u8 format, wrap_s, wrap_t, mipmaps;
+	void *tex_data = GX_GetTexObjData(tex);
+
+	if (p_flags & VS::TEXTURE_FLAG_FILTER){
+		GX_InitTexObjFilterMode(tex, GX_LIN_MIP_LIN, GX_LINEAR);
+	} else {
+		GX_InitTexObjFilterMode(tex, GX_NEAR_MIP_NEAR, GX_NEAR);
+	}
 
 }
 
@@ -103,13 +137,14 @@ uint32_t VisualServerGX::texture_get_height(RID p_texture) const{
 }
 
 void VisualServerGX::texture_set_size_override(RID p_texture,int p_width, int p_height){
-}
-
-bool VisualServerGX::texture_can_stream(RID p_texture) const{
 
 }
 
-void VisualServerGX::texture_set_reload_hook(RID p_texture,ObjectID p_owner,const StringName& p_function) const{
+bool VisualServerGX::texture_can_stream(RID p_texture) const {
+
+}
+
+void VisualServerGX::texture_set_reload_hook(RID p_texture,ObjectID p_owner,const StringName& p_function) const {
 
 }
 
@@ -117,7 +152,7 @@ RID VisualServerGX::shader_create(VS::ShaderMode p_mode) {
 
 }
 
-void VisualServerGX::shader_set_mode(RID p_shader,VS::ShaderMode p_mode) {
+void VisualServerGX::shader_set_mode(RID p_shader, VS::ShaderMode p_mode) {
 
 }
 
@@ -1374,8 +1409,12 @@ bool VisualServerGX::has_changed() const {
 }
 
 void VisualServerGX::init(){
+
 	gp_fifo = memalign(32,DEFAULT_FIFO_SIZE);
 	memset(gp_fifo,0,DEFAULT_FIFO_SIZE);
+
+	//TODO MAYBE: Have the renderer run on a different thread, which would allow the engine to run other
+	//tasks for the current frame while rendering occurs
 
 	GX_Init(gp_fifo,DEFAULT_FIFO_SIZE);
 
@@ -1437,5 +1476,8 @@ void VisualServerGX::set_default_clear_color(const Color& p_color){
 }
 
 bool VisualServerGX::has_feature(VS::Features p_feature) const {
+	if (p_feature == FEATURE_SHADERS){
+		return false;
+	}
 }
 
