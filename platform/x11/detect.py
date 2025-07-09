@@ -64,32 +64,37 @@ def configure(env):
 	is64=sys.maxsize > 2**32
 
 	if (env["bits"]=="default"):
+		#host compiler is default...
 		if (is64):
-			env["bits"]="64"
+			env["bits"] = "64"
 		else:
-			env["bits"]="32"
+			env["bits"] = "32"
 
 
-	env.Append(CPPPATH=['#platform/x11'])
-	if (env["use_llvm"]=="yes"):
-		env["CC"]="clang"
-		env["CXX"]="clang++"
-		env["LD"]="clang++"
-		if (env["use_sanitizer"]=="yes"):
-			env.Append(CXXFLAGS=['-fsanitize=address','-fno-omit-frame-pointer'])
-			env.Append(LINKFLAGS=['-fsanitize=address'])
-			env.extra_suffix=".llvms"
+	env.Append(CPPPATH = ['#platform/x11'])
+	if (env["use_llvm"] == "yes"):
+		env["CC"] = "clang"
+		env["CXX"] = "clang++"
+		env["LD"] = "clang++"
+
+		env.Append(CPPFLAGS=['-DTYPED_METHOD_BIND'])
+
+		if (env["use_sanitizer"] == "yes"):
+			env.Append(CXXFLAGS = ['-fsanitize=address', '-fno-omit-frame-pointer'])
+			env.Append(LINKFLAGS = ['-fsanitize=address'])
+			env.extra_suffix = ".llvms"
 		else:
-			env.extra_suffix=".llvm"
+			env.extra_suffix = ".llvm"
+	else:
+		env.extra_suffix = ".gcc"
 
-
-
+		env["CC"] = "gcc"
+		env["CXX"] = "g++"
 
 	#if (env["tools"]=="no"):
 	#	#no tools suffix
 	#	env['OBJSUFFIX'] = ".nt"+env['OBJSUFFIX']
 	#	env['LIBSUFFIX'] = ".nt"+env['LIBSUFFIX']
-
 
 	if (env["target"]=="release"):
 		
@@ -107,11 +112,9 @@ def configure(env):
 	env.ParseConfig('pkg-config xcursor --cflags --libs')
 	env.ParseConfig('pkg-config openssl --cflags --libs')
 
-
 	env.ParseConfig('pkg-config freetype2 --cflags --libs')
 	env.Append(CCFLAGS=['-DFREETYPE_ENABLED'])
 
-	
 	env.Append(CPPFLAGS=['-DOPENGL_ENABLED','-DGLEW_ENABLED'])
 	env.Append(CPPFLAGS=["-DALSA_ENABLED"])
 	#env.Append(CPPFLAGS=['-DX11_ENABLED','-DUNIX_ENABLED','-DGLES2_ENABLED','-DGLES1_ENABLED','-DGLES_OVER_GL', '-DULTRA'])
@@ -126,13 +129,8 @@ def configure(env):
 		env.Append(LINKFLAGS=['-m32','-L/usr/lib/i386-linux-gnu'])
 	elif (not is64 and env["bits"]=="64"):
 		env.Append(CPPFLAGS=['-m64'])
-		env.Append(LINKFLAGS=['-m64','-L/usr/lib/i686-linux-gnu'])
-
-
-	if (env["CXX"]=="clang++"):
-		env.Append(CPPFLAGS=['-DTYPED_METHOD_BIND'])
-		env["CC"]="clang"
-		env["LD"]="clang++"
+		#env.Append(LINKFLAGS=['-m64','-L/usr/lib/i686-linux-gnu'])
+		env.Append(LINKFLAGS=['-m64', '-L/usr/lib/x86_64-linux-gnu', '-L/usr/local/lib64'])
 
 	import methods
 

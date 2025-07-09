@@ -95,22 +95,30 @@ if profile:
 
 opts=Variables(customs, ARGUMENTS)
 opts.Add('target', 'Compile Target (debug/release_debug/release).', "debug")
-opts.Add('bits', 'Compile Target Bits (default/32/64).', "default")
+opts.Add('bits', 'Compile Target Bits (default/32/64).', "default") #TODO: Make this a Linux/Windows/Android specific option, a lot of our platforms are 32-bit only so having this globally confuses things
 opts.Add('platform','Platform: '+str(platform_list)+'.',"")
 opts.Add('p','Platform (same as platform=).',"")
+
 opts.Add('tools','Build Tools (Including Editor): (yes/no)','yes')
 opts.Add('gdscript','Build GDSCript support: (yes/no)','yes')
-opts.Add('vorbis','Build Ogg Vorbis Support: (yes/no)','yes')
+
 opts.Add('pck','Build Godot PCK pack Support: (yes/no)','yes')
 opts.Add('minizip','Build Minizip Archive pack Support: (yes/no)','yes')
 opts.Add('small_pck','Build SmallPCK Support: (yes/no)','no')
 opts.Add('single_pack_source', 'Build the engine to only use one pack source: (yes/no)', 'no')
-opts.Add('squish','Squish BC Texture Compression in editor (yes/no)','yes')
+
+opts.Add('xml','XML Save/Load support (yes/no)','yes')
+
 opts.Add('theora','Theora Video (yes/no)','yes')
 opts.Add('use_theoraplayer_binary', "Use precompiled binaries from libtheoraplayer for ogg/theora/vorbis (yes/no)", "no")
+
 opts.Add('freetype','Freetype support in editor','yes')
+
+opts.Add('vorbis','Build Ogg Vorbis Support: (yes/no)','yes')
 opts.Add('speex','Speex Audio (yes/no)','yes')
-opts.Add('xml','XML Save/Load support (yes/no)','yes')
+opts.Add('musepack','Musepack Audio (yes/no)','yes')
+
+opts.Add('squish','Squish BC Texture Compression in editor (yes/no)','yes')
 opts.Add('png','PNG Image loader support (yes/no)','yes')
 opts.Add('jpg','JPG Image loader support (yes/no)','yes')
 opts.Add('webp','WEBP Image loader support (yes/no)','yes')
@@ -118,11 +126,11 @@ opts.Add('dds','DDS Texture loader support (yes/no)','yes')
 opts.Add('pvr','PVR (PowerVR) Texture loader support (yes/no)','yes')
 opts.Add('builtin_zlib','Use built-in zlib (yes/no)','yes')
 opts.Add('openssl','Use OpenSSL (yes/no/builtin)','no')
-opts.Add('musepack','Musepack Audio (yes/no)','yes')
 opts.Add("CXX", "Compiler")
 opts.Add("CCFLAGS", "Custom flags for the C++ compiler")
 opts.Add("CFLAGS", "Custom flags for the C compiler")
 opts.Add("LINKFLAGS", "Custom flags for the linker")
+
 opts.Add('disable_3d', 'Disable 3D nodes for smaller executable (yes/no)', "no")
 opts.Add('disable_advanced_gui', 'Disable advance 3D gui nodes and behaviors (yes/no)', "no")
 opts.Add("disable_classes", "Disable given classes (comma separated)", "")
@@ -323,8 +331,8 @@ if selected_platform in platform_list:
 
 	scons_cache_path = os.environ.get("SCONS_CACHE")
 	if scons_cache_path is not None:
-    		CacheDir(scons_cache_path)
-    		print("Scons cache enabled... (path: '" + scons_cache_path + "')")
+		CacheDir(scons_cache_path)
+		print("Scons cache enabled... (path: '" + scons_cache_path + "')")
 
 	Export('env')
 

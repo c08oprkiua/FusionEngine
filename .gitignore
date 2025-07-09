@@ -69,6 +69,7 @@ platform/android/libs/play_licensing/gen/*
 __pycache__
 custom.py
 compile_commands.json
+compile_commands.events.json
 
 # https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 ## Ignore Visual Studio temporary files, build results, and

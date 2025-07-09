@@ -940,7 +940,7 @@ ProjectManager::ProjectManager() {
 	String cp;
 	cp.push_back(0xA9);
 	cp.push_back(0);
-	l->set_text(cp+" 2008-2014 Juan Linietsky, Ariel Manzur. (c) 2024 Fusion Engine contributors.");
+	l->set_text(cp + " " _STR(VERSION_COPYRIGHT));
 	l->set_align(Label::ALIGN_CENTER);
 	vb->add_child(l);
 

@@ -1126,6 +1126,7 @@ def update_version():
 	f.write("#define VERSION_MINOR "+str(version.minor)+"\n")
 	f.write("#define VERSION_REVISION "+str(rev)+"\n")
 	f.write("#define VERSION_STATUS "+str(version.status)+"\n")
+	f.write("#define VERSION_COPYRIGHT "+str(version.copyright)+"\n")
 
 def parse_cg_file(fname, uniforms, sizes, conditionals):
 
