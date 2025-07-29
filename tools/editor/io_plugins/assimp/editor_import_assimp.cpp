@@ -206,22 +206,22 @@ public:
 		popup_centered(Size2(450,450));
 		if (p_path!="") {
 
-			Ref<ResourceImportMetadata> rimd = ResourceLoader::load_import_metadata(p_path);
-			ERR_FAIL_COND(!rimd.is_valid());
+			Ref<ResourceImportMetadata> res_imp_meta = ResourceLoader::load_import_metadata(p_path);
+			ERR_FAIL_COND(!res_imp_meta.is_valid());
 
 			save_path->set_text(p_path.get_base_dir());
 			List<String> opts;
-			rimd->get_options(&opts);
+			res_imp_meta->get_options(&opts);
 			for(List<String>::Element *E=opts.front();E;E=E->next()) {
 
-				options->_set(E->get(),rimd->get_option(E->get()));
+				options->_set(E->get(),res_imp_meta->get_option(E->get()));
 			}
 
 			String src = "";
-			for(int i=0;i<rimd->get_source_count();i++) {
+			for(int i=0;i<res_imp_meta->get_source_count();i++) {
 				if (i>0)
 					src+=",";
-				src+=EditorImportPlugin::expand_source_path(rimd->get_source_path(i));
+				src+=EditorImportPlugin::expand_source_path(res_imp_meta->get_source_path(i));
 			}
 			import_path->set_text(src);
 		}
@@ -284,7 +284,7 @@ public:
 	EditorMeshImportDialog(EditorMeshImportPlugin *p_plugin) {
 		plugin=p_plugin;
 
-		set_title("Assimp Mesh Import");
+		set_title("Single Mesh Import");
 
 		VBoxContainer *vbc = memnew( VBoxContainer );
 		add_child(vbc);
@@ -322,7 +322,7 @@ public:
 		add_child(file_select);
 		file_select->set_mode(FileDialog::MODE_OPEN_FILES);
 		file_select->connect("files_selected", this,"_choose_files");
-		//file_select->add_filter("*.obj ; Wavefront OBJ");
+		file_select->add_filter("*.obj ; Wavefront OBJ");
 		save_select = memnew(	EditorDirDialog );
 		add_child(save_select);
 
@@ -358,7 +358,7 @@ String EditorMeshImportPlugin::get_name() const {
 }
 
 String EditorMeshImportPlugin::get_visible_name() const{
-	return "3D Mesh/Scene";
+	return "3D Mesh";
 }
 
 void EditorMeshImportPlugin::import_dialog(const String& p_from){
@@ -366,10 +366,6 @@ void EditorMeshImportPlugin::import_dialog(const String& p_from){
 }
 
 Error EditorMeshImportPlugin::import(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
-	return import_assimp(p_path, p_from);
-}
-
-Error EditorMeshImportPlugin::old_obj_import(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
 	ERR_FAIL_COND_V(p_from->get_source_count()!=1,ERR_INVALID_PARAMETER);
 
 	Ref<ResourceImportMetadata> from=p_from;
@@ -618,7 +614,93 @@ void convert_mesh(aiMesh *in_mesh, Ref<Mesh> out_mesh){
 
 }; //end namespace AssimpToFE
 
-Error EditorMeshImportPlugin::import_assimp(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
+EditorMeshImportPlugin::EditorMeshImportPlugin(EditorNode* p_editor) {
+	dialog = memnew( EditorMeshImportDialog(this));
+	p_editor->get_gui_base()->add_child(dialog);
+}
+
+class AssimpImportDialog: public ConfirmationDialog {
+	OBJ_TYPE(AssimpImportDialog,ConfirmationDialog);
+
+	Ref<FileDialog> file_select;
+
+public:
+	void popup_import(String p_from);
+
+};
+
+void AssimpImportDialog::popup_import(String p_from){
+	file_select = memnew(FileDialog);
+	file_select->set_access(FileDialog::ACCESS_FILESYSTEM);
+	add_child(file_select);
+	file_select->set_mode(FileDialog::MODE_OPEN_FILES);
+	file_select->connect("files_selected", this,"_choose_files");
+	file_select->add_filter("*.obj ; Wavefront OBJ");
+	save_select = memnew(	EditorDirDialog );
+	add_child(save_select);
+
+	//	save_select->set_mode(FileDialog::MODE_OPEN_DIR);
+	save_select->connect("dir_selected", this,"_choose_save_dir");
+
+
+	r_extensions->push_back("3mf");
+	r_extensions->push_back("dae");
+	r_extensions->push_back("xml"); //Collada
+	r_extensions->push_back("bvh");
+	r_extensions->push_back("3ds"); //no not the console
+	r_extensions->push_back("ase");
+	r_extensions->push_back("glTF");
+	r_extensions->push_back("glb");
+	r_extensions->push_back("fbx");
+	r_extensions->push_back("ply");
+	r_extensions->push_back("dxf");
+	r_extensions->push_back("ifc");
+	r_extensions->push_back("iqm");
+	r_extensions->push_back("nff");
+	r_extensions->push_back("smd");
+	r_extensions->push_back("vta");
+	r_extensions->push_back("mdl");
+	r_extensions->push_back("md2");
+	r_extensions->push_back("md3");
+	r_extensions->push_back("pk3");
+	r_extensions->push_back("mdc");
+	r_extensions->push_back("md5mesh");
+	r_extensions->push_back("md5anim");
+	r_extensions->push_back("md5camera");
+	r_extensions->push_back("x"); //directX X
+	r_extensions->push_back("q3o");
+	r_extensions->push_back("q3s");
+	r_extensions->push_back("raw");
+	r_extensions->push_back("ac");
+	r_extensions->push_back("ac3d");
+	r_extensions->push_back("stl");
+	r_extensions->push_back("dxf");
+	r_extensions->push_back("irrmesh");
+	r_extensions->push_back("off");
+	r_extensions->push_back("obj");
+	r_extensions->push_back("ter");
+	r_extensions->push_back("hmp");
+	r_extensions->push_back("mesh.xml");
+	r_extensions->push_back("skeleton.xml");
+	r_extensions->push_back("material");
+	r_extensions->push_back("ogex");
+	r_extensions->push_back("ms3d");
+	r_extensions->push_back("lwo");
+	r_extensions->push_back("lws");
+	r_extensions->push_back("lxo");
+	r_extensions->push_back("csm");
+	r_extensions->push_back("ply");
+	r_extensions->push_back("cob");
+	r_extensions->push_back("scn"); //TrueSpace, not Godot
+	r_extensions->push_back("xgl");
+}
+
+
+void AssimpImportPlugin::import_dialog(const String& p_from){
+	dialog->popup_import(p_from);
+}
+
+Error AssimpImportPlugin::import(const String& p_path, const Ref<ResourceImportMetadata>& p_from){
 	ERR_FAIL_COND_V(p_from->get_source_count() != 1, ERR_INVALID_PARAMETER);
 
 	Ref<ResourceImportMetadata> from=p_from;
@@ -719,9 +801,3 @@ Error EditorMeshImportPlugin::import_assimp(const String& p_path, const Ref<Reso
 
 	return err;
 }
-
-EditorMeshImportPlugin::EditorMeshImportPlugin(EditorNode* p_editor) {
-	dialog = memnew( EditorMeshImportDialog(this));
-	p_editor->get_gui_base()->add_child(dialog);
-}
-

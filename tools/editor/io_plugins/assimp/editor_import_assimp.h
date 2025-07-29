@@ -7,6 +7,7 @@
 
 class EditorNode;
 class EditorMeshImportDialog;
+class AssimpImportDialog;
 
 class EditorMeshImportPlugin : public EditorImportPlugin {
 
@@ -28,24 +29,26 @@ public:
 	virtual void import_dialog(const String& p_from="");
 	virtual Error import(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
 
-	Error old_obj_import(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
-	Error import_assimp(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
-
 	EditorMeshImportPlugin(EditorNode* p_editor);
 };
 
+class AssimpImportPlugin : public EditorImportPlugin {
 
-class EditorAssimpSceneImporter : public EditorSceneImporter {
-	OBJ_TYPE(EditorAssimpSceneImporter,EditorSceneImporter );
+	OBJ_TYPE(AssimpImportPlugin, EditorImportPlugin);
+
+	AssimpImportDialog *dialog;
 
 public:
-	virtual uint32_t get_import_flags() const;
-	virtual void get_extensions(List<String> *r_extensions) const;
-	virtual Node* import_scene(const String& p_path,uint32_t p_flags,int p_bake_fps,List<String> *r_missing_deps=NULL,Error* r_err=NULL);
-	virtual Ref<Animation> import_animation(const String& p_path,uint32_t p_flags);
 
-	EditorAssimpSceneImporter();
+	virtual String get_name() const {
+		return "assimp_3d";
+	};
+	virtual String get_visible_name() const {
+		return "3D Scene/Mesh (Assimp)";
+	}
+	virtual void import_dialog(const String& p_from="");
+	virtual Error import(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
+
 };
-
 
 #endif // EDITOR_IMPORT_ASSIMP_H

@@ -3993,7 +3993,9 @@ EditorNode::EditorNode() {
 
 	Ref<EditorSceneImporterCollada> _collada_import = memnew( EditorSceneImporterCollada);
 	_scene_import->add_importer(_collada_import);
+#ifdef HAS_ASSIMP
 	editor_import_export->add_import_plugin( Ref<EditorMeshImportPlugin>( memnew(EditorMeshImportPlugin(this))));
+#endif
 
 	editor_import_export->add_import_plugin( Ref<EditorFontImportPlugin>( memnew(EditorFontImportPlugin(this))));
 	editor_import_export->add_import_plugin( Ref<EditorSampleImportPlugin>( memnew(EditorSampleImportPlugin(this))));
