@@ -39,11 +39,11 @@ void VisibilityNotifier2D::_enter_viewport(Viewport* p_viewport) {
 	viewports.insert(p_viewport);
 
 	if (viewports.size()==1) {
-		emit_signal(SceneStringNames::get_singleton()->enter_screen);
+		emit_signal(SceneStringNames::enter_screen);
 
 		_screen_enter();
 	}
-	emit_signal(SceneStringNames::get_singleton()->enter_viewport,p_viewport);
+	emit_signal(SceneStringNames::enter_viewport,p_viewport);
 
 }
 
@@ -52,9 +52,9 @@ void VisibilityNotifier2D::_exit_viewport(Viewport* p_viewport){
 	ERR_FAIL_COND(!viewports.has(p_viewport));
 	viewports.erase(p_viewport);
 
-	emit_signal(SceneStringNames::get_singleton()->exit_viewport,p_viewport);
+	emit_signal(SceneStringNames::exit_viewport,p_viewport);
 	if (viewports.size()==0) {
-		emit_signal(SceneStringNames::get_singleton()->exit_screen);
+		emit_signal(SceneStringNames::exit_screen);
 
 		_screen_exit();
 	}
@@ -191,7 +191,7 @@ void VisibilityEnabler2D::_find_nodes(Node* p_node) {
 
 	if (add) {
 
-		p_node->connect(SceneStringNames::get_singleton()->exit_tree,this,"_node_removed",varray(p_node),CONNECT_ONESHOT);
+		p_node->connect(SceneStringNames::exit_tree,this,"_node_removed",varray(p_node),CONNECT_ONESHOT);
 		nodes[p_node]=meta;
 		_change_node_state(p_node,false);
 	}
@@ -236,7 +236,7 @@ void VisibilityEnabler2D::_notification(int p_what){
 
 			if (!visible)
 				_change_node_state(E->key(),true);
-			E->key()->disconnect(SceneStringNames::get_singleton()->exit_tree,this,"_node_removed");
+			E->key()->disconnect(SceneStringNames::exit_tree,this,"_node_removed");
 		}
 
 		nodes.clear();
@@ -280,7 +280,7 @@ void VisibilityEnabler2D::_node_removed(Node* p_node) {
 	if (!visible)
 		_change_node_state(p_node,true);
 	//changed to one shot, not needed
-	//p_node->disconnect(SceneStringNames::get_singleton()->exit_scene,this,"_node_removed");
+	//p_node->disconnect(SceneStringNames::exit_scene,this,"_node_removed");
 	nodes.erase(p_node);
 
 }

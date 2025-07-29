@@ -194,7 +194,7 @@ void Control::_update_minimum_size() {
 		_size_changed();
 	}
 
-	emit_signal(SceneStringNames::get_singleton()->minimum_size_changed);
+	emit_signal(SceneStringNames::minimum_size_changed);
 
 }
 
@@ -561,7 +561,7 @@ void Control::_notification(int p_notification) {
 		 } break;
 		case NOTIFICATION_RESIZED: {
 
-			emit_signal(SceneStringNames::get_singleton()->resized);
+			emit_signal(SceneStringNames::resized);
 		} break;
 		case NOTIFICATION_DRAW: {
 
@@ -569,25 +569,25 @@ void Control::_notification(int p_notification) {
 			xform.set_origin(get_pos());
 			VisualServer::get_singleton()->canvas_item_set_transform(get_canvas_item(),xform);
 			VisualServer::get_singleton()->canvas_item_set_custom_rect( get_canvas_item(),true, Rect2(Point2(),get_size()));
-			//emit_signal(SceneStringNames::get_singleton()->draw);
+			//emit_signal(SceneStringNames::draw);
 
 		} break;
 		case NOTIFICATION_MOUSE_ENTER: {
 
-			emit_signal(SceneStringNames::get_singleton()->mouse_enter);
+			emit_signal(SceneStringNames::mouse_enter);
 		} break;
 		case NOTIFICATION_MOUSE_EXIT: {
 
-			emit_signal(SceneStringNames::get_singleton()->mouse_exit);
+			emit_signal(SceneStringNames::mouse_exit);
 		} break;
 		case NOTIFICATION_FOCUS_ENTER: {
 
-			emit_signal(SceneStringNames::get_singleton()->focus_enter);
+			emit_signal(SceneStringNames::focus_enter);
 			update();
 		} break;
 		case NOTIFICATION_FOCUS_EXIT: {
 
-			emit_signal(SceneStringNames::get_singleton()->focus_exit);
+			emit_signal(SceneStringNames::focus_exit);
 			update();
 
 		} break;
@@ -655,7 +655,7 @@ bool Control::has_point(const Point2& p_point) const {
 		Variant v=p_point;
 		const Variant *p=&v;
 		Variant::CallError ce;
-		Variant ret = get_script_instance()->call(SceneStringNames::get_singleton()->has_point,&p,1,ce);
+		Variant ret = get_script_instance()->call(SceneStringNames::has_point,&p,1,ce);
 		if (ce.error==Variant::CallError::CALL_OK) {
 			return ret;
 		}
@@ -673,7 +673,7 @@ Variant Control::get_drag_data(const Point2& p_point) {
 		Variant v=p_point;
 		const Variant *p=&v;
 		Variant::CallError ce;
-		Variant ret = get_script_instance()->call(SceneStringNames::get_singleton()->get_drag_data,&p,1,ce);
+		Variant ret = get_script_instance()->call(SceneStringNames::get_drag_data,&p,1,ce);
 		if (ce.error==Variant::CallError::CALL_OK)
 			return ret;
 	}
@@ -688,7 +688,7 @@ bool Control::can_drop_data(const Point2& p_point,const Variant& p_data) const {
 		Variant v=p_point;
 		const Variant *p[2]={&v,&p_data};
 		Variant::CallError ce;
-		Variant ret = get_script_instance()->call(SceneStringNames::get_singleton()->can_drop_data,p,2,ce);
+		Variant ret = get_script_instance()->call(SceneStringNames::can_drop_data,p,2,ce);
 		if (ce.error==Variant::CallError::CALL_OK)
 			return ret;
 	}
@@ -702,7 +702,7 @@ void Control::drop_data(const Point2& p_point,const Variant& p_data){
 		Variant v=p_point;
 		const Variant *p[2]={&v,&p_data};
 		Variant::CallError ce;
-		Variant ret = get_script_instance()->call(SceneStringNames::get_singleton()->drop_data,p,2,ce);
+		Variant ret = get_script_instance()->call(SceneStringNames::drop_data,p,2,ce);
 		if (ce.error==Variant::CallError::CALL_OK)
 			return;
 	}
@@ -904,10 +904,10 @@ void Control::_window_call_input(Control *p_control,const InputEvent& p_input) {
 
 	while(p_control) {
 
-		p_control->call_multilevel(SceneStringNames::get_singleton()->_input_event,p_input);
+		p_control->call_multilevel(SceneStringNames::_input_event,p_input);
 		if (window->key_event_accepted)
 			break;
-		p_control->emit_signal(SceneStringNames::get_singleton()->input_event,p_input);
+		p_control->emit_signal(SceneStringNames::input_event,p_input);
 		if (p_control->is_set_as_toplevel()) {
 			break;
 		}
@@ -1224,7 +1224,7 @@ void Control::_window_input_event(InputEvent p_event) {
 				if (window->key_focus->can_process()) {
 					window->key_focus->call_multilevel("_input_event",p_event);
 					if (window->key_focus) //maybe lost it
-						window->key_focus->emit_signal(SceneStringNames::get_singleton()->input_event,p_event);
+						window->key_focus->emit_signal(SceneStringNames::input_event,p_event);
 				}
 
 
@@ -1315,7 +1315,7 @@ Size2 Control::get_minimum_size() const {
 	if (si) {
 
 		Variant::CallError ce;
-		Variant s = si->call(SceneStringNames::get_singleton()->get_minimum_size,NULL,0,ce);
+		Variant s = si->call(SceneStringNames::get_minimum_size,NULL,0,ce);
 		if (ce.error==Variant::CallError::CALL_OK)
 			return s;
 	}
@@ -2553,7 +2553,7 @@ void Control::set_h_size_flags(int p_flags) {
 	if (data.h_size_flags==p_flags)
 		return;
 	data.h_size_flags=p_flags;
-	emit_signal(SceneStringNames::get_singleton()->size_flags_changed);
+	emit_signal(SceneStringNames::size_flags_changed);
 }
 
 int Control::get_h_size_flags() const{
@@ -2564,7 +2564,7 @@ void Control::set_v_size_flags(int p_flags) {
 	if (data.v_size_flags==p_flags)
 		return;
 	data.v_size_flags=p_flags;
-	emit_signal(SceneStringNames::get_singleton()->size_flags_changed);
+	emit_signal(SceneStringNames::size_flags_changed);
 }
 
 
@@ -2574,7 +2574,7 @@ void Control::set_stretch_ratio(float p_ratio) {
 		return;
 
 	data.expand=p_ratio;
-	emit_signal(SceneStringNames::get_singleton()->size_flags_changed);
+	emit_signal(SceneStringNames::size_flags_changed);
 }
 
 float Control::get_stretch_ratio() const {

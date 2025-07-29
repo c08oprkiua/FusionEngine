@@ -105,10 +105,10 @@ void Area3D::_body_enter_tree(ObjectID p_id) {
 	ERR_FAIL_COND(E->get().in_tree);
 
 	E->get().in_tree=true;
-	emit_signal(SceneStringNames::get_singleton()->body_enter,node);
+	emit_signal(SceneStringNames::body_enter,node);
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_enter_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].area_shape);
+		emit_signal(SceneStringNames::body_enter_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].area_shape);
 	}
 
 }
@@ -123,10 +123,10 @@ void Area3D::_body_exit_tree(ObjectID p_id) {
 	ERR_FAIL_COND(!E);
 	ERR_FAIL_COND(!E->get().in_tree);
 	E->get().in_tree=false;
-	emit_signal(SceneStringNames::get_singleton()->body_exit,node);
+	emit_signal(SceneStringNames::body_exit,node);
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->body_exit_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].area_shape);
+		emit_signal(SceneStringNames::body_exit_shape,p_id,node,E->get().shapes[i].body_shape,E->get().shapes[i].area_shape);
 	}
 
 }
@@ -153,10 +153,10 @@ void Area3D::_body_inout(int p_status,const RID& p_body, int p_instance, int p_b
 			E->get().rc=0;
 			E->get().in_tree=node && node->is_inside_tree();
 			if (node) {
-				node->connect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree,make_binds(objid));
-				node->connect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree,make_binds(objid));
+				node->connect(SceneStringNames::enter_tree,this,SceneStringNames::_body_enter_tree,make_binds(objid));
+				node->connect(SceneStringNames::exit_tree,this,SceneStringNames::_body_exit_tree,make_binds(objid));
 				if (E->get().in_tree) {
-					emit_signal(SceneStringNames::get_singleton()->body_enter,node);
+					emit_signal(SceneStringNames::body_enter,node);
 				}
 			}
 
@@ -167,7 +167,7 @@ void Area3D::_body_inout(int p_status,const RID& p_body, int p_instance, int p_b
 
 
 		if (E->get().in_tree) {
-			emit_signal(SceneStringNames::get_singleton()->body_enter_shape,objid,node,p_body_shape,p_area_shape);
+			emit_signal(SceneStringNames::body_enter_shape,objid,node,p_body_shape,p_area_shape);
 		}
 
 	} else {
@@ -182,10 +182,10 @@ void Area3D::_body_inout(int p_status,const RID& p_body, int p_instance, int p_b
 		if (E->get().rc==0) {
 
 			if (node) {
-				node->disconnect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree);
-				node->disconnect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree);
+				node->disconnect(SceneStringNames::enter_tree,this,SceneStringNames::_body_enter_tree);
+				node->disconnect(SceneStringNames::exit_tree,this,SceneStringNames::_body_exit_tree);
 				if (E->get().in_tree)
-					emit_signal(SceneStringNames::get_singleton()->body_exit,obj);
+					emit_signal(SceneStringNames::body_exit,obj);
 
 			}
 
@@ -193,7 +193,7 @@ void Area3D::_body_inout(int p_status,const RID& p_body, int p_instance, int p_b
 
 		}
 		if (node && E->get().in_tree) {
-			emit_signal(SceneStringNames::get_singleton()->body_exit_shape,objid,obj,p_body_shape,p_area_shape);
+			emit_signal(SceneStringNames::body_exit_shape,objid,obj,p_body_shape,p_area_shape);
 		}
 
 		if (eraseit)
@@ -230,13 +230,13 @@ void Area3D::_clear_monitoring() {
 
 			for(int i=0;i<E->get().shapes.size();i++) {
 
-				emit_signal(SceneStringNames::get_singleton()->body_exit_shape,E->key(),node,E->get().shapes[i].body_shape,E->get().shapes[i].area_shape);
+				emit_signal(SceneStringNames::body_exit_shape,E->key(),node,E->get().shapes[i].body_shape,E->get().shapes[i].area_shape);
 			}
 
-			emit_signal(SceneStringNames::get_singleton()->body_exit,obj);
+			emit_signal(SceneStringNames::body_exit,obj);
 
-			node->disconnect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_body_enter_tree);
-			node->disconnect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_body_exit_tree);
+			node->disconnect(SceneStringNames::enter_tree,this,SceneStringNames::_body_enter_tree);
+			node->disconnect(SceneStringNames::exit_tree,this,SceneStringNames::_body_exit_tree);
 		}
 
 	}
@@ -257,13 +257,13 @@ void Area3D::_clear_monitoring() {
 
 			for(int i=0;i<E->get().shapes.size();i++) {
 
-				emit_signal(SceneStringNames::get_singleton()->area_exit_shape,E->key(),node,E->get().shapes[i].area_shape,E->get().shapes[i].self_shape);
+				emit_signal(SceneStringNames::area_exit_shape,E->key(),node,E->get().shapes[i].area_shape,E->get().shapes[i].self_shape);
 			}
 
-			emit_signal(SceneStringNames::get_singleton()->area_exit,obj);
+			emit_signal(SceneStringNames::area_exit,obj);
 
-			node->disconnect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_area_enter_tree);
-			node->disconnect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_area_exit_tree);
+			node->disconnect(SceneStringNames::enter_tree,this,SceneStringNames::_area_enter_tree);
+			node->disconnect(SceneStringNames::exit_tree,this,SceneStringNames::_area_exit_tree);
 		}
 	}
 
@@ -314,10 +314,10 @@ void Area3D::_area_enter_tree(ObjectID p_id) {
 	ERR_FAIL_COND(E->get().in_tree);
 
 	E->get().in_tree=true;
-	emit_signal(SceneStringNames::get_singleton()->area_enter,node);
+	emit_signal(SceneStringNames::area_enter,node);
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->area_enter_shape,p_id,node,E->get().shapes[i].area_shape,E->get().shapes[i].self_shape);
+		emit_signal(SceneStringNames::area_enter_shape,p_id,node,E->get().shapes[i].area_shape,E->get().shapes[i].self_shape);
 	}
 
 }
@@ -331,10 +331,10 @@ void Area3D::_area_exit_tree(ObjectID p_id) {
 	ERR_FAIL_COND(!E);
 	ERR_FAIL_COND(!E->get().in_tree);
 	E->get().in_tree=false;
-	emit_signal(SceneStringNames::get_singleton()->area_exit,node);
+	emit_signal(SceneStringNames::area_exit,node);
 	for(int i=0;i<E->get().shapes.size();i++) {
 
-		emit_signal(SceneStringNames::get_singleton()->area_exit_shape,p_id,node,E->get().shapes[i].area_shape,E->get().shapes[i].self_shape);
+		emit_signal(SceneStringNames::area_exit_shape,p_id,node,E->get().shapes[i].area_shape,E->get().shapes[i].self_shape);
 	}
 
 }
@@ -361,10 +361,10 @@ void Area3D::_area_inout(int p_status,const RID& p_area, int p_instance, int p_a
 			E->get().rc=0;
 			E->get().in_tree=node && node->is_inside_tree();
 			if (node) {
-				node->connect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_area_enter_tree,make_binds(objid));
-				node->connect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_area_exit_tree,make_binds(objid));
+				node->connect(SceneStringNames::enter_tree,this,SceneStringNames::_area_enter_tree,make_binds(objid));
+				node->connect(SceneStringNames::exit_tree,this,SceneStringNames::_area_exit_tree,make_binds(objid));
 				if (E->get().in_tree) {
-					emit_signal(SceneStringNames::get_singleton()->area_enter,node);
+					emit_signal(SceneStringNames::area_enter,node);
 
 				}
 			}
@@ -376,7 +376,7 @@ void Area3D::_area_inout(int p_status,const RID& p_area, int p_instance, int p_a
 
 
 		if (!node || E->get().in_tree) {
-			emit_signal(SceneStringNames::get_singleton()->area_enter_shape,objid,node,p_area_shape,p_self_shape);
+			emit_signal(SceneStringNames::area_enter_shape,objid,node,p_area_shape,p_self_shape);
 		}
 
 	} else {
@@ -391,10 +391,10 @@ void Area3D::_area_inout(int p_status,const RID& p_area, int p_instance, int p_a
 		if (E->get().rc==0) {
 
 			if (node) {
-				node->disconnect(SceneStringNames::get_singleton()->enter_tree,this,SceneStringNames::get_singleton()->_area_enter_tree);
-				node->disconnect(SceneStringNames::get_singleton()->exit_tree,this,SceneStringNames::get_singleton()->_area_exit_tree);
+				node->disconnect(SceneStringNames::enter_tree,this,SceneStringNames::_area_enter_tree);
+				node->disconnect(SceneStringNames::exit_tree,this,SceneStringNames::_area_exit_tree);
 				if (E->get().in_tree) {
-					emit_signal(SceneStringNames::get_singleton()->area_exit,obj);
+					emit_signal(SceneStringNames::area_exit,obj);
 				}
 
 			}
@@ -403,7 +403,7 @@ void Area3D::_area_inout(int p_status,const RID& p_area, int p_instance, int p_a
 
 		}
 		if (!node || E->get().in_tree) {
-			emit_signal(SceneStringNames::get_singleton()->area_exit_shape,objid,obj,p_area_shape,p_self_shape);
+			emit_signal(SceneStringNames::area_exit_shape,objid,obj,p_area_shape,p_self_shape);
 		}
 
 		if (eraseit)

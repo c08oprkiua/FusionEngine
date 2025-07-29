@@ -30,7 +30,7 @@
 #define IMAGE_LOADER_H
 
 #include "image.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "os/file_access.h"
 #include "list.h"
 /**

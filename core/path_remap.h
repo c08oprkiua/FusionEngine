@@ -30,7 +30,7 @@
 #define PATH_REMAP_H
 
 #include "hash_map.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "object.h"
 
 

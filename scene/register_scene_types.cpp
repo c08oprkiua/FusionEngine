@@ -606,13 +606,7 @@ void unregister_scene_types() {
 	memdelete( resource_loader_image );
 	memdelete( resource_loader_wav );
 	memdelete( resource_loader_bitmap );
-#ifdef TOOLS_ENABLED
-
-
-#endif
-
 
 	memdelete( resource_loader_theme );
 	memdelete( resource_loader_shader );
-	SceneStringNames::free();
 }

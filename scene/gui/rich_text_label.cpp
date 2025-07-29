@@ -121,7 +121,7 @@ void RichTextLabel::_process_line(int &y, int p_width, int p_line, ProcessMode p
 		}\
 		l.height_caches.push_back(line_height);\
 	}\
-	y+=line_height+get_constant(SceneStringNames::get_singleton()->line_separation);\
+	y+=line_height+get_constant(SceneStringNames::line_separation);\
 	line_height=0;\
 	wofs=begin;\
 	if (p_mode!=PROCESS_CACHE) {\

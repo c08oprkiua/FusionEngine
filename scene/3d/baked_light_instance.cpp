@@ -26,7 +26,7 @@ void BakedLightInstance::set_baked_light(const Ref<BakedLight>& p_baked_light) {
 
 	if (is_inside_world()) {
 
-		emit_signal(SceneStringNames::get_singleton()->baked_light_changed);
+		emit_signal(SceneStringNames::baked_light_changed);
 
 //		for (List<Node*>::Element *E=baked_geometry.front();E;E=E->next()) {
 //			VS::get_singleton()->instance_geometry_set_baked_light(E->get()->get_instance(),baked_light.is_valid()?get_instance():RID());

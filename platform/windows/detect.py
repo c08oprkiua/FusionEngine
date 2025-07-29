@@ -182,8 +182,10 @@ def configure(env):
 		env['RANLIB'] = gcc_prefix+"ranlib.exe"
 		env['LD'] = gcc_prefix+"g++.exe"
 
-		env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-mwindows', '-D__MSVCRT_VERSION__=0x400', '-DWINDOWS_USE_MUTEX=1'])
-		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-DMINGW_ENABLED'])
+		#C++ standard here has to be gnu++11, not c++11, because with the latter it can't find the
+		#right stdlibs and such
+		env.Append(CCFLAGS=['-DWINDOWS_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-mwindows', '-D__MSVCRT_VERSION__=0x400', '-DWINDOWS_USE_MUTEX=1', '-std=gnu++11'])
+		env.Append(CPPFLAGS=['-DRTAUDIO_ENABLED', '-DWIN98_ENABLED', '-D_UNICODE', '-DUNICODE', '-DMINGW_ENABLED', '-std=gnu++11'])
 		env.Append(CCFLAGS=['-DGLES1_ENABLED', '-DOPENGL_ENABLED', '-DGLES_OVER_GL', '-DGLEW_ENABLED', '-DMINGW_ENABLED', '-DNO_SAFE_CAST', '-fno-rtti'])
 		env.Append(LIBS=['unicows', 'mingw32', 'opengl32', 'dsound', 'ole32', 'winmm', 'gdi32', 'iphlpapi', 'wsock32', 'kernel32', 'comctl32'])
 
@@ -192,7 +194,8 @@ def configure(env):
 		env.Append(CCFLAGS=['-march=pentium','-mtune=generic'])
 		env.Append(CPPFLAGS=['-march=pentium','-mtune=generic'])
 		env.Append(LINKFLAGS=['-march=pentium','-mtune=generic'])
-		
+
+
 	# import methods
 	# env.Append( BUILDERS = { 'GLSL120' : env.Builder(action = methods.build_legacygl_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )
 	# env.Append( BUILDERS = { 'GLSL' : env.Builder(action = methods.build_glsl_headers, suffix = 'glsl.h',src_suffix = '.glsl') } )

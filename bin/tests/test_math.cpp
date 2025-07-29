@@ -27,7 +27,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "test_math.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "print_string.h"
 #include "transform.h"
 #include "matrix3.h"

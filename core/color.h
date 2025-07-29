@@ -29,7 +29,7 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "math_funcs.h"
 /**
 	@author Juan Linietsky <reduzio@gmail.com>

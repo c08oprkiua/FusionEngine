@@ -30,8 +30,8 @@
 #define PATH_DB_H
 
 
-#include "ustring.h"
-#include "string_db.h"
+#include "types/ustring.h"
+#include "types/string_name.h"
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */

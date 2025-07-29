@@ -175,7 +175,7 @@ void SpriteBase3D::_queue_update(){
 		return;
 
 	pending_update=true;
-	call_deferred(SceneStringNames::get_singleton()->_im_update);
+	call_deferred(SceneStringNames::_im_update);
 }
 
 
@@ -445,12 +445,12 @@ void Sprite3D::set_texture(const Ref<Texture>& p_texture) {
 	if (p_texture==texture)
 		return;
 	if (texture.is_valid()) {
-		texture->disconnect(CoreStringNames::get_singleton()->changed,this,SceneStringNames::get_singleton()->_queue_update);
+		texture->disconnect(CoreStringNames::changed,this,SceneStringNames::_queue_update);
 	}
 	texture=p_texture;
 	if (texture.is_valid()) {
 		texture->set_flags(texture->get_flags()); //remove repeat from texture, it looks bad in sprites
-		texture->connect(CoreStringNames::get_singleton()->changed,this,SceneStringNames::get_singleton()->_queue_update);
+		texture->connect(CoreStringNames::changed,this,SceneStringNames::_queue_update);
 	}
 	_queue_update();
 
@@ -773,7 +773,7 @@ void AnimatedSprite3D::set_frame(int p_frame){
 
 	frame=p_frame;
 	_queue_update();
-	emit_signal(SceneStringNames::get_singleton()->frame_changed);
+	emit_signal(SceneStringNames::frame_changed);
 
 }
 int AnimatedSprite3D::get_frame() const{

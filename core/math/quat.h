@@ -31,7 +31,7 @@
 
 #include "math_defs.h"
 #include "math_funcs.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "vector3.h"
 
 /**

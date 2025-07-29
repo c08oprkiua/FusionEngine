@@ -30,9 +30,9 @@
 #define SHADER_LANGUAGE_H
 
 #include "typedefs.h"
-#include "ustring.h"
+#include "types/ustring.h"
 #include "list.h"
-#include "string_db.h"
+#include "types/string_name.h"
 #include "map.h"
 #include "variant.h"
 

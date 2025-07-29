@@ -74,7 +74,7 @@ public:
 typedef void (*ResourceLoadErrorNotify)(void *p_ud,const String& p_text);
 
 
-class ResourceLoader {	
+class ResourceLoader {
 	
 	enum {
 		MAX_LOADERS=64

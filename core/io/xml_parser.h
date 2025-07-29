@@ -29,7 +29,7 @@
 #ifndef XML_PARSER_H
 #define XML_PARSER_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "vector.h"
 #include "os/file_access.h"
 #include "reference.h"

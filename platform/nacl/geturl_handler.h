@@ -29,7 +29,7 @@
 #ifndef EXAMPLES_GETURL_GETURL_HANDLER_H_
 #define EXAMPLES_GETURL_GETURL_HANDLER_H_
 
-#include "core/ustring.h"
+#include "core/types/ustring.h"
 #include "core/vector.h"
 #include "ppapi/cpp/completion_callback.h"
 #include "ppapi/cpp/url_loader.h"

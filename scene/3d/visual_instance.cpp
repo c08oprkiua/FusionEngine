@@ -210,7 +210,7 @@ void GeometryInstance3D::_notification(int p_what) {
 		if (flags[FLAG_USE_BAKED_LIGHT]) {
 
 			if (baked_light_instance) {
-				baked_light_instance->disconnect(SceneStringNames::get_singleton()->baked_light_changed,this,SceneStringNames::get_singleton()->_baked_light_changed);
+				baked_light_instance->disconnect(SceneStringNames::baked_light_changed,this,SceneStringNames::_baked_light_changed);
 				baked_light_instance=NULL;
 			}
 			_baked_light_changed();
@@ -243,7 +243,7 @@ void GeometryInstance3D::_find_baked_light() {
 		if (bl) {
 
 			baked_light_instance=bl;
-			baked_light_instance->connect(SceneStringNames::get_singleton()->baked_light_changed,this,SceneStringNames::get_singleton()->_baked_light_changed);
+			baked_light_instance->connect(SceneStringNames::baked_light_changed,this,SceneStringNames::_baked_light_changed);
 			_baked_light_changed();
 
 			return;
@@ -280,7 +280,7 @@ void GeometryInstance3D::set_flag(Flags p_flag,bool p_value) {
 		if (is_inside_world()) {
 			if (!p_value) {
 				if (baked_light_instance) {
-					baked_light_instance->disconnect(SceneStringNames::get_singleton()->baked_light_changed,this,SceneStringNames::get_singleton()->_baked_light_changed);
+					baked_light_instance->disconnect(SceneStringNames::baked_light_changed,this,SceneStringNames::_baked_light_changed);
 					baked_light_instance=NULL;
 				}
 				_baked_light_changed();

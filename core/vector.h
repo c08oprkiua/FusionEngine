@@ -107,7 +107,7 @@ public:
 		
 		if (!_ptr)
 			return 0;
-		else		
+		else
 			return *reinterpret_cast<int*>(((uint8_t*)(_ptr))+sizeof(SafeRefCount));
 	}
 	_FORCE_INLINE_ bool empty() const { return _ptr == 0; }

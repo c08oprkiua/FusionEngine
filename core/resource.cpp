@@ -148,7 +148,7 @@ ResourceImportMetadata::ResourceImportMetadata() {
 
 void Resource::emit_changed() {
 
-	emit_signal(CoreStringNames::get_singleton()->changed);
+	emit_signal(CoreStringNames::changed);
 }
 
 

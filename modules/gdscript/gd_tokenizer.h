@@ -29,9 +29,9 @@
 #ifndef GD_TOKENIZER_H
 #define GD_TOKENIZER_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "variant.h"
-#include "string_db.h"
+#include "types/string_name.h"
 #include "gd_functions.h"
 #include "vmap.h"
 

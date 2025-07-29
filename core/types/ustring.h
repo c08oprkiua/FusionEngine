@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  ustring.h                                                            */
+/*  types/ustring.h                                                            */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -42,7 +42,20 @@
 	@author red <red@killy>
 */
 
+#define COMPILE_TIME_HASH_STRINGS 1
 
+//Gotta use recursion to make this C++11 compliant, unfortunately.
+//IMPORTANT: Do NOT supply the last two args.
+//Well, ig you could change the last one cause it's just a seed, but
+constexpr uint32_t constexpr_hash(const char *p_cstr, int p_countup = 0, uint32_t p_ret_hash = 5381){
+	return p_cstr[p_countup] ?
+	constexpr_hash(p_cstr, p_countup + 1,
+				   (((p_ret_hash << 5) + p_ret_hash) + p_cstr[p_countup])
+				   )
+	:
+	p_ret_hash
+	;
+}
 
 class CharString : public Vector<char> {
 public:	
@@ -83,7 +96,7 @@ public:
 
 	bool operator==(const String& p_str) const;
 	bool operator!=(const String& p_str) const;
-	String operator+(const String & p_str) const;
+	String operator+(const String& p_str) const;
 	//String operator+(CharType p_char) const;
 
 	String& operator+=(const String &);
@@ -208,9 +221,22 @@ public:
 	static uint32_t hash(const CharType* p_str,int p_len); /* hash the string */
 	static uint32_t hash(const CharType* p_str); /* hash the string */
 	static uint32_t hash(const char* p_cstr,int p_len); /* hash the string */
-	static uint32_t hash(const char* p_cstr); /* hash the string */
+
+	constexpr static uint32_t hash(const char* p_cstr){
+#ifdef COMPILE_TIME_HASH_STRINGS
+	return constexpr_hash(p_cstr);
+#else
+	uint32_t hashv = 5381;
+	uint32_t c = 0;
+
+	while ((c = *p_cstr++))
+		hashv = ((hashv << 5) + hashv) + c; /* hash * 33 + c */
+
+	return hashv;
+#endif
+	} /* hash the string */
 	uint32_t hash() const; /* hash the string */
-	uint64_t hash64() const; /* hash the string */	
+	uint64_t hash64() const; /* hash the string */
 	String md5_text() const;
 	Vector<uint8_t> md5_buffer() const;
 
@@ -256,14 +282,12 @@ public:
 	String(const CharType *p_str,int p_clip_to_len=-1);
 	String(const StrRange& p_range);
 
-
 };
 
+bool operator==(const char *p_chr, const String &p_str);
 
-bool operator==(const char*p_chr, const String& p_str);
-
-String operator+(const char*p_chr, const String& p_str);
-String operator+(CharType p_chr, const String& p_str);
+String operator+(const char *p_chr, const String &p_str);
+String operator+(CharType p_chr, const String &p_str);
 
 String itos(int64_t p_val);
 String rtos(double p_val);
@@ -272,13 +296,13 @@ String rtoss(double p_val); //scientific version
 
 struct NoCaseComparator {
 		
-	bool operator()(const String& p_a, const String& p_b) const {
+	bool operator()(const String &p_a, const String &p_b) const {
 		
 		return p_a.nocasecmp_to(p_b)<0;
 	}
 };
 
- /* end of namespace */
+/* end of namespace */
 
 
 #endif

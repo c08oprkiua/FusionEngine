@@ -29,7 +29,7 @@
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
-#include "ustring.h"
+#include "types/ustring.h"
 #include "list.h"
 
 const char ** tests_get_names();

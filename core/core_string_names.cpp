@@ -28,10 +28,20 @@
 /*************************************************************************/
 #include "core_string_names.h"
 
-CoreStringNames* CoreStringNames::singleton=NULL;
+namespace CoreStringNames {
 
-CoreStringNames::CoreStringNames() {
+StringName _free;
+StringName changed;
+StringName _meta;
+StringName _script;
+StringName script_changed;
+StringName ___pdcdata;
+StringName __getvar;
+StringName _iter_init;
+StringName _iter_next;
+StringName _iter_get;
 
+void create() {
 	_free=StaticCString::create("free");
 	changed=StaticCString::create("changed");
 	_meta=StaticCString::create("__meta__");
@@ -42,6 +52,6 @@ CoreStringNames::CoreStringNames() {
 	_iter_init=StaticCString::create("_iter_init");
 	_iter_next=StaticCString::create("_iter_next");
 	_iter_get=StaticCString::create("_iter_get");
-
+}
 
 }
